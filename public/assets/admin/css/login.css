@@ -1,0 +1,129 @@
+body {
+    font-family: 'Rubik', sans-serif;
+    margin: 0;
+    background-color: #1A1A1A;
+    background-image: url('../images/background-login.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+input {
+    font-family: inherit;
+}
+
+.modal-background {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: #1A1A1A;
+    opacity: 0;
+    z-index: 2;
+    transition: opacity 0.5s;
+}
+
+.modal-background.show {
+    opacity: 0.7;
+}
+
+.modal {
+    position: absolute;
+    text-align: center;
+    background: #212121;
+    width: 280px;
+    border-radius: 12px;
+    margin-top: 50vh;
+    margin-left: 50%;
+    padding: 20px;
+    box-shadow: 0 7px 14px #000000;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: opacity 0.3s, transform 0.5s;
+    z-index: 3;
+}
+
+.modal.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.modal-heading {
+    color: #FBCC04;
+    margin: 0 0 20px  0;
+}
+
+.modal-footer {
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+.text-box-primary {
+    background-color: #1A1A1A;
+    color: #fff;
+    min-width: 100%;
+    max-width: 100%;
+    text-align: center;
+    border-radius: 7px;
+    border-style: solid;
+    border-color: #1A1A1A;
+    border-width: 2px;
+    margin-bottom: 10px;
+    padding: 15px;
+    transition: border 0.5s;
+    outline: none;
+}
+
+.text-box-primary:focus {
+    border-style: solid;
+    border-color: #FBCC04;
+}
+
+#error-message {
+    color: #FF0000;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #FBCC04;
+    color: #121212;
+    width: 100%;
+    border-radius: 7px;
+    border: none;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+}
+
+.btn-primary:hover {
+    background: #DAB200;
+}
+
+.btn-primary:disabled {
+    background: #DAB200;
+    cursor: not-allowed;
+}
+
+a {
+    color: #E7BD00;
+    text-decoration: none;
+    outline: none;
+}
+
+@media only screen and (max-width: 400px) {
+    .modal {
+        border-radius: 0px;
+        margin-left: 0;
+        width: calc(100% - 40px);
+        top: 100%;
+        transform: translate(0, 0);
+        transition: transform 0.5s, top 0.5s;
+    }
+    
+    .modal.show {
+        top: 50%;
+        transform: translate(0%, -50%) scale(1);
+    }
+}

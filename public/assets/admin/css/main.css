@@ -1,0 +1,400 @@
+body {
+    font-family: 'Rubik', sans-serif;
+    margin: 0;
+    background: #1A1A1A;
+}
+
+#header {
+    display: block;
+    position: fixed;
+    width: calc(100% - 70px);
+    padding: 15px 35px;
+    background: #F7B904;
+    color: #1A1A1A;
+    box-shadow: 0 4px 7px #000000;
+    z-index: 1;
+}
+
+#heading {
+    position: absolute;
+    float: left;
+    margin: 0;
+    top: 50%;
+    transform: translate(0%, -50%);
+}
+
+#username {
+    background: #ECB305;
+    float: right;
+    color: #1A1A1A;
+    font-size: 13px;
+    padding: 7px 15px;
+    border-radius: 25px;
+    cursor: pointer;
+}
+
+#username:hover {
+    background: #E2A904;
+}
+
+#admin-navigation {
+    position: fixed;
+    width: 275px;
+    height: calc(100vh - 59px);
+    background: #1A1A1A;
+    margin-top: 59px;   /* To Be Changed */
+    border-right: #FBCC04;
+    box-shadow: 0 7px 7px #000000;
+    overflow-y: auto;
+    z-index: 1;
+}
+
+.setting {
+    width: calc(100% - 70px);
+    padding: 15px 35px;
+    color: #808080;
+    cursor: pointer;
+}
+
+.setting:hover {
+    background: #212121;
+}
+
+i {
+    min-width: 20px;
+    margin-right: 15px;
+}
+
+.selected {
+    background: #808080;
+    color: #1A1A1A;
+    font-weight: bold;
+}
+
+.selected:hover {
+    background: #808080;
+}
+
+#admin-page {
+    position: absolute;
+    width: calc(100% - 275px);
+    margin-top: 59px;
+    margin-left: 275px;
+}
+
+.admin-page-header {
+    width: calc(100% - 50px);
+    background: #212121;
+    padding: 25px;
+    color: #808080;
+}
+
+h2 {
+    margin: 0px 0px 5px 0px;
+}
+
+#admin-description {
+    margin-top: 20px;
+    font-size: 15px;
+}
+
+.form-group {
+    margin: 20px;
+    width: 540px;
+    max-width: calc(100% - 40px);
+}
+
+label {
+    color: #FFFFFF;
+    font-weight: bold;
+    animation: fadeIn 0.3s;
+}
+
+.setting-description {
+    margin: 5px 0px 0px 0px;
+    color: #808080;
+    font-size: 13px;
+}
+
+input, textarea, select {
+    font-family: inherit;
+    outline: none;
+}
+
+.text-box-primary {
+    text-align: left;
+}
+
+.text-box-secondary {
+    background: #212121;
+    color: #fff;
+    width: 100%;
+    font-size: 14px;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #1A1A1A;
+    border-width: 2px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    transition: border 0.5s;
+    animation: fadeIn 0.3s;
+}
+
+.text-box-secondary:focus {
+    border-style: solid;
+    border-color: #FBCC04;
+}
+
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><polygon points="0, 0 100, 0 50, 50" style="fill:%23FFFFFF;" /></svg>');
+    background-position: right 15px top 50%;
+    background-repeat: no-repeat;
+    background-size: 10px;
+}
+
+.btn-primary {
+    margin-bottom: 0;
+}
+
+.btn-secondary {
+    background: #FBCC04;
+    color: #121212;
+    font-size: 13px;
+    border-radius: 5px;
+    border: none;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    animation: fadeIn 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #DAB200;
+}
+
+.btn-secondary:disabled {
+    background: #DAB200;
+    cursor: not-allowed;
+}
+
+.block-group {
+    display: flex;
+    margin: 20px 0px 0px 20px;
+    flex-wrap: wrap;
+}
+
+.block-container {
+    padding-right: 20px;
+}
+
+.block {
+    position: relative;
+    height: 120px;
+    width: 100%;
+    max-width: 230px;
+    padding: 20px;
+    margin: 0px 20px 20px 0px;
+    border-radius: 3px;
+    color: #CCCCCC;
+    background-color: #212121;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-blend-mode: overlay;
+    animation: fadeIn 0.3s;
+}
+
+.block.clickable {
+    text-align: center;
+    box-shadow: 1px 1px 5px #000000;
+    color: #808080;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.block.clickable:hover {
+    box-shadow: none;
+}
+
+.block-button {
+    position: absolute;
+    bottom: 20px;
+    margin: 0;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.block-group.inner {
+    width: 100%;
+    margin: 0px;
+    overflow: hidden;
+    transition: height 0.5s;
+}
+
+.content {
+    width: 100%;
+}
+
+.content-header {
+    width: 100%;
+    color: #FFFFFF;
+    margin: 0px 0px 20px 0px;
+    animation: fadeIn 0.3s;
+}
+
+.content-header.active {
+    color: #F7B904;
+}
+
+.content-header.clickable:hover {
+    color: #F7B904;
+    cursor: pointer;
+}
+
+.event-members {
+    margin-left: 10px;
+    font-family: 'Rubik', sans-serif;
+    cursor: default;
+}
+
+.fa-angle-right {
+    margin: 0;
+    min-width: 0;
+    transform: rotate(0deg);
+    transition: transform 0.5s;
+}
+
+.fa-angle-right.active {
+    transform: rotate(90deg);
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+.fa-times:hover {
+    color: #FF0000;
+}
+
+.fa-pencil-alt:hover {
+    color: #FFA500;
+}
+
+p {
+    text-align: left;
+    font-size: 14px;
+    color: #FFFFFF;
+    margin: 0px 0px 10px 0px;
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+}
+
+td {
+    padding: 0;
+}
+
+.modal-button {
+    color: #FBCC04;
+    margin: 0 0 20px 0;
+    cursor: pointer;
+}
+
+.tag {
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 14px;
+    padding: 5px 8px;
+    margin-left: 5px;
+    background: #808080;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.tag:hover {
+    color: #FF0000;
+}
+
+.tag.button {
+    margin: 0;
+    min-width: 0;
+}
+
+.tag.button:hover {
+    color: #00FF00;
+}
+
+#alert {
+    position: fixed;
+	background: #B4F1AF;
+    color: #33722D;
+    font-size: 13px;
+	padding: 15px 24px;
+    border-radius: 7px;
+    box-shadow: 1px 1px 5px #000000;
+    left: 25px;
+    bottom: -100px;
+    z-index: 4;
+    transition: bottom 0.3s;
+}
+
+#alert.show {
+    bottom: 25px;
+}
+
+#alert.error {
+    background: #d83E3E;
+    color: #FFFFFF;
+}
+
+.alert-button {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.alert-button:hover {
+    color: inherit;
+}
+
+.btn-selection {
+    background: none;
+    color: #FFFFFF;
+    border-radius: 7px;
+    border-color: #F7B904;
+    border-style: solid;
+    padding: 15px 30px;
+    margin: 0px 20px 20px 0px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.3s, color 0.3s;
+    animation: fadeIn 0.3s;
+}
+
+.btn-selection:hover {
+    background: #F7B904;
+    color: #121212;
+}
+
+.btn-selection.selected {
+    background: #F7B904;
+    color: #121212;
+}
+
+#content {
+    width: 100%;
+}
+
+hr {
+    border-color: #808080;
+    margin: 0px 20px 20px 0px;
+    animation: fadeIn 0.3s;
+}

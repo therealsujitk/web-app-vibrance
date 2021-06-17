@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="../assets/admin/css/login.css">
+        <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
+        <script src="../assets/admin/js/login.js"></script>
+        <script src="../jquery/dist/jquery.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <title><%= title %> - Admin Login</title>
+    </head>
+
+    <body onload="setUp();">
+        <div class="modal-background show"></div>
+        <div class="modal show">
+            <h3 class="modal-heading">Log In</h3>
+            <input id="username" class="text-box-primary" type="text" placeholder="Username" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
+            <input id="password" class="text-box-primary" type="password" placeholder="Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
+            <span id="error-message" style="display: none;"></span>
+            <input id="login" class="btn-primary" type="button" style="margin-top: 10px;" value="Log In" title="Log In" onclick="signIn();"></input>
+            <span class="modal-footer">Built by <a href="http://therealsuji.tk" target="_blank">@therealsujitk</a></span>
+        </div>
+    </body>
+</html>

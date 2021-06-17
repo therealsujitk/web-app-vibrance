@@ -1,0 +1,64 @@
+body {
+    margin: 100px 80px 80px 100px;
+    background: #202020;
+    color: #fff;
+    font-family: 'Rubik', sans-serif;
+}
+
+h1 {
+    font-size: 250%;
+    margin: 0;
+}
+
+p {
+    font-size: 110%;
+    margin: 0;
+}
+
+a {
+    position: relative;
+    color: #57a0d3;
+    margin-right: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    outline: none;
+}
+
+a.link:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #57a0d3;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+a.link:hover:before {
+    visibility: visible;
+    width: 100%;
+}
+
+#under-dev {
+    width: 50%;
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        margin: 30px;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    #under-dev {
+        width: auto;
+    }
+}
+
+@media only screen and (min-width: 900px) {
+    #under-dev {
+        width: 40%;
+    }
+}
