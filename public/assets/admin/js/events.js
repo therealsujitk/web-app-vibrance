@@ -71,6 +71,10 @@ function clearSelection() {
     Selecting a day
  */
 window.selectDay = function(selectionButton, dayID) {
+    if (!selectionButton.classList.contains('selected')) {
+        closeCategories();
+    }
+
     clearSelection()
     selectionButton.classList.add('selected');
     renderEvents(0, dayID);
@@ -106,42 +110,49 @@ export function renderEvents(adminContent, dayID) {
 
             for (var key in days) {
                 var obj = days[key];
-                var dayID = obj["id"];
+                var id = obj["id"];
                 var day = obj["day_string"];
                 var selection = "";
 
                 if (key == 0) {
                     selection = " selected";
+                    dayID = id;
                 }
 
-                adminContent.innerHTML += `<input class="btn-selection${selection}" type="button" value="${day}" title="${day}" onclick="selectDay(this, ${dayID})"></input>`;
+                adminContent.innerHTML += `<input class="btn-selection${selection}" type="button" value="${day}" title="${day}" onclick="selectDay(this, ${id})"></input>`;
             }
 
             adminContent.innerHTML += `<div id="content"></div>`;
-        }
 
-        var dayID = 1;
-    
-        var content = document.getElementById('content');
-        content.innerHTML = "";
+            var content = document.getElementById('content');
+            content.innerHTML = "";
+
+            for (var key in categories) {
+                var obj = categories[key];
+                var categoryID = obj["id"];
+                var category = obj["category"];
+
+                if (key != 0) {
+                    content.innerHTML += `<hr>`;
+                }
+
+                content.innerHTML += `<h2 id="category-heading-${categoryID}" class="content-header clickable" onclick="toggleCategory(${categoryID})"><i id="category-button-${categoryID}" class="fas fa-angle-right"></i><span style="margin-left: 15px;">${category}</span></h2>
+                <div id="category-${categoryID}" class="block-group inner" style="height: 0px;"></div>`;
+            }
+        }
 
         for (var key in categories) {
             var obj = categories[key];
             var categoryID = obj["id"];
-            var category = obj["category"];
 
-            if (key != 0) {
-                content.innerHTML += `<hr>`;
-            }
+            var content = document.getElementById(`category-${categoryID}`);
+            content.innerHTML = "";
 
-            content.innerHTML += `<h2 id="category-heading-${categoryID}" class="content-header clickable" onclick="toggleCategory(${categoryID})"><i id="category-button-${categoryID}" class="fas fa-angle-right"></i><span style="margin-left: 15px;">${category}</span></h2>
-            <div id="category-${categoryID}" class="block-group inner" style="height: 0px;">
-                <div class="block clickable" onclick="openEvent(${dayID}, ${categoryID});" title="Add Event">
-                    <div style="margin-top: 60px; transform: translate(0%, -50%);">
-                        <i class="fas fa-plus fa-3x" style="margin: 0px 0px 5px 0px;"></i>
-                        <br>
-                        <span>Add Event</span>
-                    </div>
+            content.innerHTML += `<div class="block clickable" onclick="openEvent(${dayID}, ${categoryID});" title="Add Event">
+                <div style="margin-top: 60px; transform: translate(0%, -50%);">
+                    <i class="fas fa-plus fa-3x" style="margin: 0px 0px 5px 0px;"></i>
+                    <br>
+                    <span>Add Event</span>
                 </div>
             </div>`;
         }
@@ -153,7 +164,6 @@ export function renderEvents(adminContent, dayID) {
             var id = obj["id"];
             var title = obj["title"]
             var categoryID = obj["category_id"];
-            var dayID = obj["day_id"];
             var roomID = obj["room_id"];
             var venue = obj["venue"];
             var description = obj["description"];

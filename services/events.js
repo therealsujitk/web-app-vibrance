@@ -4,7 +4,7 @@ const db = require('../config/db')
 const escape = require('sql-template-strings');
 
 router.post('', async (req, res) => {
-    let sql = escape`SELECT title, description, image, events.id, category_id, day_id, room_id, venue, room, start_time, end_time, members, entry_fee FROM events, venues, rooms WHERE room_id = rooms.id AND venues.id = rooms.venue_id`;
+    let sql = escape`SELECT title, description, image, events.id, category_id, room_id, venue, room, start_time, end_time, members, entry_fee FROM events, venues, rooms WHERE room_id = rooms.id AND venues.id = rooms.venue_id AND day_id = (SELECT id FROM days ORDER BY DATE(date_string) LIMIT 1)`;
     let jsonArray = await db.query(sql);
 
     /*
@@ -63,7 +63,7 @@ router.post('', async (req, res) => {
 
 router.post('/id/*', async (req, res) => {
     let id = req.params[0];
-    let sql = escape`SELECT events.id, title, description, image, category_id, day_id, room_id, venue, room, start_time, end_time, members, entry_fee FROM events, venues, rooms WHERE day_id = ${id} AND room_id = rooms.id AND venues.id = rooms.venue_id`;
+    let sql = escape`SELECT events.id, title, description, image, category_id, room_id, venue, room, start_time, end_time, members, entry_fee FROM events, venues, rooms WHERE day_id = ${id} AND room_id = rooms.id AND venues.id = rooms.venue_id`;
     let jsonArray = await db.query(sql);
 
     /*
