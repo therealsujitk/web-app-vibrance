@@ -52,6 +52,11 @@ window.editMyPassword = function(saveButton) {
     var password = document.getElementById('password').value;
     var repeatPassword = document.getElementById('repeat-password').value;
 
+    if (!validatePassword(password)) {
+        toggleInput(saveButton);
+        return;
+    }
+
     if (password != repeatPassword) {
         displayError('Sorry, new passwords do not match.');
         toggleInput(saveButton);
@@ -184,6 +189,16 @@ window.addUser = function(saveButton) {
     var repeatPassword = document.getElementById('repeat-password').value;
     var userType = document.getElementById('user-type').value;
 
+    if (!validateUsername(username)) {
+        toggleInput(saveButton);
+        return;
+    }
+
+    if (!validatePassword(password)) {
+        toggleInput(saveButton);
+        return;
+    }
+
     if (password != repeatPassword) {
         displayError('Sorry, passwords do not match.');
         toggleInput(saveButton);
@@ -266,6 +281,11 @@ window.editPassword = function(saveButton, id) {
 
     var password = document.getElementById('password').value;
     var repeatPassword = document.getElementById('repeat-password').value;
+
+    if (!validatePassword(password)) {
+        toggleInput(saveButton);
+        return;
+    }
 
     if (password != repeatPassword) {
         displayError('Sorry, passwords do not match.');
@@ -407,4 +427,39 @@ window.deleteUser = function(saveButton, id) {
             toggleInput(saveButton);
         }
     });
+}
+
+/*
+    Username validation
+ */
+function validateUsername(username) {
+    if(username.match(/\W/)){
+        displayError('Sorry, username cannot contain special characters or spaces.');
+        return false;
+    } else if (username.length < 3) {
+        displayError('Sorry, your username needs to have atleast 3 characters.')
+    } else if (username.length > 20) {
+        displayError('Sorry, your username cannot have more than 20 characters.');
+        return false;
+    }
+
+    return true;
+}
+
+/*
+    Password validation
+ */
+function validatePassword(password) {
+    if(password != password.trim()){
+        displayError('Sorry, your password cannot contain trailing spaces.');
+        return false;
+    } else if (password.length < 8) {
+        displayError('Sorry, your password needs to have atleast 8 characters.');
+        return false;
+    } else if (password.length > 20) {
+        displayError('Sorry, your password cannot have more than 20 characters.');
+        return false;
+    }
+
+    return true;
 }

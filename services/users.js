@@ -34,6 +34,14 @@ router.post('/add', checkAdministrator, async (req, res) => {
         userType = 0;
     }
 
+    if (!validateUsername(username, res)) {
+        return;
+    }
+
+    if (!validatePassword(password, res)) {
+        return;
+    }
+
     if (password != repeatPassword) {
         res.status(200).send('Sorry, passwords do not match');
         return;
@@ -57,6 +65,10 @@ router.post('/edit/password', checkAdministrator, async (req, res) => {
     let id = req.body.id;
     let password = req.body.password;
     let repeatPassword = req.body.repeatPassword;
+
+    if (!validatePassword(password, res)) {
+        return;
+    }
 
     if (password != repeatPassword) {
         res.status(200).send('Sorry, passwords do not match.');
@@ -82,6 +94,10 @@ router.post('/edit/my-password', async (req, res) => {
     let currentPassword = req.body.currentPassword;
     let password = req.body.password;
     let repeatPassword = req.body.repeatPassword;
+
+    if (!validatePassword(password, res)) {
+        return;
+    }
 
     if (password != repeatPassword) {
         res.status(200).send('Sorry, new passwords do not match.');
@@ -184,6 +200,41 @@ async function checkAdministrator(req, res, next) {
 
         next();
     }
+}
+
+/*
+    Username validation
+ */
+function validateUsername(username, res) {
+    if(username.match(/\W/)){
+        res.status(200).send('Sorry, username cannot contain special characters or spaces.');
+        return false;
+    } else if (username.length < 3) {
+        res.status(200).send('Sorry, your username needs to have atleast 3 characters.')
+    } else if (username.length > 20) {
+        res.status(200).send('Sorry, your username cannot have more than 20 characters.');
+        return false;
+    }
+
+    return true;
+}
+
+/*
+    Password validation
+ */
+function validatePassword(password, res) {
+    if(password != password.trim()){
+        res.status(200).send('Sorry, your password cannot contain trailing spaces.');
+        return false;
+    } else if (password.length < 8) {
+        res.status(200).send('Sorry, your password needs to have atleast 8 characters.');
+        return false;
+    } else if (password.length > 20) {
+        res.status(200).send('Sorry, your password cannot have more than 20 characters.');
+        return false;
+    }
+
+    return true;
 }
 
 module.exports = router;
