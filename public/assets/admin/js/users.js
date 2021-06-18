@@ -1,4 +1,22 @@
 /*
+    Opening the user dropdown
+ */
+window.openUserDropdown = function() {
+    document.getElementById('username').style.background = '#E2A904';
+    document.getElementById('user-dropdown').style.display = 'block';
+}
+
+/*
+    Closing the user dropdown
+ */
+window.onclick = function(event) {
+    if (!event.target.matches('#username')) {
+        document.getElementById('username').style = null;
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
+}
+
+/*
     Change the contents of the modal for the user menu
  */
 window.openUserMenu = function(username) {
@@ -18,28 +36,19 @@ window.openUserMenu = function(username) {
 /*
     Change the contents of the modal to edit my password
  */
-window.openEditMyPassword = function(username) {
+window.openEditMyPassword = function() {
     var modal = document.getElementById('modal');
-    var timeout = 0;
 
-    if (modal.classList.contains('show')) {
-        closeModal();
-        timeout = 300;
-    }
-    
-    setTimeout(function() {
-        modal.innerHTML = `<table>
-            <td><h3 class="modal-heading">Change Password</h3></td>
-            <td style="text-align: right;"><i class="fas fa-times modal-button" onclick="closeModal();"></i></td>
-        </table>
-        <p>Change password for <b>${username}.</b></p>
-        <input id="current-password" class="text-box-primary" style="margin-bottom: 20px;" type="password" placeholder="Current Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
-        <input id="password" class="text-box-primary" type="password" placeholder="New Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
-        <input id="repeat-password" class="text-box-primary" type="password" placeholder="Repeat Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
-        <input class="btn-primary" type="button" style="margin-top: 10px;" value="Save Changes" title="Save Changes" onclick="editMyPassword(this);"></input>`;
+    modal.innerHTML = `<table>
+        <td><h3 class="modal-heading">Change Password</h3></td>
+        <td style="text-align: right;"><i class="fas fa-times modal-button" onclick="closeModal();"></i></td>
+    </table>
+    <input id="current-password" class="text-box-primary" style="margin-bottom: 20px;" type="password" placeholder="Current Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
+    <input id="password" class="text-box-primary" type="password" placeholder="New Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
+    <input id="repeat-password" class="text-box-primary" type="password" placeholder="Repeat Password" autocomplete="off" spellcheck="false" onkeyup="keyUp(event);"></input>
+    <input class="btn-primary" type="button" style="margin-top: 10px;" value="Save Changes" title="Save Changes" onclick="editMyPassword(this);"></input>`;
 
-        showModal();
-    }, timeout);
+    showModal();
 }
 
 /*
@@ -89,9 +98,7 @@ window.editMyPassword = function(saveButton) {
 /*
     Logging the user out
  */
-window.signOut = function(logoutButton) {
-    toggleInput(logoutButton);
-
+window.signOut = function() {
     $.ajax({
         type: 'POST',
         url: '/admin-logout',

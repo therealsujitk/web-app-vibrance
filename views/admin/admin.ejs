@@ -12,7 +12,13 @@
     <body onload="setUp();">
         <div id="header">
             <h3 id="heading"><%= title %></h3>
-            <div id="username" onclick="openUserMenu(this.innerText);"><%= username %> </div>
+            <div id="username-container">
+                <div id="username" onclick="openUserDropdown();"><%= username %></div>
+                <div id="user-dropdown" style="display: none;">
+                    <a onclick="openEditMyPassword();">Change Password</a>
+                    <a onclick="signOut();">Log Out</a>
+                </div>
+            </div>
         </div>
 
         <div id="admin-navigation">
