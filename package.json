@@ -1,24 +1,55 @@
 {
-    "name": "web-app-vibrance",
-    "version": "2021.0.0",
-    "description": "A web application for VIT Chennai's Cultural Festival, Vibrance.",
-    "main": "bin/server.js",
-    "author": "Sujit Kumar <me@therealsuji.tk> (http://therealsuji.tk)",
-    "license": "MIT",
-    "scripts": {
-        "start": "node bin/server.js",
-        "dev": "node -r dotenv/config bin/server.js"
-    },
-    "dependencies": {
-        "ejs": "^3.1.6",
-        "express": "^4.17.1",
-        "express-session": "^1.17.1",
-        "jquery": "^3.6.0",
-        "md5": "^2.3.0",
-        "serverless-mysql": "^1.5.4",
-        "sql-template-strings": "^2.2.2"
-    },
-    "devDependencies": {
-        "dotenv": "^10.0.0"
-    }
+  "name": "web-app-vibrance",
+  "version": "2022.0.0",
+  "description": "A web application for VIT Chennai's Cultural Festival, Vibrance.",
+  "private": true,
+  "author": "Sujit Kumar <social@therealsuji.tk> (http://therealsuji.tk)",
+  "license": "MIT",
+  "scripts": {
+    "dev": "react-scripts start",
+    "dev:server": "node -r dotenv/config bin/server.js",
+    "start": "npm run build && npm run start:server",
+    "start:server": "node server/bin/server.js",
+    "build": "react-scripts build ** && rm -rf server/build && mv build server/build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "jquery": "^3.6.0",
+    "md5": "^2.3.0",
+    "serverless-mysql": "^1.5.4",
+    "sql-template-strings": "^2.2.2",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:8080"
 }

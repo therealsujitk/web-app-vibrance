@@ -27,7 +27,7 @@ app.use('/api/merchandise.json', merchandiseEndpoint);
 /*
     Static Files
  */
-app.use('/', express.static(__dirname + '/public'));
+app.use('/', express.static(__dirname + '/build'));
 app.use('/jquery', express.static(__dirname + '/node_modules/jquery'));
 
 /*
@@ -36,7 +36,7 @@ app.use('/jquery', express.static(__dirname + '/node_modules/jquery'));
 const { SESSION_SECRET } = require(__dirname + '/config');
 
 app.use(session({
-    secret: SESSION_SECRET,
+    secret: SESSION_SECRET || 'DEFAULT_SECRET',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -180,10 +180,10 @@ async function checkEditor(req, res, next) {
 }
 
 /*
-    404 - Page not found
+    Send all other requests to React
  */
 app.get('/*', (req, res) => {
-    res.status(404).send('404');
+    res.status(200).sendFile(__dirname + '/build/index.html');
 });
 
 module.exports = app;

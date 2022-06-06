@@ -1,7 +1,7 @@
 const app = require('../app');
 const http = require('http').createServer(app);
 const { PORT } = require('../config');
-const port = PORT || 3000;
+const port = PORT || 8080;
 
 /*
     Starting the listener
