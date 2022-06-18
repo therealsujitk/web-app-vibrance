@@ -1,7 +1,7 @@
-function Admin() {
+import AdminLogin from "../admin-login/admin-login";
+
+export default function Admin() {
     return (
-        <h1>Admin Panel</h1>
+        <AdminLogin />
     );
 }
-
-export default Admin;

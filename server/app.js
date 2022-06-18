@@ -48,33 +48,6 @@ app.use(express.urlencoded({
     extended: true
 }));
 
-app.get('/admin', checkAuthenticated, async (req, res) => {
-    let sql = escape`SELECT username, is_admin FROM users WHERE id = ${req.session.userID}`;
-    let result = await db.query(sql);
-    
-    var username = result[0]["username"];
-    var isAdmin = false;
-
-    if (result[0]["is_admin"] == 1) {
-        isAdmin = true;
-    }
-
-    sql = escape`SELECT value_string FROM settings WHERE key_string = 'title'`;
-    let settings = await db.query(sql);
-
-    var title = 'Vibrance';
-
-    if(settings[0] && settings[0]["value_string"] != "") {
-        title = settings[0]["value_string"];
-    }
-
-    res.status(200).render('admin/admin.ejs', {
-        title: title,
-        username: username,
-        isAdmin: isAdmin
-    });
-});
-
 app.post('/admin-login', async (req, res) => {
     let username = req.body.username;
     let password = req.body.password;

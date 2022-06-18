@@ -1,16 +1,18 @@
 import { Admin, Home, NotFound } from './routes';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { DarkTheme } from './theme';
+import { ThemeProvider } from '@emotion/react';
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/admin' element={<Admin />} />
-        <Route path='/*' element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider theme={DarkTheme}>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/admin' element={<Admin />} />
+          <Route path='/*' element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
-
-export default App;
