@@ -1,19 +1,34 @@
-import { Button as MaterialButton, ButtonProps } from '@mui/material';
+import { Button as MaterialButton, ButtonProps as MaterialButtonProps, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React from 'react';
 
-const StyledButton = styled(MaterialButton)<ButtonProps>(({ theme }) => ({
+interface ButtonProps extends MaterialButtonProps {
+  /**
+   * If `true`, a loading indicator will be visible and
+   * the button will be disabled
+   * @default false
+   */
+  isLoading : boolean;
+}
+
+const StyledButton = styled(MaterialButton)<ButtonProps>(() => ({
   fontWeight: 'bold',
   textTransform: 'none',
 }));
 
 export default class Button extends React.Component<ButtonProps> {
-  static defaultProps : ButtonProps = {
+  static defaultProps : Partial<ButtonProps> = {
     size: 'large',
+    isLoading: false,
   };
   
   render() {
     const { children, ...others } = this.props;
+
+    if (others.isLoading) {
+      others.startIcon = <CircularProgress size={20} color="inherit" />;
+      others.disabled = true;
+    }
 
     return (
       <StyledButton {...others}>
