@@ -7,9 +7,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "react-scripts start",
-    "dev:server": "node -r dotenv/config bin/server.js",
-    "start": "npm run build && npm run start:server",
-    "start:server": "node server/bin/server.js",
+    "dev:server": "node -r dotenv/config server/bin/server.js",
+    "start": "node server/bin/server.js",
     "build": "react-scripts build ** && rm -rf server/build && mv build server/build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
