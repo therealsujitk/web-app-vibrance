@@ -10,7 +10,12 @@ interface DialogTitleProps extends MaterialDialogTitleProps {
   onClose? : () => void;
 }
 
-const StyledDialogTitle = styled(MaterialDialogTitle)<DialogTitleProps>(({ theme, onClose }) => ({
+const StyledDialogTitle = styled(MaterialDialogTitle, {
+  shouldForwardProp: (propName) => {
+    const propertyKeys = new Set(['onClose']);
+    return !propertyKeys.has(propName.toString())
+  },
+})<DialogTitleProps>(({ theme, onClose }) => ({
   alignItems: 'center',
   color: theme.palette.primary.main,
   display: 'flex',

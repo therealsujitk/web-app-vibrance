@@ -7,10 +7,15 @@ interface TextFieldProps extends MaterialTextFieldProps {
    * If `true`, text will be center aligned
    * @default false
    */
-  centerAlign? : boolean;
+  centerAlign : boolean;
 }
 
-const StyledTextField = styled(MaterialTextField)<TextFieldProps>(({ theme, centerAlign }) => ({
+const StyledTextField = styled(MaterialTextField, {
+  shouldForwardProp: (propName) => {
+    const propertyKeys = new Set(['centerAlign']);
+    return !propertyKeys.has(propName.toString())
+  },
+})<TextFieldProps>(({ theme, centerAlign }) => ({
   '& .MuiOutlinedInput-root': {
     background: theme.palette.background.paper,
     '& input': {
@@ -35,7 +40,7 @@ export default class TextField extends React.Component<TextFieldProps> {
     centerAlign: false,
   };
   
-  render() {    
+  render() {
     return (
       <StyledTextField {...this.props}/>
     );

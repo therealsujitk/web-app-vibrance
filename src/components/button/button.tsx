@@ -11,7 +11,12 @@ interface ButtonProps extends MaterialButtonProps {
   isLoading : boolean;
 }
 
-const StyledButton = styled(MaterialButton)<ButtonProps>(() => ({
+const StyledButton = styled(MaterialButton, {
+  shouldForwardProp: (propName) => {
+    const propertyKeys = new Set(['isLoading']);
+    return !propertyKeys.has(propName.toString())
+  },
+})<ButtonProps>(() => ({
   fontWeight: 'bold',
   textTransform: 'none',
 }));
