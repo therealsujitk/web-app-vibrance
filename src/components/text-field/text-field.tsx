@@ -29,6 +29,9 @@ const StyledTextField = styled(MaterialTextField, {
     '&:hover fieldset': {
       borderColor: 'transparent',
     },
+    '&.Mui-disabled fieldset': {
+      borderColor: 'transparent',
+    },
     '&.Mui-focused fieldset': {
       borderColor: theme.palette.primary.main,
     }
