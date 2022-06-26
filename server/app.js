@@ -27,7 +27,7 @@ app.use('/api/merchandise.json', merchandiseEndpoint);
 /*
     Static Files
  */
-app.use('/', express.static(__dirname + '/public'));
+app.use('/', express.static(__dirname + '/build'));
 app.use('/jquery', express.static(__dirname + '/node_modules/jquery'));
 
 /*
@@ -36,7 +36,7 @@ app.use('/jquery', express.static(__dirname + '/node_modules/jquery'));
 const { SESSION_SECRET } = require(__dirname + '/config');
 
 app.use(session({
-    secret: SESSION_SECRET,
+    secret: SESSION_SECRET || 'DEFAULT_SECRET',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -47,33 +47,6 @@ app.use(session({
 app.use(express.urlencoded({
     extended: true
 }));
-
-app.get('/admin', checkAuthenticated, async (req, res) => {
-    let sql = escape`SELECT username, is_admin FROM users WHERE id = ${req.session.userID}`;
-    let result = await db.query(sql);
-    
-    var username = result[0]["username"];
-    var isAdmin = false;
-
-    if (result[0]["is_admin"] == 1) {
-        isAdmin = true;
-    }
-
-    sql = escape`SELECT value_string FROM settings WHERE key_string = 'title'`;
-    let settings = await db.query(sql);
-
-    var title = 'Vibrance';
-
-    if(settings[0] && settings[0]["value_string"] != "") {
-        title = settings[0]["value_string"];
-    }
-
-    res.status(200).render('admin/admin.ejs', {
-        title: title,
-        username: username,
-        isAdmin: isAdmin
-    });
-});
 
 app.post('/admin-login', async (req, res) => {
     let username = req.body.username;
@@ -180,10 +153,10 @@ async function checkEditor(req, res, next) {
 }
 
 /*
-    404 - Page not found
+    Send all other requests to React
  */
 app.get('/*', (req, res) => {
-    res.status(404).send('404');
+    res.status(200).sendFile(__dirname + '/build/index.html');
 });
 
 module.exports = app;
