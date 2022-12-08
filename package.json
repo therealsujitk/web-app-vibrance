@@ -1,67 +1,44 @@
 {
   "name": "web-app-vibrance",
-  "version": "2022.0.0",
-  "description": "A web application for VIT Chennai's Cultural Festival, Vibrance.",
+  "version": "2021.0.0",
   "private": true,
+  "description": "A web application for VIT Chennai's Cultural Festival, Vibrance.",
+  "main": "bin/server.ts",
   "author": "Sujit Kumar <social@therealsuji.tk> (http://therealsuji.tk)",
   "license": "MIT",
   "scripts": {
-    "dev": "react-scripts start",
-    "dev:server": "node -r dotenv/config server/bin/server.js",
-    "start": "node server/bin/server.js",
-    "build": "react-scripts build ** && rm -rf server/build && mv build server/build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "build:frontend": "cd frontend && yarn build",
+    "build": "yarn build:frontend && yarn migrate up && tsc -p .",
+    "postbuild": "cd frontend && yarn movebuild",
+    "dev": "ts-node -r dotenv/config bin/server.ts",
+    "migrate": "node node_modules/db-migrate/bin/db-migrate",
+    "start": "node dist/bin/server.js",
+    "preinstall": "cd frontend && yarn"
   },
   "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
-    "@fortawesome/fontawesome-svg-core": "^6.1.1",
-    "@fortawesome/free-solid-svg-icons": "^6.1.1",
-    "@fortawesome/react-fontawesome": "^0.1.18",
-    "@mui/icons-material": "^5.8.4",
-    "@mui/material": "^5.8.2",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^28.1.1",
-    "@types/node": "^17.0.40",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "ejs": "^3.1.6",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.14",
+    "@types/express-fileupload": "^1.4.1",
+    "@types/md5": "^2.3.2",
+    "@types/mysql": "^2.15.21",
+    "@types/node": "^18.11.9",
+    "@types/validator": "^13.7.10",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "db-migrate": "^0.11.13",
+    "db-migrate-mysql": "^2.2.0",
+    "db-migrate-plugin-typescript": "^2.0.0",
     "express": "^4.17.1",
-    "express-session": "^1.17.1",
-    "jquery": "^3.6.0",
+    "express-fileupload": "^1.4.0",
+    "generate-api-key": "^1.0.2",
     "md5": "^2.3.0",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-router-dom": "^6.3.0",
-    "react-scripts": "5.0.1",
-    "serverless-mysql": "^1.5.4",
-    "sql-template-strings": "^2.2.2",
-    "typescript": "^4.7.3",
-    "web-vitals": "^2.1.4"
+    "mysql": "^2.18.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.3",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "dotenv": "^10.0.0"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "proxy": "http://localhost:8080"
+  }
 }
