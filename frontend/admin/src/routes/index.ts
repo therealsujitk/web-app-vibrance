@@ -1,4 +1,5 @@
-import Admin from './admin/admin';
+import Home from './home/home';
+import Login from './login/login';
 
-export { Admin };
+export { Home, Login };
 

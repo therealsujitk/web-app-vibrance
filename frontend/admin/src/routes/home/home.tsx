@@ -6,14 +6,14 @@ import { MediaQuery } from "../../components";
 import { AppBar, DashboardPanel, Drawer, SettingsPanel } from "../../layouts";
 import { DaysPanel } from "../../layouts/panels";
 
-interface AdminHomeState {
+interface HomeState {
   /**
    * If `true`, the drawer is opened
    */
   isDrawerOpen: boolean;
 }
 
-export default class AdminHome extends React.Component<{}, AdminHomeState> {
+export default class Home extends React.Component<{}, HomeState> {
 
   constructor(props : {}) {
     super(props);
