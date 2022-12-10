@@ -1,13 +1,16 @@
 import { faCalendarDay } from "@fortawesome/free-solid-svg-icons/faCalendarDay";
 import { faCalendarWeek } from "@fortawesome/free-solid-svg-icons/faCalendarWeek";
 import { faChartColumn } from "@fortawesome/free-solid-svg-icons/faChartColumn";
-import { faHashtag } from "@fortawesome/free-solid-svg-icons/faHashtag";
+import { faImages } from "@fortawesome/free-solid-svg-icons/faImages";
 import { faLandmark } from "@fortawesome/free-solid-svg-icons/faLandmark";
+import { faSackDollar } from "@fortawesome/free-solid-svg-icons/faSackDollar";
 import { faStore } from "@fortawesome/free-solid-svg-icons/faStore";
 import { faTheaterMasks } from "@fortawesome/free-solid-svg-icons/faTheaterMasks";
+import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { faUsersGear } from "@fortawesome/free-solid-svg-icons/faUsersGear";
 import { faWrench } from "@fortawesome/free-solid-svg-icons/faWrench";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ManageSearch } from "@mui/icons-material";
 import CategoryIcon from "@mui/icons-material/Category";
 import MaterialDrawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
@@ -56,6 +59,11 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
       icon: <FontAwesomeIcon icon={["fas", "wrench"]} />,
       faIcon: faWrench,
     },
+    'audit-log': {
+      title: "Audit Log",
+      description: "Record of all user activities.",
+      icon: <ManageSearch />,
+    },
     users: {
       title: "Users",
       description: "Add, edit or remove users.",
@@ -91,17 +99,29 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
       icon: <FontAwesomeIcon icon={["fas", "theater-masks"]} />,
       faIcon: faTheaterMasks,
     },
+    gallery: {
+      title: "Gallery",
+      description: "Add, edit or remove gallery images.",
+      icon: <FontAwesomeIcon icon={["fas", "images"]} />,
+      faIcon: faImages,
+    },
     merchandise: {
       title: "Merchandise",
       description: "Add, edit or remove merchandise.",
       icon: <FontAwesomeIcon icon={["fas", "store"]} />,
       faIcon: faStore,
     },
-    social: {
-      title: "Social Media",
-      description: "Edit social media links.",
-      icon: <FontAwesomeIcon icon={["fas", "hashtag"]} />,
-      faIcon: faHashtag,
+    sponsors: {
+      title: "Sponsors",
+      description: "Add, edit or remove gallery sposors.",
+      icon: <FontAwesomeIcon icon={["fas", "sack-dollar"]} />,
+      faIcon: faSackDollar,
+    },
+    team: {
+      title: "Team Vibrance",
+      description: "Add, edit or remove team members.",
+      icon: <FontAwesomeIcon icon={["fas", "users"]} />,
+      faIcon: faUsers,
     },
   };
   static width = 260;
