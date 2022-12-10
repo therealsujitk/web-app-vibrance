@@ -2,7 +2,7 @@ import { DialogContent, Link, Stack, Typography } from "@mui/material";
 import React from "react";
 import { Button, Dialog, DialogTitle, TextField } from "../../components";
 import { AppContext } from "../../contexts/app";
-import { doPost } from "../../utils/network";
+import Network from "../../utils/network";
 import './main.css';
 
 interface LoginState {
@@ -70,7 +70,7 @@ export default class Login extends React.Component<{}, LoginState> {
     };
 
     try {
-      const response = await doPost('/api/latest/session/login', credentials);
+      const response = await new Network().doPost('/api/latest/session/login', { body: credentials });
       const apiKey = response?.session?.apiKey;
 
       if (!apiKey) {
