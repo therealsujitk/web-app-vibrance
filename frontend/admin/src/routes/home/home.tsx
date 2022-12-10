@@ -22,6 +22,10 @@ export default class Home extends React.Component<{}, HomeState> {
       isDrawerOpen: false,
     };
 
+    Object.entries(AppBar.items).map(
+      ([_, item]) => "faIcon" in item && library.add(item.faIcon)
+    );
+
     Object.entries(Drawer.items).map(
       ([_, item]) => "faIcon" in item && library.add(item.faIcon)
     );
