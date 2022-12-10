@@ -61,7 +61,7 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
     },
     'audit-log': {
       title: "Audit Log",
-      description: "Record of all user activities.",
+      description: "A record of all user actions.",
       icon: <ManageSearch />,
     },
     users: {
