@@ -1,31 +1,46 @@
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, DialogContent, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { format } from 'date-fns';
+import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, TextField } from '../../../components';
+import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
 
 interface DaysPanelState {
   /**
+   * The list of days
+   */
+  days: { [x: number]: Day };
+
+  /**
+   * The current day details for the dialog
+   */
+  currentDay?: Day;
+
+  /**
    * If `true`, the AddEditDialog is open
+   * @default false
    */
   isAddEditDialogOpen: boolean;
 
   /**
    * If `true`, the DeleteDialog is open
+   * @default false
    */
   isDeleteDialogOpen: boolean;
 
   /**
-   * The current day details for the dialog
+   * If `true`, the panel is in a loading state
+   * @default true
    */
-  currentDay?: DayProps;
+  isLoading: boolean;
 }
 
-interface DayProps {
+interface Day {
   /**
    * The unique id of the day
    */
@@ -43,25 +58,44 @@ interface DayProps {
 }
 
 export default class DaysPanel extends React.Component<{}, DaysPanelState> {
+  apiKey: string;
+  apiBaseUrl: string;
+
+  titleInput: React.RefObject<HTMLInputElement>;
+  dateInput: React.RefObject<HTMLInputElement>;
 
   constructor(props : {}) {
     super(props);
 
     this.state = {
+      days: [],
+      currentDay: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
+      isLoading: true
     };
+
+    this.titleInput = React.createRef();
+    this.dateInput = React.createRef();
+
+    this.apiKey = Cookies.get('apiKey')!;
+    this.apiBaseUrl = '/api/latest/days';
 
     this.openAddDialog.bind(this);
     this.openEditDialog.bind(this);
     this.openDeleteDialog.bind(this);
     this.toggleAddEditDialog.bind(this);
+    this.toggleDeleteDialog.bind(this);
+  }
+
+  componentDidMount() {
+    this.getDays();
   }
 
   render() {
     const panelInfo = Drawer.items.days;
 
-    const DayCard = (props: DayProps) => (
+    const DayCard = (props: Day) => (
       <Card>
         <CardContent>
           <Typography variant="h5">{props.title}</Typography>
@@ -82,69 +116,33 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
       </Card>
     );
 
-    const AddEditDialog = () => (
-      <Dialog onClose={() => this.toggleAddEditDialog(false)} open={this.state.isAddEditDialogOpen}>
-        <DialogTitle onClose={() => this.toggleAddEditDialog(false)}>{typeof this.state.currentDay === 'undefined' ? 'Add' : 'Edit'} Day</DialogTitle>
-        <DialogContent>
-          <Stack spacing={1} mt={0.5}>
-            <TextField placeholder="Title" value={this.state.currentDay?.title} />
-            <TextField placeholder="Date" type="date" value={this.state.currentDay ? format(this.state.currentDay.date, 'yyyy-MM-dd') : ''} />
-            <Button variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })}>Save Day</Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    );
-
-    const DeleteDialog = () => (
-      <Dialog onClose={() => this.toggleDeleteDialog(false)} open={this.state.isDeleteDialogOpen}>
-        <DialogTitle onClose={() => this.toggleDeleteDialog(false)}>Delete Day</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={0.5}>
-            <Typography>Are you sure you want to delete <b>{this.state.currentDay?.title}</b>?</Typography>
-            <Button variant="contained">Delete Day</Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    );
-
-    var days : DayProps[] = [
-      // {
-      //   id: 1,
-      //   title: 'Day 1',
-      //   date: new Date(),
-      // },
-      // {
-      //   id: 2,
-      //   title: 'Day 2',
-      //   date: new Date(),
-      // },
-      // {
-      //   id: 3,
-      //   title: 'Day 3',
-      //   date: new Date(),
-      // },
-      // {
-      //   id: 4,
-      //   title: 'Sports',
-      //   date: new Date(),
-      // },
-    ];
-
     return (
       <Box>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Day</MaterialButton>} />
-        {days.length != 0 ?
-          <Grid spacing={2} sx={{p: 2}} container>
-            {days.map(day => 
-              <Grid key={day.id} xs={12} sm={6} md={4} lg={3} xl={2} item>
-                <DayCard {...day} />
-              </Grid>
-            )}
-          </Grid> :
-          <EmptyState>No days have been added yet.</EmptyState>
+        {this.state.isLoading
+          ? (<Box sx={{p: 2, textAlign: 'center'}}>
+            <CircularProgress sx={{mt: 10}} />
+          </Box>)
+          : Object.keys(this.state.days).length != 0 ?
+            (<Grid spacing={2} sx={{p: 2}} container>
+              {Object.values(this.state.days).map(day => 
+                <Grid key={day.id} xs={12} sm={6} md={4} lg={3} xl={2} item>
+                  <DayCard {...day} />
+                </Grid>
+              )}
+            </Grid>) :
+            (<EmptyState>No days have been added yet.</EmptyState>)
         }
-        <AddEditDialog />
-        <DeleteDialog />
+        <AddEditDialog
+          day={this.state.currentDay}
+          opened={this.state.isAddEditDialogOpen}
+          onClose={() => this.toggleAddEditDialog(false)}
+          onUpdate={this.saveDay} />
+        <DeleteDialog
+          day={this.state.currentDay}
+          opened={this.state.isDeleteDialogOpen}
+          onClose={() => this.toggleDeleteDialog(false)}
+          onUpdate={this.deleteDay} />
       </Box>
     );
   }
@@ -154,12 +152,12 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
     this.toggleAddEditDialog(true);
   }
 
-  openEditDialog(day: DayProps) {
+  openEditDialog(day: Day) {
     this.setState({currentDay: day});
     this.toggleAddEditDialog(true);
   }
 
-  openDeleteDialog(day: DayProps) {
+  openDeleteDialog(day: Day) {
     this.setState({currentDay: day});
     this.toggleDeleteDialog(true);
   }
@@ -170,5 +168,191 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
 
   toggleDeleteDialog(isOpen: boolean) {
     this.setState({isDeleteDialogOpen: isOpen});
+  }
+
+  getDays = async () => {
+    try {
+      const response = await new Network().doGet(this.apiBaseUrl);
+      const days = response.days;
+
+      for (var i = 0; i < days.length; ++i) {
+        const day: Day = {
+          id: days[i].id,
+          title: days[i].title,
+          date: new Date(days[i].date)
+        };
+
+        this.state.days[day.id] = day;
+      }
+
+      this.setState({ 
+        days: this.state.days,
+        isLoading: false
+      });
+    } catch (err) {
+
+    }
+  }
+
+  saveDay = (day: Day) => {
+    this.state.days[day.id] = day;
+    this.setState({ days: this.state.days });
+  }
+
+  deleteDay = (day: Day) => {
+    delete this.state.days[day.id];
+    this.setState({ days: this.state.days });
+  }
+}
+
+interface DayDialogProps {
+  /**
+   * The day being edited or deleted
+   * @default undefined
+   */
+  day?: Day;
+
+  /**
+   * `true` if the dialog is in it's opened state
+   * @default false
+   */
+  opened?: boolean;
+
+  /**
+   * On close callback function
+   */
+  onClose: () => void;
+
+  /**
+   * On update callback function
+   */
+  onUpdate: (day: Day) => void;
+}
+
+interface DayDialogState {
+  /**
+   * `true` if the dialog is in a loading state
+   * @default false
+   */
+  isLoading: boolean;
+}
+
+class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
+  apiKey: string;
+  apiBaseUrl: string;
+
+  titleInput: React.RefObject<HTMLInputElement>;
+  dateInput: React.RefObject<HTMLInputElement>;
+
+  constructor(props: DayDialogProps) {
+    super(props);
+
+    this.state = {
+      isLoading: false
+    };
+
+    this.apiKey = Cookies.get('apiKey')!;
+    this.apiBaseUrl = '/api/latest/days';
+
+    this.titleInput = React.createRef();
+    this.dateInput = React.createRef();
+  }
+  
+  render() {
+    const id = this.props.day?.id;
+    const title = this.props.day ? this.props.day.title : '';
+    const date = this.props.day ? format(this.props.day.date, 'yyyy-MM-dd') : '';
+    
+    return(
+      <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
+        <DialogTitle onClose={this.props.onClose}>{this.props.day ? 'Edit' : 'Add'} Day</DialogTitle>
+        <DialogContent>
+          <input value={id} type="hidden" disabled />
+          <Stack spacing={1} mt={0.5}>
+            <TextField placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
+            <TextField placeholder="Date" type="date" defaultValue={date} inputRef={this.dateInput} disabled={this.state.isLoading} />
+            <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEditDay}>Save Day</Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  addEditDay = async () => {
+    this.setState({ isLoading: true });
+
+    try {
+      const day = {
+        id: this.props.day?.id.toString(),
+        title: this.titleInput.current?.value,
+        date: this.dateInput.current?.value
+      };
+
+      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${day.id ? 'edit' : 'add'}`, { body: day });
+      
+      this.props.onUpdate({
+        id: response.day.id,
+        title: response.day.title,
+        date: new Date(response.day.date)
+      });
+      this.props.onClose();
+    } catch (err) {
+
+    }
+
+    this.setState({ isLoading: false });
+  }
+}
+
+class DeleteDialog extends React.Component<DayDialogProps, DayDialogState> {
+  apiKey: string;
+  apiBaseUrl: string;
+
+  constructor(props: DayDialogProps) {
+    super(props);
+
+    this.state = {
+      isLoading: false
+    };
+
+    this.apiKey = Cookies.get('apiKey')!;
+    this.apiBaseUrl = '/api/latest/days';
+  }
+  
+  render() {
+    const id = this.props.day?.id;
+    const title = this.props.day ? this.props.day.title : '';
+
+    return (
+      <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
+        <DialogTitle onClose={this.props.onClose}>Delete Day</DialogTitle>
+        <DialogContent>
+          <input value={id} type="hidden" disabled />
+          <Stack spacing={2} mt={0.5}>
+            <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
+            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.deleteDay}>Delete Day</Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  deleteDay = async () => {
+    this.setState({ isLoading: true });
+
+    try {
+      const day = {
+        id: this.props.day!.id.toString()
+      }
+
+      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: day });
+      
+      this.props.onUpdate(this.props.day!);
+      this.props.onClose();
+    } catch (err) {
+
+    }
+
+    this.setState({ isLoading: false });
   }
 }
