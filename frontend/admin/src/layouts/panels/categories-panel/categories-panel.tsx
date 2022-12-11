@@ -306,7 +306,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData });
+      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
       
       this.props.onUpdate({
         id: response.category.id,
@@ -363,8 +363,10 @@ class DeleteDialog extends React.Component<CategoryDialogProps, CategoryDialogSt
       const category = {
         id: this.props.category!.id.toString()
       }
+      const f = new FormData();
+      f.append("id", this.props.category!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: category });
+      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
       
       this.props.onUpdate(this.props.category!);
       this.props.onClose();

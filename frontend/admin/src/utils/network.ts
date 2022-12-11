@@ -11,7 +11,7 @@ export default class Network {
     this.apiKey = apiKey;
   }
 
-  async doMethod(url: string, method: Method, options?: { headers?: NetworkParams, query?: NetworkParams, body?: NetworkParams|FormData }) : Promise<any> {
+  async doMethod(url: string, method: Method, options?: { headers?: NetworkParams, query?: NetworkParams, body?: NetworkParams|FormData }, forceMultipart = false) : Promise<any> {
     const promise = new Promise((resolve, reject) => {
       const request = new XMLHttpRequest();
 
@@ -39,8 +39,15 @@ export default class Network {
       }
 
       if (options && options.body instanceof FormData) {
-        request.send(options?.body);
+        if (forceMultipart) {
+          // Automatically sets Content-Type as 'multipart/form-data'
+          request.send(options?.body);
+        } else {
+          // Automatically sets Content-Type as 'application/x-www-form-urlencoded'
+          request.send(new URLSearchParams(options?.body as any));
+        }
       } else {
+        request.setRequestHeader('Content-Type', 'application/json');
         request.send(JSON.stringify(options?.body));
       }
     });
@@ -52,8 +59,8 @@ export default class Network {
     return await this.doMethod(url, Method.GET, options);
   }
   
-  async doPost(url: string, options?: { headers?: NetworkParams, body: NetworkParams }) {
-    return await this.doMethod(url, Method.POST, options);
+  async doPost(url: string, options?: { headers?: NetworkParams, body: NetworkParams }, forceMultipart = false) {
+    return await this.doMethod(url, Method.POST, options, forceMultipart);
   }
 
   async doFetch(url: string, method: Method, options?: { headers?: NetworkParams, query?: NetworkParams, body?: NetworkParams }) : Promise<any> {
