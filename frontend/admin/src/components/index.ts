@@ -6,5 +6,6 @@ import ImageInput from './image-input/image-input';
 import MediaQuery from './media-query/media-query';
 import Select from './select/select';
 import TextField from './text-field/text-field';
+import Theme from './theme/theme';
 
-export { Button, Dialog, DialogTitle, EmptyState, ImageInput, MediaQuery, Select, TextField };
+export { Button, Dialog, DialogTitle, EmptyState, ImageInput, MediaQuery, Select, TextField, Theme };

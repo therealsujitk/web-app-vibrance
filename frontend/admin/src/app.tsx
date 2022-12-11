@@ -1,7 +1,7 @@
 import { Home, Login } from './routes';
 import { BrowserRouter } from 'react-router-dom';
 import { DarkTheme } from './theme';
-import { ThemeProvider } from '@emotion/react';
+import { ThemeProvider } from '@mui/material';
 import { AppContext, AppContextInterface } from './contexts/app';
 import Logo from "./assets/images/logo.png";
 import React from 'react';
