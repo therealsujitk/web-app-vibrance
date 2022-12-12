@@ -1,14 +1,14 @@
-import { TextField as MaterialTextField, BaseTextFieldProps as MaterialTextFieldProps } from '@mui/material';
+import { TextField as MaterialTextField, TextFieldProps as MaterialTextFieldProps } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React from 'react';
 
-interface TextFieldProps extends MaterialTextFieldProps {
+type TextFieldProps = {
   /**
    * If `true`, text will be center aligned
    * @default false
    */
   centerAlign : boolean;
-}
+} & MaterialTextFieldProps;
 
 const StyledTextField = styled(MaterialTextField, {
   shouldForwardProp: (propName) => {
