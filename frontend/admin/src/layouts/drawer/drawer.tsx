@@ -113,7 +113,7 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
     },
     sponsors: {
       title: "Sponsors",
-      description: "Add, edit or remove gallery sposors.",
+      description: "Add, edit or remove sposors.",
       icon: <FontAwesomeIcon icon={["fas", "sack-dollar"]} />,
       faIcon: faSackDollar,
     },
