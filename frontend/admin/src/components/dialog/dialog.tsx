@@ -2,11 +2,11 @@ import { Dialog as MaterialDialog, DialogProps } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React from 'react';
 
-const StyledDialog = styled(MaterialDialog)<DialogProps>(({ theme }) => ({
+const StyledDialog = styled(MaterialDialog)<DialogProps>(({ theme, fullWidth }) => ({
   '& .MuiPaper-root': {
     background: theme.palette.background.default,
     borderRadius: 2 * Number(theme.shape.borderRadius),
-    width: 300,
+    ...!fullWidth && { width: 300 },
   }
 }));
 
