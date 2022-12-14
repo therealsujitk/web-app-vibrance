@@ -4,7 +4,7 @@ import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { MediaQuery } from "../../components";
 import { AppBar, DashboardPanel, Drawer, SettingsPanel } from "../../layouts";
-import { AuditLogPanel, CategoriesPanel, DaysPanel, GalleryPanel, MerchandisePanel, SponsorsPanel } from "../../layouts/panels";
+import { AuditLogPanel, CategoriesPanel, DaysPanel, GalleryPanel, MerchandisePanel, SponsorsPanel, UsersPanel } from "../../layouts/panels";
 
 interface HomeState {
   /**
@@ -46,6 +46,7 @@ export default class Home extends React.Component<{}, HomeState> {
               <Route path="/dashboard" element={<DashboardPanel />}></Route>
               <Route path="/settings" element={<SettingsPanel />}></Route>
               <Route path="/audit-log" element={<AuditLogPanel />}></Route>
+              <Route path="/users" element={<UsersPanel />}></Route>
               <Route path="/days" element={<DaysPanel />}></Route>
               <Route path="/categories" element={<CategoriesPanel />}></Route>
               <Route path="/gallery" element={<GalleryPanel />}></Route>
