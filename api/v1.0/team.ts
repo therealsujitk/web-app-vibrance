@@ -52,7 +52,7 @@ teamRouter.get('', async (req, res) => {
  * 
  * @response JSON
  *  {
- *      "sponsor": {
+ *      "member": {
  *          "id": 1,
  *          "name": "Sujit",
  *          "description": "",
@@ -118,7 +118,7 @@ teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uplo
 
   try {
     res.status(200).json({
-      sponsor: await new Team(user.id).add(team)
+      member: await new Team(user.id).add(team)
     });
   } catch (_) {
     internalServerError(res);
@@ -138,7 +138,7 @@ teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uplo
  * 
  * @response JSON
  *  {
- *      "sponsor": {
+ *      "member": {
  *          "id": 1,
  *          "name": "Sujit",
  *          "description": "",
@@ -209,7 +209,7 @@ teamRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), upl
 
   try {
     res.status(200).json({
-      sponsor: await new Team(user.id).edit(id, team)
+      member: await new Team(user.id).edit(id, team)
     });
   } catch (err) {
     if (err instanceof ClientError) {
