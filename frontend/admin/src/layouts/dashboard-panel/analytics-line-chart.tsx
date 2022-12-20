@@ -1,9 +1,15 @@
 import { Box } from "@mui/material";
-import { Chart as ChartJS, registerables, ChartDataset, LegendItem, ChartData } from "chart.js";
+import { Chart as ChartJS, ChartDataset, LegendItem, ChartData, CategoryScale, LinearScale, PointElement, LineElement, Legend } from "chart.js";
 import { Line } from "react-chartjs-2";
 
 export default function AnalyticsLineChart(props: {data: ChartData<"line", number[], string>, style?: {[x: string]: any}}) {
-  ChartJS.register(...registerables);
+  ChartJS.register([
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Legend
+  ]);
 
   return (<Box sx={{width: '100%', height: '400px', ...props.style}}>
     <Line
