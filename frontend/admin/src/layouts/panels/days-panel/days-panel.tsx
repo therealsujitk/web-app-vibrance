@@ -101,7 +101,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
           <Typography variant="h5">{props.title}</Typography>
           <Typography variant="body1">{format(props.date, 'do LLL yyyy')}</Typography>
         </CardContent>
-        <CardActions>
+        <CardActions disableSpacing>
           <Tooltip title="Edit">
             <IconButton onClick={() => this.openEditDialog(props)}>
               <EditIcon />
