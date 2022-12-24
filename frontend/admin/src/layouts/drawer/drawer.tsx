@@ -83,7 +83,7 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
     },
     venues: {
       title: "Venues",
-      description: "Add, edit or remove venues.",
+      description: "Add, edit or remove venues and rooms.",
       icon: <FontAwesomeIcon icon={["fas", "landmark"]} />,
       faIcon: faLandmark,
     },
