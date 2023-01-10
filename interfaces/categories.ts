@@ -4,6 +4,7 @@ import { LogAction } from '../models/log-entry';
 import { Category, CategoryType } from '../models/category';
 import { getMysqlErrorCode, isEqual, OrNull } from '../utils/helpers';
 import Images from './images';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 import { ClientError } from '../utils/errors';
 
 export default class Categories {
@@ -14,10 +15,17 @@ export default class Categories {
   }
 
   static async getAll(page = 1, types: CategoryType[] = []) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `categories`.`id` AS `id`, `title`, `type`, `image` FROM `categories` LEFT JOIN `images` ON `images`.`id` = `image_id` WHERE (1 = ? OR `type` IN (?)) ORDER BY `title` LIMIT ? OFFSET ?", [types.length + 1, types.length == 0 ? [0] : types, limit, offset]);
+    return await query("SELECT " + 
+      "`categories`.`id` AS `id`, " + 
+      "`title`, " + 
+      "`type`, " + 
+      "CONCAT('" + IMAGE_URL + "', `image`) AS `image` " + 
+      "FROM `categories` LEFT JOIN `images` " + 
+      "ON `images`.`id` = `image_id` " + 
+      "WHERE (1 = ? OR `type` IN (?)) " + 
+      "ORDER BY `title` LIMIT ? OFFSET ?", [types.length + 1, types.length == 0 ? [0] : types, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Category> {
@@ -55,7 +63,8 @@ export default class Categories {
 
     return {
       id: (await transaction(queries))[!existing && category.image ? 1 : 0].insertId,
-      ...category
+      ...category,
+      image: category.image ? IMAGE_URL + category.image : null
     };
   }
 
@@ -90,7 +99,10 @@ export default class Categories {
     ];
 
     await transaction(queries);
-    return { id, ...category };
+    return { id,
+      ...category,
+      image: category.image ? IMAGE_URL + category.image : null
+    };
   }
 
   async delete(id : number) {

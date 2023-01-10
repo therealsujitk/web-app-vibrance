@@ -5,6 +5,7 @@ import { ProShow } from '../models/pro-show';
 import { getMysqlErrorCode, isEqual, OrNull } from '../utils/helpers';
 import Images from './images';
 import { ClientError } from '../utils/errors';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 
 export default class ProShows {
   userId: number;
@@ -14,10 +15,9 @@ export default class ProShows {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT * FROM `pro_shows` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT * FROM `pro_shows` LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<ProShow> {
@@ -60,7 +60,8 @@ export default class ProShows {
     try {
       return {
         id: (await transaction(queries))[!existing && proShow.image ? 1 : 0].insertId,
-        ...proShow
+        ...proShow,
+        image: proShow.image ? IMAGE_URL + proShow.image : null
       };
     } catch (err) {
       const code = getMysqlErrorCode(err);
@@ -119,7 +120,11 @@ export default class ProShows {
       }
     }
 
-    return { id, ...proShow };
+    return { 
+      id, 
+      ...proShow,
+      image: proShow.image ? IMAGE_URL + proShow.image : null
+    };
   }
 
   async delete(id : number) {

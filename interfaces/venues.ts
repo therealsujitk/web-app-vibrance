@@ -4,6 +4,7 @@ import { LogAction } from '../models/log-entry';
 import { Venue } from '../models/venue';
 import { getMysqlErrorCode, isEqual, OrNull } from '../utils/helpers';
 import { ClientError } from '../utils/errors';
+import { LIMIT } from '../utils/constants';
 
 export default class Venues {
   userId: number;
@@ -13,8 +14,7 @@ export default class Venues {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
     const result = await query("SELECT " +
       "`venue_id` AS `id`, " +
@@ -24,7 +24,7 @@ export default class Venues {
       "FROM `rooms` " + 
       "INNER JOIN (SELECT * FROM `venues` ORDER BY `title` LIMIT ? OFFSET ?) AS `venues`" +
       "WHERE `venue_id` = `venues`.`id` " + 
-      "ORDER BY `venues`.`title`, `rooms`.`title`", [limit, offset]);
+      "ORDER BY `venues`.`title`, `rooms`.`title`", [LIMIT, offset]);
     
     const venues_map: { [x: number]: number } = {};
     const venues = [];

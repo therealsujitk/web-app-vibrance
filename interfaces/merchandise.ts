@@ -5,6 +5,7 @@ import { Merchandise as MerchandiseModel } from '../models/merchandise';
 import { isEqual, OrNull } from '../utils/helpers';
 import Images from './images';
 import { ClientError } from '../utils/errors';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 
 export default class Merchandise {
   userId: number;
@@ -14,10 +15,17 @@ export default class Merchandise {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `merchandise`.`id` AS `id`, `title`, `image`, `cost` FROM `merchandise` LEFT JOIN `images` ON `images`.`id` = `image_id` ORDER BY `title` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT " + 
+      "`merchandise`.`id` AS `id`, " + 
+      "`title`, " + 
+      "CONCAT('" + IMAGE_URL + "', `image`) AS `image`, " + 
+      "`cost` " + 
+      "FROM `merchandise` " + 
+      "LEFT JOIN `images` " + 
+      "ON `images`.`id` = `image_id` " + 
+      "ORDER BY `title` LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<MerchandiseModel> {
@@ -55,7 +63,8 @@ export default class Merchandise {
 
     return {
       id: (await transaction(queries))[!existing && merchandise.image ? 1 : 0].insertId,
-      ...merchandise
+      ...merchandise,
+      image: merchandise.image ? IMAGE_URL + merchandise.image : null
     };
   }
 
@@ -90,7 +99,11 @@ export default class Merchandise {
     ];
 
     await transaction(queries);
-    return { id, ...merchandise };
+    return {
+      id,
+      ...merchandise,
+      image: merchandise.image ? IMAGE_URL + merchandise.image : null
+    };
   }
 
   async delete(id : number) {

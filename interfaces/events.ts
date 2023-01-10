@@ -5,6 +5,7 @@ import { getDateTimeFromUTC, getMysqlErrorCode, getUTCFromString, isEqual, OrNul
 import Activities from "./audit-log";
 import Images from "./images";
 import { ClientError } from "../utils/errors";
+import { IMAGE_URL, LIMIT } from "../utils/constants";
 
 export default class Events {
   userId: number;
@@ -14,8 +15,7 @@ export default class Events {
   }
 
   static async getAll(page = 1, dayIds: number[] = [], categoryIds: number[] = [], venueIds: number[] = []) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
     dayIds.push(0);
     categoryIds.push(0);
@@ -29,7 +29,7 @@ export default class Events {
       "`rooms`.`title` AS `room`, " +
       "`events`.`title` AS `title`, " + 
       "`events`.`description` AS `description`, " +
-      "`images`.`image` AS `image`, " +
+      "CONCAT('" +  IMAGE_URL + "', `images`.`image`) AS `image`, " +
       "`events`.`start_datetime` AS `start_datetime`, " +
       "`events`.`end_datetime` AS `end_datetime`, " +
       "`events`.`cost` AS `cost`, " +
@@ -45,7 +45,7 @@ export default class Events {
       "(1 = ? OR `category_id` IN (?)) AND " +
       "(1 = ? OR `venue_id` IN (?)) " +
       "ORDER BY `events`.`title` " +
-      "LIMIT ? OFFSET ?", [dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, limit, offset]);
+      "LIMIT ? OFFSET ?", [dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Event> {
@@ -115,7 +115,8 @@ export default class Events {
     try {
       return {
         id: (await transaction(queries))[!existing && event.image ? 1 : 0].insertId,
-        ...event
+        ...event,
+        image: event.image ? IMAGE_URL + event.image : null
       };
     } catch (err) {
       const code = getMysqlErrorCode(err);
@@ -186,7 +187,11 @@ export default class Events {
       }
     }
 
-    return { id, ...event };
+    return { 
+      id, 
+      ...event,
+      image: event.image ? IMAGE_URL + event.image : null
+    };
   }
 
   async delete(id: number) {

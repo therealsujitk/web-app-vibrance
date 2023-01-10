@@ -1,14 +1,14 @@
 import { query } from '../config/db';
 import { LogEntry } from '../models/log-entry';
+import { LIMIT } from '../utils/constants';
 
 export default class AuditLog {
   constructor() {}
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `audit_log`.`id` AS `id`, `username` AS `actor`, `action`, `old`, `new`, `timestamp` FROM `audit_log` LEFT JOIN `users` ON `users`.`id` = `actor` ORDER BY `id` DESC LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT `audit_log`.`id` AS `id`, `username` AS `actor`, `action`, `old`, `new`, `timestamp` FROM `audit_log` LEFT JOIN `users` ON `users`.`id` = `actor` ORDER BY `id` DESC LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   static createInsertQuery(logEntry: LogEntry) {

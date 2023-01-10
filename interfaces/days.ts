@@ -4,6 +4,7 @@ import { LogAction } from '../models/log-entry';
 import { Day } from '../models/day';
 import { getDateFromUTC, getMysqlErrorCode, getUTCFromString, isEqual, OrNull } from '../utils/helpers';
 import { ClientError } from '../utils/errors';
+import { LIMIT } from '../utils/constants';
 
 export default class Days {
   userId: number;
@@ -13,10 +14,9 @@ export default class Days {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT * FROM `days` ORDER BY `date` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT * FROM `days` ORDER BY `date` LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Day> {

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import fileUpload, { UploadedFile } from "express-fileupload";
 import fs from "fs";
 import { Permission } from "../../models/user";
+import { IMAGE_PATH } from "../../utils/constants";
 import { InvalidMIMEType } from "./errors";
 
 export function checkPermissions(permissions = 0) {
@@ -55,7 +56,7 @@ export function handleFileUpload(file: UploadedFile, mimetypes: string[]) {
     throw new InvalidMIMEType(mimetypes, file.mimetype);
   }
 
-  const fileDir = __dirname + '/../../public/uploads/images';
+  const fileDir = __dirname + '/../../public' + IMAGE_PATH;
   const fileExt = file.name.split('.')[1] || '';
   const fileName = file.md5 + '.' + fileExt;
   const filePath = fileDir + '/' + fileName;

@@ -3,6 +3,7 @@ import Activities from './audit-log';
 import Images from './images';
 import { LogAction } from '../models/log-entry';
 import { ClientError } from '../utils/errors';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 
 export default class Gallery {
   userId: number;
@@ -12,10 +13,13 @@ export default class Gallery {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `gallery`.`id` AS `id`, `image` FROM `gallery`, `images` WHERE `image_id` = `images`.`id` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT " + 
+      "`gallery`.`id` AS `id`, " + 
+      "CONCAT('" + IMAGE_URL + "', `image`) AS `image` " + 
+      "FROM `gallery`, `images` " + 
+      "WHERE `image_id` = `images`.`id` LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) {
@@ -55,7 +59,7 @@ export default class Gallery {
     return images.map((image, i) => {
       return {
         id: results[i + imageQueries.length].insertId,
-        image: image
+        image: image ? IMAGE_URL + image : null
       };
     });
   }
