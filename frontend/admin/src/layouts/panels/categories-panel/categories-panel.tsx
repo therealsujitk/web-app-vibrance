@@ -6,6 +6,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedi
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -69,6 +70,8 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -94,7 +97,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
   }
 
   componentDidMount() {
-    this.getCategories();
+    this.getCategories(this.onError!);
   }
 
   render() {
@@ -132,6 +135,9 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Category</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -181,7 +187,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getCategories = async () => {
+  getCategories = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const categories = response.categories;
@@ -202,7 +208,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getCategories(onError) });
     }
   }
 
@@ -282,26 +288,30 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
         <DialogContent>
           <form ref={this.formRef}>
             <input name="id" value={id} type="hidden" />
-            <Stack spacing={1} mt={0.5}>
-              <ImageInput name="image" defaultValue={this.props.category?.image ?? undefined} />
-              <TextField name="title" placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
-              <Select
-                name="type"
-                defaultValue={this.props.category?.type.toLowerCase() ?? 0}
-                disabled={this.state.isLoading}>
-                <MenuItem value="0" disabled>Select Type</MenuItem>
-                <MenuItem value="chapter">Chapter</MenuItem>
-                <MenuItem value="club">Club</MenuItem>
-              </Select>
-              <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save Category</Button>
-            </Stack>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Stack spacing={1} mt={0.5}>
+                  <ImageInput name="image" defaultValue={this.props.category?.image ?? undefined} onError={displayError} />
+                  <TextField name="title" placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
+                  <Select
+                    name="type"
+                    defaultValue={this.props.category?.type.toLowerCase() ?? 0}
+                    disabled={this.state.isLoading}>
+                    <MenuItem value="0" disabled>Select Type</MenuItem>
+                    <MenuItem value="chapter">Chapter</MenuItem>
+                    <MenuItem value="club">Club</MenuItem>
+                  </Select>
+                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Category</Button>
+                </Stack>
+            )}
+            </AppContext.Consumer>
           </form>
         </DialogContent>
       </Dialog>
     );
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -316,7 +326,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
       });
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -349,14 +359,18 @@ class DeleteDialog extends React.Component<CategoryDialogProps, CategoryDialogSt
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete Category</Button>
+            <AppContext.Consumer>
+                {({ displayError }) => (
+                  <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Category</Button>
+                )}
+              </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -371,7 +385,7 @@ class DeleteDialog extends React.Component<CategoryDialogProps, CategoryDialogSt
       this.props.onUpdate(this.props.category!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

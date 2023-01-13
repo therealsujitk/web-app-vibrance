@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -64,6 +65,8 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -89,7 +92,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
   }
 
   componentDidMount() {
-    this.getDays();
+    this.getDays(this.onError!);
   }
 
   render() {
@@ -118,6 +121,9 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Day</MaterialButton>} />
         {this.state.isLoading
           ? (<Box sx={{p: 2, textAlign: 'center'}}>
@@ -170,7 +176,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getDays = async () => {
+  getDays = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const days = response.days;
@@ -190,7 +196,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getDays(onError) });
     }
   }
 
@@ -271,14 +277,18 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
           <Stack spacing={1} mt={0.5}>
             <TextField placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
             <TextField placeholder="Date" type="date" defaultValue={date} inputRef={this.dateInput} disabled={this.state.isLoading} />
-            <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEditDay}>Save Day</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEditDay(displayError)}>Save Day</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  addEditDay = async () => {
+  addEditDay = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -297,7 +307,7 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
       });
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -330,14 +340,18 @@ class DeleteDialog extends React.Component<DayDialogProps, DayDialogState> {
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.deleteDay}>Delete Day</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.deleteDay(displayError)}>Delete Day</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  deleteDay = async () => {
+  deleteDay = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -350,7 +364,7 @@ class DeleteDialog extends React.Component<DayDialogProps, DayDialogState> {
       this.props.onUpdate(this.props.day!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

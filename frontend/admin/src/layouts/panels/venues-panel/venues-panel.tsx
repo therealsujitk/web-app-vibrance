@@ -6,6 +6,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, Chip, Ci
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -86,6 +87,8 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -112,7 +115,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
   }
 
   componentDidMount() {
-    this.getVenues();
+    this.getVenues(this.onError!);
   }
 
   render() {
@@ -146,6 +149,9 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Venue</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -201,7 +207,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getVenues = async () => {
+  getVenues = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const venues = response.venues;
@@ -226,7 +232,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getVenues(onError) });
     }
   }
 
@@ -330,7 +336,11 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
               <Stack spacing={1} mt={0.5}>
                 {this.props.roomAction && <TextField defaultValue={venue} disabled />}
                 <TextField placeholder="Title" name="title" defaultValue={this.props.roomAction ? room : venue} disabled={this.state.isLoading} />
-                <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                <AppContext.Consumer>
+                  {({ displayError }) => (
+                    <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                  )}
+                </AppContext.Consumer>
               </Stack>
           </form>
         </DialogContent>
@@ -338,7 +348,7 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
     );
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -359,7 +369,7 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
       }
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -405,7 +415,11 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
             <input name="id" value={this.props.roomAction ? roomId : venueId} type="hidden" />
               <Stack spacing={2} mt={0.5}>
                 <Typography>Are you sure you want to delete {this.props.roomAction && <><b>{room}</b> under </>}<b>{venue}</b>?</Typography>
-                <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                <AppContext.Consumer>
+                  {({ displayError }) => (
+                    <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                  )}
+                </AppContext.Consumer>
               </Stack>
           </form>
         </DialogContent>
@@ -413,7 +427,7 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -423,7 +437,7 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
       this.props.onUpdate(this.props.venue!, this.props.room);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

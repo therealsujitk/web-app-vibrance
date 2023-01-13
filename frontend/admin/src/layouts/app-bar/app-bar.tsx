@@ -49,7 +49,7 @@ export default class AppBar extends React.Component<AppBarProps> {
 
   render() {
     return (
-      <MaterialAppBar position="fixed" sx={{zIndex: 9999}} enableColorOnDark>
+      <MaterialAppBar position="fixed" sx={{zIndex: 1300}} enableColorOnDark>
         <Toolbar>
           {this.props.showMenuIcon && <IconButton
             size="large"

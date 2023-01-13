@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import Cookies from "js-cookie";
 import React from "react";
 import ReactDiffViewer from 'react-diff-viewer';
+import { AppContext, AppContextInterface } from "../../../contexts/app";
 import Network from "../../../utils/network";
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -32,6 +33,7 @@ interface LogEntry {
 
 export default class AuditLogPanel extends React.Component<{}, AuditLogPanelState> {
   apiKey: string;
+  onError?: AppContextInterface['displayError'];
 
   constructor(props: {}) {
     super(props);
@@ -45,25 +47,25 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
   }
 
   componentDidMount() {
-    this.getAuditLog();
+    this.getAuditLog(this.onError!);
   }
 
   render() {
     const panelInfo = Drawer.items["audit-log"];
 
-    const Logs = () => {
-
-      return (
-        <Paper sx={{display: 'flex', m: 2}}>
-          <List sx={{width: '100%'}}>
-            {Array.from(this.state.auditLog).map(([k, l]) => <LogItem key={l.key} log={l} />)}
-          </List>
-        </Paper>
-      );
-    };
+    const Logs = () => (
+      <Paper sx={{display: 'flex', m: 2}}>
+        <List sx={{width: '100%'}}>
+          {Array.from(this.state.auditLog).map(([k, l]) => <LogItem key={l.key} log={l} />)}
+        </List>
+      </Paper>
+    );
 
     return (
       <Box>
+      <AppContext.Consumer>
+        {({displayError}) => <>{this.onError = displayError}</>}
+      </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} />
         {this.state.isLoading
           ? (<Box sx={{p: 2, textAlign: 'center'}}>
@@ -75,7 +77,7 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
     );
   }
 
-  getAuditLog = async () => {
+  getAuditLog = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network(this.apiKey).doGet('/api/latest/audit-log');
       const auditLogs = response.audit_log;
@@ -98,7 +100,7 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
         isLoading: false
       })
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getAuditLog(onError) });
     }
   }
 }
@@ -122,10 +124,12 @@ class LogItem extends React.Component<{ log: LogEntry }, { isExpanded: boolean }
               {this.getAvatar()}
             </Avatar>
           </ListItemAvatar>
-          <ListItemText
-            primary={this.createPrimaryText()}
-            secondary={format(this.props.log.timestamp, 'MMM d yyyy, h:mm a')}
-          />
+          <AppContext.Consumer>
+            {({username}) => <ListItemText
+              primary={this.createPrimaryText(username)}
+              secondary={format(this.props.log.timestamp, 'MMM d yyyy, h:mm a')}
+            />}
+          </AppContext.Consumer>
           {this.state.isExpanded ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
         <Collapse in={this.state.isExpanded} unmountOnExit>
@@ -186,9 +190,13 @@ class LogItem extends React.Component<{ log: LogEntry }, { isExpanded: boolean }
     return <NotInterested />
   }
 
-  createPrimaryText = () => {
-    const actor = this.props.log.actor ?? '[deleted]';
+  createPrimaryText = (username?: string) => {
+    var actor = this.props.log.actor ?? '[deleted]';
     var message = 'performed an action';
+
+    if (username === this.props.log.actor) {
+      actor = `${actor} [you]`;
+    }
 
     switch (this.props.log.action) {
       case 'SETTINGS_EDIT':

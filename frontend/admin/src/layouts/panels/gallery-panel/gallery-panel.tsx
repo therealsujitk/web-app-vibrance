@@ -5,6 +5,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardMedia, CircularPr
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, Image as ImageView, MultiImageInput } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -58,6 +59,8 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -83,7 +86,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
   }
 
   componentDidMount() {
-    this.getGallery();
+    this.getGallery(this.onError!);
   }
 
   render() {
@@ -106,6 +109,9 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Images</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -115,7 +121,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
                 {Object.values(this.state.gallery).map(image => 
                   <ImageCard key={image.id} {...image} />)}
                 </Masonry>)
-              : (<EmptyState>No gallery have been added yet.</EmptyState>)
+              : (<EmptyState>No gallery images have been added yet.</EmptyState>)
           }
         </Box>
         <AddDialog
@@ -155,7 +161,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getGallery = async () => {
+  getGallery = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const gallery = response.gallery;
@@ -174,7 +180,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getGallery(onError) });
     }
   }
 
@@ -262,19 +268,23 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
     return(
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false} maxWidth="md" fullWidth>
         <DialogTitle onClose={this.props.onClose}>Add Images</DialogTitle>
-        <form ref={this.formRef}>
-          <DialogContent sx={{ pt: 0 }}>
-            <MultiImageInput name="image" disabled={this.state.isLoading} />
-          </DialogContent>
-          <DialogActions>
-            <Button variant="contained" sx={{ mr: 2, mb: 2 }} isLoading={this.state.isLoading} onClick={this.add}>Upload</Button>
-          </DialogActions>
-        </form>
+          <AppContext.Consumer>
+            {({ displayError, displayWarning }) => (
+              <form ref={this.formRef}>
+                <DialogContent sx={{ pt: 0 }}>
+                  <MultiImageInput name="image" disabled={this.state.isLoading} onError={displayError} onWarning={displayWarning} />
+                </DialogContent>
+                <DialogActions>
+                      <Button variant="contained" sx={{ mr: 2, mb: 2 }} isLoading={this.state.isLoading} onClick={() => this.add(displayError)}>Upload</Button>
+                </DialogActions>
+              </form>
+            )}
+        </AppContext.Consumer>
       </Dialog>
     );
   }
 
-  add = async () => {
+  add = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -284,7 +294,7 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
       this.props.onUpdate(response.images);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -317,14 +327,18 @@ class DeleteDialog extends React.Component<ImageDialogProps, ImageDialogState> {
           <Stack spacing={2} mt={0.5}>
             <ImageView src={this.props.image?.image} />
             <Typography>Are you sure you want to delete this image?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete Image</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Image</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -337,7 +351,7 @@ class DeleteDialog extends React.Component<ImageDialogProps, ImageDialogState> {
       this.props.onUpdate(this.props.image!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

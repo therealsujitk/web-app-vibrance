@@ -7,6 +7,7 @@ import { Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, 
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -80,6 +81,8 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -105,7 +108,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
   }
 
   componentDidMount() {
-    this.getTeam();
+    this.getTeam(this.onError!);
   }
 
   render() {
@@ -164,6 +167,9 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Member</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -213,7 +219,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getTeam = async () => {
+  getTeam = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const team = response.team;
@@ -236,7 +242,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getTeam(onError) });
     }
   }
 
@@ -319,21 +325,25 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
         <DialogContent>
           <form ref={this.formRef}>
             <input name="id" value={id} type="hidden" />
-            <Stack spacing={1} mt={0.5}>
-              <ImageInput name="image" defaultValue={this.props.member?.image ?? undefined} />
-              <TextField name="name" placeholder="Name" defaultValue={name} disabled={this.state.isLoading} />
-              <TextArea name="description" placeholder="Enter a description" defaultValue={description ?? ''} />
-              <TextField name="phone" placeholder="Mobile Number" defaultValue={phone} disabled={this.state.isLoading} />
-              <TextField name="email" placeholder="Email ID" type="email" defaultValue={email} disabled={this.state.isLoading} />
-              <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save Member</Button>
-            </Stack>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Stack spacing={1} mt={0.5}>
+                  <ImageInput name="image" defaultValue={this.props.member?.image ?? undefined} onError={displayError} />
+                  <TextField name="name" placeholder="Name" defaultValue={name} disabled={this.state.isLoading} />
+                  <TextArea name="description" placeholder="Enter a description" defaultValue={description ?? ''} />
+                  <TextField name="phone" placeholder="Mobile Number" defaultValue={phone} disabled={this.state.isLoading} />
+                  <TextField name="email" placeholder="Email ID" type="email" defaultValue={email} disabled={this.state.isLoading} />
+                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Member</Button>
+                </Stack>
+              )}
+            </AppContext.Consumer>
           </form>
         </DialogContent>
       </Dialog>
     );
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -350,7 +360,7 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
       });
       this.props.onClose();
     } catch (err) {
-      
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -383,14 +393,18 @@ class DeleteDialog extends React.Component<MemberDialogProps, MemberDialogState>
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{name}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete Member</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Member</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -405,7 +419,7 @@ class DeleteDialog extends React.Component<MemberDialogProps, MemberDialogState>
       this.props.onUpdate(this.props.member!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

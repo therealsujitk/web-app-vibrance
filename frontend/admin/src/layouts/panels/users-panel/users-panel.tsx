@@ -6,6 +6,7 @@ import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid'
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -69,6 +70,8 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
 
   dataGridRef: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -93,7 +96,7 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
   }
 
   componentDidMount() {
-    this.getUsers();
+    this.getUsers(this.onError!);
   }
 
   render() {
@@ -145,6 +148,9 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add User</MaterialButton>} />
         <Box sx={{p: 2}}>
           {this.state.isLoading
@@ -210,7 +216,7 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getUsers = async () => {
+  getUsers = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network(this.apiKey).doGet(this.apiBaseUrl);
       const users = response.users;
@@ -230,7 +236,7 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getUsers(onError) });
     }
   }
 
@@ -382,7 +388,11 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
                 onChange={this.togglePassword}
                 label="Edit Password"
               />}
-              <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save User</Button>
+              <AppContext.Consumer>
+                {({ displayError }) => (
+                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save User</Button>
+                )}
+              </AppContext.Consumer>
             </Stack>
           </form>
         </DialogContent>
@@ -394,7 +404,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
     this.setState({ isPasswordEditable: !this.state.isPasswordEditable });
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -413,7 +423,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
       });
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -446,14 +456,18 @@ class DeleteDialog extends React.Component<UserDialogProps, UserDialogState> {
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{username}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete User</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete User</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -466,7 +480,7 @@ class DeleteDialog extends React.Component<UserDialogProps, UserDialogState> {
       this.props.onUpdate(this.props.user!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

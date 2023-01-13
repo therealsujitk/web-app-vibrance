@@ -6,6 +6,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedi
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextArea, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -69,6 +70,8 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -94,7 +97,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
   }
 
   componentDidMount() {
-    this.getSponsors();
+    this.getSponsors(this.onError!);
   }
 
   render() {
@@ -128,6 +131,9 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Sponsor</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -177,7 +183,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getSponsors = async () => {
+  getSponsors = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const sponsors = response.sponsors;
@@ -198,7 +204,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getSponsors(onError) });
     }
   }
 
@@ -275,19 +281,23 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
         <DialogContent>
           <form ref={this.formRef}>
             <input name="id" value={id} type="hidden" />
-            <Stack spacing={1} mt={0.5}>
-              <ImageInput name="image" defaultValue={this.props.sponsor?.image ?? undefined} />
-              <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
-              <TextArea name="description" placeholder="Add a description..." defaultValue={description} />
-              <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save Sponsor</Button>
-            </Stack>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Stack spacing={1} mt={0.5}>
+                  <ImageInput name="image" defaultValue={this.props.sponsor?.image ?? undefined} onError={displayError} />
+                  <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
+                  <TextArea name="description" placeholder="Add a description..." defaultValue={description} />
+                      <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Sponsor</Button>
+                </Stack>
+              )}
+            </AppContext.Consumer>
           </form>
         </DialogContent>
       </Dialog>
     );
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -302,7 +312,7 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
       });
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -335,14 +345,18 @@ class DeleteDialog extends React.Component<SponsorDialogProps, SponsorDialogStat
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete Sponsor</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Sponsor</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -355,7 +369,7 @@ class DeleteDialog extends React.Component<SponsorDialogProps, SponsorDialogStat
       this.props.onUpdate(this.props.sponsor!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });

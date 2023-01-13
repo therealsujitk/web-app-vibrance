@@ -17,17 +17,22 @@ interface ImageInputProps {
    * The size limit
    * @default 5 MB
    */
-  limit: number;
+  size: number;
 
   /**
    * If `true`, the input field is disabled
    */
   disabled: boolean;
+
+  /**
+   * Function to handle errors
+   */
+  onError?: (message: string) => void;
 }
 
 export default class ImageInput extends React.Component<ImageInputProps, { image?: string }> {
   static defaultProps: ImageInputProps = {
-    limit: 5,
+    size: 5,
     disabled: false
   };
   
@@ -90,10 +95,9 @@ export default class ImageInput extends React.Component<ImageInputProps, { image
     const files = event.currentTarget.files;
 
     if (files && files.length != 0) {
-      if (files[0].size > 1024 * 1024 * this.props.limit!) {
+      if (files[0].size > 1024 * 1024 * this.props.size!) {
         this.fileInput.current && (this.fileInput.current.value = '');
-        // TODO: Display file too big error
-        return;
+        return this.props.onError?.(`Image exceeds the ${this.props.size} MB limit.`);
       }
 
       this.setState({ image: URL.createObjectURL(files[0]) });

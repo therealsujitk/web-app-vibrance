@@ -4,6 +4,7 @@ import { format, parse } from "date-fns";
 import Cookies from "js-cookie";
 import React from "react";
 import { MediaQuery, Theme } from "../../components";
+import { AppContext, AppContextInterface } from "../../contexts/app";
 import Network from "../../utils/network";
 import Drawer from "../drawer/drawer";
 import PanelHeader from "../panel-header/panel-header";
@@ -62,6 +63,7 @@ interface DashboardPanelState {
 
 export default class DashboardPanel extends React.Component<{}, DashboardPanelState> {
   apiKey: string;
+  onError?: AppContextInterface['displayError'];
 
   constructor(props: {}) {
     super(props);
@@ -77,7 +79,7 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
   }
 
   componentDidMount() {
-    this.getDashboard();
+    this.getDashboard(this.onError!);
   }
 
   render() {
@@ -133,6 +135,9 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} />
         {this.state.isLoading
           ? (<Box sx={{p: 2, textAlign: 'center'}}>
@@ -196,7 +201,7 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
                     }
 
                     if (this.state.isAnalyticsLoading) {
-                      this.getAnalytics();
+                      this.getAnalytics(this.onError!);
                       return;
                     }
 
@@ -248,7 +253,7 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
     );
   }
 
-  getDashboard = async () => {
+  getDashboard = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network(this.apiKey).doGet('/api/latest/dashboard');
 
@@ -259,11 +264,11 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
         isLoading: false
       })
     } catch (err) {
-
+      onError(err as string);
     }
   }
 
-  getAnalytics = async () => {
+  getAnalytics = async (onError: AppContextInterface['displayError']) => {
     // TODO: Replace sample data with live data
     const response = JSON.parse('[{"name":"Active users","data":[{"date":"20221218","value":"2135"},{"date":"20221217","value":"3847"},{"date":"20221216","value":"3743"},{"date":"20221215","value":"3811"},{"date":"20221214","value":"3698"},{"date":"20221213","value":"3725"},{"date":"20221212","value":"4062"},{"date":"20221211","value":"2488"},{"date":"20221210","value":"1248"},{"date":"20221209","value":"1523"},{"date":"20221208","value":"4022"},{"date":"20221207","value":"4056"},{"date":"20221206","value":"3288"},{"date":"20221205","value":"3012"}],"weekData":{"oldValue":"5700","newValue":"6260"}},{"name":"New users","data":[{"date":"20221218","value":"39"},{"date":"20221217","value":"354"},{"date":"20221216","value":"112"},{"date":"20221215","value":"131"},{"date":"20221214","value":"135"},{"date":"20221213","value":"184"},{"date":"20221212","value":"332"},{"date":"20221211","value":"226"},{"date":"20221210","value":"57"},{"date":"20221209","value":"58"},{"date":"20221208","value":"268"},{"date":"20221207","value":"451"},{"date":"20221206","value":"271"},{"date":"20221205","value":"188"}],"weekData":{"oldValue":"1519","newValue":"1287"}},{"name":"User engagement duration","data":[{"date":"20221218","value":"3440458"},{"date":"20221217","value":"9132827"},{"date":"20221216","value":"6182405"},{"date":"20221215","value":"7650843"},{"date":"20221214","value":"7685549"},{"date":"20221213","value":"7966044"},{"date":"20221212","value":"8708247"},{"date":"20221211","value":"4458946"},{"date":"20221210","value":"2046895"},{"date":"20221209","value":"2432301"},{"date":"20221208","value":"6752901"},{"date":"20221207","value":"8201402"},{"date":"20221206","value":"6004288"},{"date":"20221205","value":"5523166"}],"weekData":{"oldValue":"35419899","newValue":"50766373"}}]');
     const analyticsData: DashboardPanelState['analyticsData'] = [];

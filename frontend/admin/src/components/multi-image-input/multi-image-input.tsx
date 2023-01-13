@@ -36,6 +36,16 @@ interface MultiImageInputProps {
    * If `true`, the input field is disabled
    */
   disabled: boolean;
+
+  /**
+   * Function to handle errors
+   */
+  onError?: (message: string) => void;
+
+  /**
+   * Function to handle warnings
+   */
+  onWarning?: (message: string) => void;
 }
 
 export default class MultiImageInput extends React.Component<MultiImageInputProps, MultiImageInputState> {
@@ -220,10 +230,15 @@ export default class MultiImageInput extends React.Component<MultiImageInputProp
       return;
     }
 
-    for (var i = 0; i < files.length && this.state.images.length < this.props.files; ++i) {
+    for (var i = 0; i < files.length; ++i) {
+      if (this.state.images.length === this.props.files) {
+        this.props.onWarning?.(`You can only upload ${this.props.files} images at a time.`);
+        break;
+      }
+
       if (files[i].size > 1024 * 1024 * this.props.size!) {
         this.fileInput.current && (this.fileInput.current.value = '');
-        // TODO: Display file too big error
+        this.props.onError?.(`An image exceeds the ${this.props.size} MB limit.`);
         continue;
       }
 

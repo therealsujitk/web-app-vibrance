@@ -1,21 +1,33 @@
 import { Home, Login } from './routes';
 import { BrowserRouter } from 'react-router-dom';
 import { DarkTheme } from './theme';
-import { ThemeProvider } from '@mui/material';
+import { Alert, AlertColor, Box, Button, Stack, ThemeProvider } from '@mui/material';
 import { AppContext, AppContextInterface } from './contexts/app';
 import Logo from "./assets/images/logo.png";
 import React from 'react';
 import Cookies from 'js-cookie';
 import { CircularProgress, CssBaseline, Typography } from '@mui/material';
 import Network from './utils/network';
+import { MediaQuery } from './components';
 
 interface AppState {
   apiKey?: string;
   username?: string;
   permissions?: string[];
+  alerts: { 
+    [x: string]: {
+      type: AlertColor;
+      message: string;
+      action?: {
+        name: string;
+        onClick: () => void;
+      };
+    }
+  };
 }
 
 export default class App extends React.Component<{}, AppState> {
+  isSessionCalled: boolean;
 
   constructor(props: AppState) {
     super(props);
@@ -23,8 +35,11 @@ export default class App extends React.Component<{}, AppState> {
     this.state = {
       apiKey: Cookies.get('apiKey'),
       username: undefined,
-      permissions: undefined
+      permissions: undefined,
+      alerts: {}
     };
+
+    this.isSessionCalled = false;
   }
 
   render() {
@@ -49,6 +64,27 @@ export default class App extends React.Component<{}, AppState> {
           username: undefined,
           permissions: undefined
         });
+      },
+      displayAlert: (type: AlertColor, message: string, action?: { name: string, onClick: () => void }) => {
+        var alertId = Math.random();
+
+        while (alertId in this.state.alerts) {
+          alertId = Math.random();
+        }
+
+        this.state.alerts[alertId] = {
+          type: type,
+          message: message,
+          action: action
+        }
+
+        this.setState({ alerts: this.state.alerts });
+      },
+      displayError: (message: string, action?: { name: string, onClick: () => void }) => {
+        appContext.displayAlert('error', message, action);
+      },
+      displayWarning: (message: string) => {
+        appContext.displayAlert('warning', message);
       }
     };
 
@@ -83,11 +119,15 @@ export default class App extends React.Component<{}, AppState> {
         <AppContext.Provider value={appContext}>
           <BrowserRouter basename='/admin'>
             <AppContext.Consumer>
-              { ({ apiKey, username, setSession }) => {
+              { ({ apiKey, username, setSession, displayError }) => {
                 if (!apiKey) {
                   return <Login />
                 } else if (!username) {
-                  this.getSession(apiKey, setSession);
+                  if (!this.isSessionCalled) {
+                    this.isSessionCalled = true;
+                    this.getSession(apiKey, setSession, displayError);
+                  }
+                  
                   return <Splash />;
                 } else {
                   return <Home />
@@ -96,11 +136,47 @@ export default class App extends React.Component<{}, AppState> {
             </AppContext.Consumer>
           </BrowserRouter>
         </AppContext.Provider>
+        <MediaQuery query={(theme) => theme.breakpoints.up('sm')}>
+          {(theme) => <Stack sx={{
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            padding: 2,
+            zIndex: 1500,
+            width: theme ? '400px' : '100%'
+          }}
+          spacing={1.5}
+          >
+            {Object.entries(this.state.alerts).map(([k, v]) => (
+              <Alert 
+                key={k} 
+                severity={v.type} 
+                onClose={() => {
+                  delete this.state.alerts[k];
+                  this.setState({ alerts: this.state.alerts });
+                }}
+                { ...v.action
+                  ? {action: <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                    <Button color="inherit" onClick={() => {
+                      delete this.state.alerts[k];
+                      this.setState({ alerts: this.state.alerts });
+                      v.action!.onClick();
+                    }}>
+                      {v.action.name}
+                    </Button>
+                  </Box>
+                } : {}}
+              >
+                <strong>{v.type.charAt(0).toUpperCase() + v.type.slice(1)} —</strong> {v.message}
+              </Alert>
+            ))}
+          </Stack>}
+        </MediaQuery>
       </ThemeProvider>
     );
   }
 
-  getSession = async (apiKey: string, setSession: (username: string, permissions: string[]) => void) => {
+  getSession = async (apiKey: string, setSession: (username: string, permissions: string[]) => void, onError: (message: string, action?: { name: string, onClick: () => void }) => void) => {
     try {
       const response = await new Network(apiKey).doGet('/api/latest/session');
       const username = response.session.username;
@@ -108,7 +184,7 @@ export default class App extends React.Component<{}, AppState> {
 
       setSession(username, permissions);
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getSession(apiKey, setSession, onError) });
     }
   }
 }

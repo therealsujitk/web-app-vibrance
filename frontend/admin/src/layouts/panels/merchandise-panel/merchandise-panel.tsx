@@ -7,6 +7,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedi
 import Cookies from 'js-cookie';
 import React from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
+import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
@@ -70,6 +71,8 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
   titleInput: React.RefObject<HTMLInputElement>;
   dateInput: React.RefObject<HTMLInputElement>;
 
+  onError?: AppContextInterface['displayError'];
+
   constructor(props : {}) {
     super(props);
 
@@ -95,7 +98,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
   }
 
   componentDidMount() {
-    this.getMerchandise();
+    this.getMerchandise(this.onError!);
   }
 
   render() {
@@ -134,6 +137,9 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
 
     return (
       <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Merchandise</MaterialButton>} />
         <Box sx={{pl: 2, pt: 2}}>
           {this.state.isLoading
@@ -183,7 +189,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
     this.setState({isDeleteDialogOpen: isOpen});
   }
 
-  getMerchandise = async () => {
+  getMerchandise = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network().doGet(this.apiBaseUrl);
       const merchandise = response.merchandise;
@@ -204,7 +210,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
         isLoading: false
       });
     } catch (err) {
-
+      onError(err as string, { name: 'Retry', onClick: () => this.getMerchandise(onError) })
     }
   }
 
@@ -281,31 +287,35 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
         <DialogContent>
           <form ref={this.formRef}>
             <input name="id" value={id} type="hidden" />
-            <Stack spacing={1} mt={0.5}>
-              <ImageInput name="image" defaultValue={this.props.merchandise?.image ?? undefined} />
-              <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
-              <TextField 
-                name="cost" 
-                placeholder="Cost" 
-                type="number" 
-                defaultValue={cost} 
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CurrencyRupee sx={{ fontSize: 20 }} />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={this.addEdit}>Save Merchandise</Button>
-            </Stack>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Stack spacing={1} mt={0.5}>
+                  <ImageInput name="image" defaultValue={this.props.merchandise?.image ?? undefined} onError={displayError} />
+                  <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
+                  <TextField 
+                    name="cost" 
+                    placeholder="Cost" 
+                    type="number" 
+                    defaultValue={cost} 
+                    InputProps={{ 
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CurrencyRupee sx={{ fontSize: 20 }} />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Merchandise</Button>
+                </Stack>
+              )}
+            </AppContext.Consumer>
           </form>
         </DialogContent>
       </Dialog>
     );
   }
 
-  addEdit = async () => {
+  addEdit = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -320,7 +330,7 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
       });
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
@@ -348,19 +358,23 @@ class DeleteDialog extends React.Component<MerchandiseDialogProps, MerchandiseDi
 
     return (
       <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
-        <DialogTitle onClose={this.props.onClose}>Delete merchandise</DialogTitle>
+        <DialogTitle onClose={this.props.onClose}>Delete Merchandise</DialogTitle>
         <DialogContent>
           <input value={id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
             <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <Button isLoading={this.state.isLoading} variant="contained" onClick={this.delete}>Delete Merchandise</Button>
+            <AppContext.Consumer>
+              {({ displayError }) => (
+                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Merchandise</Button>
+              )}
+            </AppContext.Consumer>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
 
-  delete = async () => {
+  delete = async (onError: AppContextInterface['displayError']) => {
     this.setState({ isLoading: true });
 
     try {
@@ -375,7 +389,7 @@ class DeleteDialog extends React.Component<MerchandiseDialogProps, MerchandiseDi
       this.props.onUpdate(this.props.merchandise!);
       this.props.onClose();
     } catch (err) {
-
+      onError(err as string);
     }
 
     this.setState({ isLoading: false });
