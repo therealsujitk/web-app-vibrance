@@ -3,8 +3,8 @@ import { Box, CssBaseline, Toolbar } from "@mui/material";
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { MediaQuery } from "../../components";
-import { AppBar, DashboardPanel, Drawer, SettingsPanel } from "../../layouts";
-import { AuditLogPanel, CategoriesPanel, DaysPanel, GalleryPanel, MerchandisePanel, SponsorsPanel, TeamPanel, UsersPanel, VenuesPanel } from "../../layouts/panels";
+import { AppBar, Drawer } from "../../layouts";
+import { AuditLogPanel, CategoriesPanel, DashboardPanel, DaysPanel, GalleryPanel, MerchandisePanel, SettingsPanel, SponsorsPanel, TeamPanel, UsersPanel, VenuesPanel } from "../../layouts/panels";
 
 interface HomeState {
   /**

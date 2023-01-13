@@ -1,8 +1,8 @@
 import { Box, Typography } from "@mui/material";
 import React from "react";
-import { Button, TextField } from "../../components";
-import Drawer from "../drawer/drawer";
-import PanelHeader from "../panel-header/panel-header";
+import { Button, TextField } from "../../../components";
+import Drawer from "../../drawer/drawer";
+import PanelHeader from "../../panel-header/panel-header";
 
 export default class SettingsPanel extends React.Component {
 

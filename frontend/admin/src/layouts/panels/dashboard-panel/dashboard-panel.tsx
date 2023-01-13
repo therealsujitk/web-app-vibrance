@@ -3,11 +3,11 @@ import { Box, CircularProgress, Divider, Grid, IconButton, Paper, Stack, Tooltip
 import { format, parse } from "date-fns";
 import Cookies from "js-cookie";
 import React from "react";
-import { MediaQuery, Theme } from "../../components";
-import { AppContext, AppContextInterface } from "../../contexts/app";
-import Network from "../../utils/network";
-import Drawer from "../drawer/drawer";
-import PanelHeader from "../panel-header/panel-header";
+import { MediaQuery, Theme } from "../../../components";
+import { AppContext, AppContextInterface } from "../../../contexts/app";
+import Network from "../../../utils/network";
+import Drawer from "../../drawer/drawer";
+import PanelHeader from "../../panel-header/panel-header";
 import AnalyticsLineChart from "./analytics-line-chart";
 import InfoItem from "./info-item";
 import MetricItem from "./metric-item";
