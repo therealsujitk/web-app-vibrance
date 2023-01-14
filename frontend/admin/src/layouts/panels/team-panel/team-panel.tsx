@@ -49,14 +49,19 @@ interface Member {
   id: number;
 
   /**
-   * The title of the member
+   * The name of the member
    */
   name: string;
 
   /**
-   * The date of the categroy
+   * The team name of the member
    */
-  description: string|null;
+  teamName: string;
+
+  /**
+   * The role of the member
+   */
+  role: string;
 
   /**
    * The image of the member
@@ -123,7 +128,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
             alt={props.name}
           />
           <Typography variant="h5">{props.name}</Typography>
-          <Typography variant="body1">{props.description}</Typography>
+          <Typography variant="body1">{props.role}</Typography>
           <Box sx={{
             marginHorizontal: 2,
             width: '100%',
@@ -228,7 +233,8 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
         const member: Member = {
           id: team[i].id,
           name: team[i].name,
-          description: team[i].description,
+          teamName: team[i].team_name,
+          role: team[i].role,
           image: team[i].image,
           phone: team[i].phone,
           email: team[i].email
@@ -315,7 +321,8 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
   render() {
     const id = this.props.member?.id;
     const name = this.props.member ? this.props.member.name : '';
-    const description = this.props.member ? this.props.member.description : '';
+    const teamName = this.props.member ? this.props.member.teamName : '';
+    const role = this.props.member ? this.props.member.role : '';
     const phone = this.props.member ? this.props.member.phone : '';
     const email = this.props.member ? this.props.member.email : '';
     
@@ -330,7 +337,8 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
                 <Stack spacing={1} mt={0.5}>
                   <ImageInput name="image" defaultValue={this.props.member?.image ?? undefined} onError={displayError} />
                   <TextField name="name" placeholder="Name" defaultValue={name} disabled={this.state.isLoading} />
-                  <TextArea name="description" placeholder="Enter a description" defaultValue={description ?? ''} />
+                  <TextField name="team_name" placeholder="Team Name" defaultValue={teamName} disabled={this.state.isLoading} />
+                  <TextField name="role" placeholder="Role" defaultValue={role} disabled={this.state.isLoading} />
                   <TextField name="phone" placeholder="Mobile Number" defaultValue={phone} disabled={this.state.isLoading} />
                   <TextField name="email" placeholder="Email ID" type="email" defaultValue={email} disabled={this.state.isLoading} />
                   <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Member</Button>
@@ -353,7 +361,8 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
       this.props.onUpdate({
         id: response.member.id,
         name: response.member.name,
-        description: response.member.description,
+        teamName: response.member.team_name,
+        role: response.member.role,
         image: response.member.image,
         phone: response.member.phone,
         email: response.member.email,

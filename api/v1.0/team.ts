@@ -23,7 +23,8 @@ const uploadMiddleware = getUploadMiddleware(10);
  *          {
  *              "id": 1,
  *              "name": "Sujit",
- *              "description": "",
+ *              "team_name": "Technical Team",
+ *              "role": "Technical Lead",
  *              "image": null,
  *              "phone": "999999999",
  *              "email": "social@therealsuji.tk"
@@ -67,7 +68,8 @@ teamRouter.get('', async (req, res) => {
  *      "member": {
  *          "id": 1,
  *          "name": "Sujit",
- *          "description": "",
+ *          "team_name": "Technical Team",
+ *          "role": "Technical Lead",
  *          "image": null,
  *          "phone": "999999999",
  *          "email": "social@therealsuji.tk"
@@ -88,16 +90,38 @@ teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uplo
 
   const name = validator.escape(req.body.name.trim());
 
+  if (!('team_name' in req.body)) {
+    return missingRequiredParameter('team', res);
+  }
+
+  const teamName = validator.escape(req.body.team_name.trim());
+
+  if (!('role' in req.body)) {
+    return missingRequiredParameter('role', res);
+  }
+
+  const role = validator.escape(req.body.role.trim());
+
   if (validator.isEmpty(name)) {
     return invalidValueForParameter('name', res);
   }
 
+  if (validator.isEmpty(teamName)) {
+    return invalidValueForParameter('team_name', res);
+  }
+
+  if (validator.isEmpty(role)) {
+    return invalidValueForParameter('role', res);
+  }
+
   const team: TeamModel = {
-    name: name
+    name: name,
+    team_name: teamName,
+    role: role
   };
 
-  if ('description' in req.body) {
-    team.description = validator.escape(req.body.description.trim());
+  if ('team' in req.body) {
+    team.team_name = validator.escape(req.body.description.trim());
   }
 
   if (req.files && 'image' in req.files) {
@@ -153,7 +177,8 @@ teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uplo
  *      "member": {
  *          "id": 1,
  *          "name": "Sujit",
- *          "description": "",
+ *          "team_name": "Technical Team",
+ *          "role": "Technical Lead",
  *          "image": null,
  *          "phone": "999999999",
  *          "email": "social@therealsuji.tk"
@@ -187,8 +212,12 @@ teamRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), upl
     }
   }
 
-  if ('description' in req.body) {
-    team.description = validator.escape(req.body.description.trim());
+  if ('team' in req.body) {
+    team.team_name = validator.escape(req.body.team.trim());
+  }
+
+  if ('role' in req.body) {
+    team.role = validator.escape(req.body.role.trim());
   }
 
   if (req.files && 'image' in req.files) {
