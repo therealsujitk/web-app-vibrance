@@ -26,6 +26,11 @@ const usersRouter = express.Router();
  *              ]
  *          },
  *          ...
+ *      ],
+ *      "permissions": [
+ *          "ADMIN",
+ *          "EVENTS",
+ *          ...
  *      ]
  *  }
  */
@@ -82,11 +87,7 @@ usersRouter.post('/add', Users.checkAuth, checkPermissions(), async (req, res) =
     return missingRequiredParameter('password', res);
   }
 
-  if (!('permissions' in req.body)) {
-    return missingRequiredParameter('permissions', res);
-  }
-
-  const username = req.body.username.trim();
+  const username = req.body.username.trim().toLowerCase();
   const password = req.body.password;
   const permissions: Permission[] = [];
 
@@ -100,23 +101,26 @@ usersRouter.post('/add', Users.checkAuth, checkPermissions(), async (req, res) =
     });
   }
 
-  if (Array.isArray(req.body.permissions)) {
-    const p = req.body.permissions as string[];
 
-    for (var i = 0; i < p.length; ++i) {
-      const permission = p[i].toUpperCase() as unknown as Permission;
+  if ('permissions' in req.body) {
+    if (Array.isArray(req.body.permissions)) {
+      const p = req.body.permissions as string[];
 
-      if (!(permission in Permission)) {
+      for (var i = 0; i < p.length; ++i) {
+        const permission = p[i].toUpperCase() as unknown as Permission;
+
+        if (!(permission in Permission)) {
+          return invalidValueForParameter('permissions', res);
+        }
+
+        permissions.push(permission);
+      }
+    } else {
+      permissions.push(req.body.permissions.toUpperCase() as Permission);
+
+      if (!(permissions[0] in Permission)) {
         return invalidValueForParameter('permissions', res);
       }
-
-      permissions.push(permission);
-    }
-  } else {
-    permissions.push(req.body.permissions.toUpperCase() as Permission);
-
-    if (!(permissions[0] in Permission)) {
-      return invalidValueForParameter('permissions', res);
     }
   }
 
@@ -209,7 +213,7 @@ usersRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, res) 
         editedUser.permissions.push(permission);
       }
     } else {
-      editedUser.permissions.push(req.body.permission.toUpperCase() as Permission);
+      editedUser.permissions.push(req.body.permissions.toUpperCase() as Permission);
 
       if (!(editedUser.permissions[0] in Permission)) {
         return invalidValueForParameter('permissions', res);

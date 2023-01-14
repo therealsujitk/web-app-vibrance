@@ -28,7 +28,7 @@ interface DashboardPanelState {
   /**
    * 
    */
-  softwareInfo?: { [x: string]: string };
+  softwareInfo?: { name: string; version: string }[];
 
   /**
    * 
@@ -87,8 +87,8 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
 
     const SoftwareInfo = () => (
       <Stack direction="row" spacing={3} sx={{ justifyContent: 'center' }}>
-        {Object.entries(this.state.softwareInfo!).map(([p, v]) => (
-          <InfoItem key={p} package={p} version={v} />
+        {this.state.softwareInfo!.map((s) => (
+          <InfoItem key={s.name} package={s.name} version={s.version} />
         ))}
       </Stack>
     );
@@ -258,8 +258,8 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
       const response = await new Network(this.apiKey).doGet('/api/latest/dashboard');
 
       this.setState({
-        softwareInfo: response.softwareInfo,
-        serverStats: response.serverStats,
+        softwareInfo: response.software_info,
+        serverStats: response.server_stats,
         analyticsEnabled: true,
         isLoading: false
       })

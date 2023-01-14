@@ -18,7 +18,19 @@ const uploadMiddleware = getUploadMiddleware(10);
  * @param page number
  * 
  * @response JSON
- * 
+ *  {
+ *      "team": [
+ *          {
+ *              "id": 1,
+ *              "name": "Sujit",
+ *              "description": "",
+ *              "image": null,
+ *              "phone": "999999999",
+ *              "email": "social@therealsuji.tk"
+ *          },
+ *          ...
+ *      ]
+ *  }
  */
 teamRouter.get('', async (req, res) => {
   var page = 1;

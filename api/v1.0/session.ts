@@ -15,10 +15,12 @@ const sessionRouter = express.Router();
  * 
  * @response JSON
  *  {
- *      "settings": [
- *          "KEY": "VALUE",
- *          ...
- *      ]
+ *      "session": {
+ *          "username": "admin",
+ *          "permissions": [
+ *              "ADMIN"
+ *          ]
+ *      }
  *  }
  */
 sessionRouter.get('', Users.checkAuth, async (req, res) => {

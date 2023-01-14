@@ -1,4 +1,3 @@
-
 export type OrNull<T> = { [K in keyof T]?: T[K] };
 
 export function isEqual<T>(a: T, b: T) : boolean {

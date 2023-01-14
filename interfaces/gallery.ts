@@ -29,7 +29,11 @@ export default class Gallery {
   async add(images: string[]) {
     const imageQueries = [];
     const galleryQueries = [];
-    const auditLogQueries = [];
+    const auditLogQuery = Activities.createInsertQuery({
+      actor: this.userId,
+      action: LogAction.GALLERY_ADD,
+      newValue: { images: images }
+    });
 
     for (var i = 0; i < images.length; ++i) {
       const existing = await Images.get(images[i]);
@@ -46,15 +50,9 @@ export default class Gallery {
           options: [existing.id]
         });
       }
-
-      auditLogQueries.push(Activities.createInsertQuery({
-        actor: this.userId,
-        action: LogAction.GALLERY_ADD,
-        newValue: { image: images[i] }
-      }));
     }
 
-    const results = await transaction([ ...imageQueries, ...galleryQueries, ...auditLogQueries ]);
+    const results = await transaction([ ...imageQueries, ...galleryQueries, auditLogQuery ]);
     
     return images.map((image, i) => {
       return {
@@ -83,6 +81,6 @@ export default class Gallery {
       })
     ];
   
-    return (await transaction(queries))[0].insertId;
+    await transaction(queries);
   }
 }
