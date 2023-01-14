@@ -240,7 +240,10 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
     if (room) {
       this.state.venues[venue.id].rooms[room.id] = room;
     } else {
-      this.state.venues[venue.id] = venue;
+      this.state.venues[venue.id] = {
+        ...venue,
+        rooms: venue.rooms ?? this.state.venues[venue.id]?.rooms ?? {}
+      };
     }
 
     this.setState({ venues: this.state.venues });
