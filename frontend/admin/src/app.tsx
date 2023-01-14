@@ -81,6 +81,13 @@ export default class App extends React.Component<{}, AppState> {
         this.setState({ alerts: this.state.alerts });
       },
       displayError: (message: string, action?: { name: string, onClick: () => void }) => {
+        if (message.toLowerCase().includes('api key has expired')) {
+          action = {
+            name: 'Sign In',
+            onClick: () => appContext.destroySession()
+          };
+        }
+
         appContext.displayAlert('error', message, action);
       },
       displayWarning: (message: string) => {
@@ -156,7 +163,7 @@ export default class App extends React.Component<{}, AppState> {
                   this.setState({ alerts: this.state.alerts });
                 }}
                 { ...v.action
-                  ? {action: <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                  ? {action: <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', whiteSpace: 'nowrap' }}>
                     <Button color="inherit" onClick={() => {
                       delete this.state.alerts[k];
                       this.setState({ alerts: this.state.alerts });
