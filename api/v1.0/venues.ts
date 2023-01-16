@@ -15,6 +15,7 @@ const venuesRouter = express.Router();
  * [GET] /api/v1.0/venues
  * 
  * @param page number
+ * @param query string
  * 
  * @response JSON
  *  {
@@ -39,7 +40,7 @@ const venuesRouter = express.Router();
  *  }
  */
 venuesRouter.get('', async (req, res) => {
-  var page = 1;
+  var page = 1, query = '';
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -49,11 +50,15 @@ venuesRouter.get('', async (req, res) => {
     }
   }
 
+  if ('query' in req.query) {
+    query = validator.escape((req.query.query as string).trim());
+  }
+
   try {
     res.status(200).json({
-      venues: await Venues.getAll(page)
+      venues: await Venues.getAll(page, query)
     });
-  } catch (_) {
+  } catch (e) {console.log(e)
     internalServerError(res);
   }
 });

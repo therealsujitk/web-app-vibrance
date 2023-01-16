@@ -13,8 +13,9 @@ export default class Venues {
     this.userId = userId;
   }
 
-  static async getAll(page = 1) {
+  static async getAll(page = 1, searchQuery = '') {
     const offset = (page - 1) * LIMIT;
+    searchQuery = `%${searchQuery}%`;
 
     const result = await query("SELECT " +
       "`venue_id` AS `id`, " +
@@ -24,7 +25,8 @@ export default class Venues {
       "FROM `rooms` " + 
       "INNER JOIN (SELECT * FROM `venues` ORDER BY `title` LIMIT ? OFFSET ?) AS `venues`" +
       "WHERE `venue_id` = `venues`.`id` " + 
-      "ORDER BY `venues`.`title`, `rooms`.`title`", [LIMIT, offset]);
+      "AND CONCAT(`venues`.`title`, ' - ', COALESCE(`rooms`.`title`, '')) LIKE ? " +
+      "ORDER BY `venues`.`title`, `rooms`.`title`", [LIMIT, offset, searchQuery]);
     
     const venues_map: { [x: number]: number } = {};
     const venues = [];

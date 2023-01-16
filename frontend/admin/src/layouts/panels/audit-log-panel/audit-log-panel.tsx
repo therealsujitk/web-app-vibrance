@@ -176,7 +176,7 @@ class LogItem extends React.Component<{ log: LogEntry }, { isExpanded: boolean }
     } else if (action.includes('EVENT')) {
       return Drawer.items.events.icon;
     } else if (action.includes('PRO_SHOW')) {
-      return Drawer.items.shows.icon;
+      return Drawer.items['pro-shows'].icon;
     } else if (action.includes('GALLERY')) {
       return Drawer.items.gallery.icon;
     } else if (action.includes('MERCHANDISE')) {

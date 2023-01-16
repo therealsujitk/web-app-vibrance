@@ -35,6 +35,7 @@ exports.up = function(db) {
         onUpdate: 'RESTRICT'
       },
     }},
+    title: type.STRING,
     description: type.TEXT,
     image_id: { type: type.INTEGER, foreignKey: {
       name: 'pro_shows_image_id_fk',
@@ -44,8 +45,7 @@ exports.up = function(db) {
         onDelete: 'RESTRICT',
         onUpdate: 'RESTRICT'
       },
-    }},
-    registration: type.STRING
+    }}
   });
 };
 

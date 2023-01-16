@@ -13,10 +13,11 @@ export default class Days {
     this.userId = userId;
   }
 
-  static async getAll(page = 1) {
+  static async getAll(page = 1, searchQuery = '') {
     const offset = (page - 1) * LIMIT;
+    searchQuery = `%${searchQuery}%`;
 
-    return await query("SELECT * FROM `days` ORDER BY `date` LIMIT ? OFFSET ?", [LIMIT, offset]);
+    return await query("SELECT * FROM `days` WHERE `title` LIKE ? ORDER BY `date` LIMIT ? OFFSET ?", [searchQuery, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Day> {

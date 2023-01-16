@@ -30,8 +30,10 @@ export default class Network {
       request.onerror = function() {
         reject("Failed to connect to the server");
       }
+
+      const params = new URLSearchParams(options?.query).toString();
   
-      request.open(method, url, true);
+      request.open(method, `${url}?${params}`, true);
       request.setRequestHeader('X-Api-Key', this.apiKey ?? '');
 
       for (const key in options?.headers) {

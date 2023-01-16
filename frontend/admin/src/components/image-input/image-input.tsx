@@ -25,6 +25,11 @@ interface ImageInputProps {
   disabled: boolean;
 
   /**
+   * Custom styling
+   */
+  style: { [x: string]: any };
+
+  /**
    * Function to handle errors
    */
   onError?: (message: string) => void;
@@ -33,7 +38,8 @@ interface ImageInputProps {
 export default class ImageInput extends React.Component<ImageInputProps, { image?: string }> {
   static defaultProps: ImageInputProps = {
     size: 5,
-    disabled: false
+    disabled: false,
+    style: {}
   };
   
   fileInput: React.RefObject<HTMLInputElement>;
@@ -57,7 +63,8 @@ export default class ImageInput extends React.Component<ImageInputProps, { image
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         borderRadius: `${theme.shape.borderRadius}px`,
-        color: theme.palette.text.secondary
+        color: theme.palette.text.secondary,
+        ...this.props.style
       })}>
         <input name={this.props.name} style={{ display: 'none' }} type="file" accept="image/*" onChange={this.handleOnChange} ref={this.fileInput}></input>
         <Box sx={(theme) => ({

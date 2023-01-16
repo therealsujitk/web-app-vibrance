@@ -93,7 +93,7 @@ export default class Drawer extends React.Component<DrawerProps, DrawerState> {
       icon: <FontAwesomeIcon icon={["fas", "calendar-week"]} />,
       faIcon: faCalendarWeek,
     },
-    shows: {
+    'pro-shows': {
       title: "Pro Shows",
       description: "Add, edit or remove pro shows.",
       icon: <FontAwesomeIcon icon={["fas", "theater-masks"]} />,
