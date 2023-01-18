@@ -40,9 +40,11 @@ export default class Gallery {
 
       if (!existing) {
         imageQueries.push(Images.createInsertQuery(images[i]))
+        const position = imageQueries.length - 1;
+
         galleryQueries.push({
           query: "INSERT INTO `gallery` (`image_id`) VALUES (?)",
-          options: (results: any[]) => [results[imageQueries.length - 1].insertId]
+          options: (results: any[]) => [results[position].insertId]
         });
       } else {
         galleryQueries.push({
