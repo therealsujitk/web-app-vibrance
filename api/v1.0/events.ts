@@ -5,7 +5,7 @@ import { Events, Users } from '../../interfaces';
 import { Event } from '../../models/event';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { dateTimeRegex, getUTCFromString, OrNull } from '../../utils/helpers';
+import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
 import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
@@ -21,7 +21,27 @@ const uploadMiddleware = getUploadMiddleware();
  * @param venue_id number|number[]
  * 
  * @response JSON
- * 
+ *  {
+ *      "events": [
+ *          {
+ *              "id": 1,
+ *              "day_id": 1,
+ *              "category_id": 1,
+ *              "venue_id": 1,
+ *              "room_id": 1,
+ *              "day": "Day 1",
+ *              "category": "Google Developer Student Club",
+ *              "venue": "Academic Block - 1",
+ *              "room": null,
+ *              "title": "House of Developers",
+ *              "description": "...",
+ *              "image": null,
+ *              "start_datetime": "2020-02-06T12:30:00.000Z",
+ *              "end_datetime": "2022-02-07T03:30:00.000Z",
+ *              "cost": 100
+ *          }
+ *      ]
+ *  }
  */
 eventsRouter.get('', async (req, res) => {
   var page = 1, dayIds = [], categoryIds = [], venueIds = [];
@@ -104,7 +124,7 @@ eventsRouter.get('', async (req, res) => {
     res.status(200).json({
       events: await Events.getAll(page, dayIds, categoryIds, venueIds)
     });
-  } catch (e) {console.log(e);
+  } catch (e) {
     internalServerError(res);
   }
 });
@@ -126,7 +146,25 @@ eventsRouter.get('', async (req, res) => {
  * @param registration number
  * 
  * @response JSON
- * 
+ *  {
+ *      "event": {
+ *          "id": 1,
+ *          "day_id": 1,
+ *          "category_id": 1,
+ *          "venue_id": 1,
+ *          "room_id": 1,
+ *          "day": "Day 1",
+ *          "category": "Google Developer Student Club",
+ *          "venue": "Academic Block - 1",
+ *          "room": null,
+ *          "title": "House of Developers",
+ *          "description": "...",
+ *          "image": null,
+ *          "start_datetime": "2020-02-06T12:30:00.000Z",
+ *          "end_datetime": "2022-02-07T03:30:00.000Z",
+ *          "cost": 100
+ *      }
+ *  }
  */
 eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
@@ -152,20 +190,30 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
     return missingRequiredParameter('title', res);
   }
 
-  if (!('start_datetime' in req.body)) {
-    return missingRequiredParameter('start_datetime', res);
+  if (!('team_size_min' in req.body)) {
+    return missingRequiredParameter('team_size_min', res);
   }
 
-  if (!('end_datetime' in req.body)) {
-    return missingRequiredParameter('end_datetime', res);
+  if (!('team_size_max' in req.body)) {
+    return missingRequiredParameter('team_size_max', res);
+  }
+
+  if (!('start_time' in req.body)) {
+    return missingRequiredParameter('start_time', res);
+  }
+
+  if (!('end_time' in req.body)) {
+    return missingRequiredParameter('end_time', res);
   }
 
   const dayId = validator.toInt(req.body.day_id);
   const categoryId = validator.toInt(req.body.category_id);
   const roomId = validator.toInt(req.body.room_id);
   const title = validator.escape(req.body.title.trim());
-  const startDateTime = req.body.start_datetime.trim();
-  const endDateTime = req.body.end_datetime.trim();
+  const teamSizeMin = validator.toInt(req.body.team_size_min.trim());
+  const teamSizeMax = validator.toInt(req.body.team_size_max.trim());
+  const startTime = req.body.start_time.trim();
+  const endTime = req.body.end_time.trim();
 
   if (isNaN(dayId)) {
     return invalidValueForParameter('day_id', res);
@@ -183,11 +231,19 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
     return invalidValueForParameter('title', res);
   }
 
-  if (!dateTimeRegex.test(startDateTime)) {
+  if (isNaN(teamSizeMin)) {
+    return invalidValueForParameter('team_size_min', res);
+  }
+
+  if (isNaN(teamSizeMax)) {
+    return invalidValueForParameter('team_size_max', res);
+  }
+
+  if (!timeRegex.test(startTime)) {
     return invalidValueForParameter('start_time', res);
   }
 
-  if (!dateTimeRegex.test(endDateTime)) {
+  if (!timeRegex.test(endTime)) {
     return invalidValueForParameter('end_time', res);
   }
   
@@ -196,8 +252,10 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
     category_id: categoryId,
     room_id: roomId,
     title: title,
-    start_datetime: getUTCFromString(startDateTime),
-    end_datetime: getUTCFromString(endDateTime),
+    team_size_min: teamSizeMin,
+    team_size_max: teamSizeMax,
+    start_time: getUTCFromString('2020-01-01 ' + startTime),
+    end_time: getUTCFromString('2020-01-01 ' + endTime),
     cost: 0
   }
 
@@ -217,23 +275,11 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
     }
   }
 
-  if ('team_size' in req.body) {
-    event.team_size = validator.escape(req.body.team_size.trim());
-  }
-
   if ('cost' in req.body) {
     event.cost = validator.toFloat(req.body.cost);
 
     if (isNaN(event.cost)) {
       return invalidValueForParameter('cost', res);
-    }
-  }
-
-  if ('registration' in req.body) {
-    event.registration = validator.escape(req.body.registration.trim());
-
-    if (validator.isURL(event.registration as string)) {
-      return invalidValueForParameter('registration', res);
     }
   }
 
@@ -268,7 +314,25 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
  * @param registration number
  * 
  * @response JSON
- * 
+ *  {
+ *      "event": {
+ *          "id": 1,
+ *          "day_id": 1,
+ *          "category_id": 1,
+ *          "venue_id": 1,
+ *          "room_id": 1,
+ *          "day": "Day 1",
+ *          "category": "Google Developer Student Club",
+ *          "venue": "Academic Block - 1",
+ *          "room": null,
+ *          "title": "House of Developers",
+ *          "description": "...",
+ *          "image": null,
+ *          "start_datetime": "2020-02-06T12:30:00.000Z",
+ *          "end_datetime": "2022-02-07T03:30:00.000Z",
+ *          "cost": 100
+ *      }
+ *  }
  */
 eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
@@ -321,23 +385,39 @@ eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS),
     }
   }
 
-  if ('start_datetime' in req.body) {
-    const startDateTime = req.body.start_datetime.trim();
+  if ('team_size_min' in req.body) {
+    event.team_size_min = validator.toInt(req.body.team_size_min.trim());
 
-    if (!dateTimeRegex.test(startDateTime)) {
-      return invalidValueForParameter('start_datetime', res);
-    } else {
-      event.start_datetime = getUTCFromString(startDateTime);
+    if (isNaN(event.team_size_min)) {
+      return invalidValueForParameter('team_size_min', res);
     }
   }
 
-  if ('end_datetime' in req.body) {
-    const endDateTime = req.body.end_datetime.trim();
+  if ('team_size_max' in req.body) {
+    event.team_size_max = validator.toInt(req.body.team_size_max.trim());
 
-    if (!dateTimeRegex.test(endDateTime)) {
-      return invalidValueForParameter('end_datetime', res);
+    if (isNaN(event.team_size_max)) {
+      return invalidValueForParameter('team_size_max', res);
+    }
+  }
+
+  if ('start_time' in req.body) {
+    const startTime = req.body.start_time.trim();
+
+    if (!timeRegex.test(startTime)) {
+      return invalidValueForParameter('start_time', res);
     } else {
-      event.end_datetime = getUTCFromString(endDateTime);
+      event.start_time = getUTCFromString('2020-01-01 ' + startTime);
+    }
+  }
+
+  if ('end_time' in req.body) {
+    const endTime = req.body.end_time.trim();
+
+    if (!timeRegex.test(endTime)) {
+      return invalidValueForParameter('end_time', res);
+    } else {
+      event.end_time = getUTCFromString('2020-01-01 ' + endTime);
     }
   }
 
@@ -357,23 +437,11 @@ eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS),
     }
   }
 
-  if ('team_size' in req.body) {
-    event.team_size = validator.escape(req.body.team_size.trim());
-  }
-
   if ('cost' in req.body) {
     event.cost = validator.toFloat(req.body.cost);
 
     if (isNaN(event.cost)) {
       return invalidValueForParameter('cost', res);
-    }
-  }
-
-  if ('registration' in req.body) {
-    event.registration = validator.escape(req.body.registration.trim());
-
-    if (validator.isURL(event.registration as string)) {
-      return invalidValueForParameter('registration', res);
     }
   }
 
@@ -397,7 +465,7 @@ eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS),
  * @param id number (required)
  * 
  * @response JSON
- * 
+ *  {}
  */
 eventsRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;

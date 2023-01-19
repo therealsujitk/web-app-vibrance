@@ -5,9 +5,9 @@ export interface Event {
   title: string,
   description?: string,
   image?: string,
-  team_size?: string,
-  start_datetime: Date,
-  end_datetime: Date,
-  cost: number,
-  registration?: string
+  team_size_min: number,
+  team_size_max: number,
+  start_time: Date,
+  end_time: Date,
+  cost: number
 }

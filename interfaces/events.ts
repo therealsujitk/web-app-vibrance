@@ -1,7 +1,7 @@
 import { transaction, query } from "../config/db";
 import { LogAction } from "../models/log-entry";
 import { Event } from "../models/event";
-import { getDateTimeFromUTC, getMysqlErrorCode, getUTCFromString, isEqual, OrNull } from "../utils/helpers";
+import { getMysqlErrorCode, getTimeFromUTC, getUTCFromString, isEqual, OrNull } from "../utils/helpers";
 import Activities from "./audit-log";
 import Images from "./images";
 import { ClientError } from "../utils/errors";
@@ -23,6 +23,10 @@ export default class Events {
 
     return await query("SELECT " + 
       "`events`.`id` AS `id`, " + 
+      "`day_id`, " + 
+      "`category_id`, " + 
+      "`venue_id`, " + 
+      "`room_id`, " + 
       "`days`.`title` AS `day`, " +
       "`categories`.`title` AS `category`, " +
       "`venues`.`title` AS `venue`, " +
@@ -30,12 +34,15 @@ export default class Events {
       "`events`.`title` AS `title`, " + 
       "`events`.`description` AS `description`, " +
       "CONCAT('" +  IMAGE_URL + "', `images`.`image`) AS `image`, " +
-      "`events`.`start_datetime` AS `start_datetime`, " +
-      "`events`.`end_datetime` AS `end_datetime`, " +
-      "`events`.`cost` AS `cost`, " +
-      "`events`.`registration` AS `registration` " +
+      "CONCAT('" +  IMAGE_URL + "', `c_images`.`image`) AS `category_image`, " +
+      "`team_size_min`, " +
+      "`team_size_max`, " +
+      "`events`.`start_time` AS `start_time`, " +
+      "`events`.`end_time` AS `end_time`, " +
+      "`events`.`cost` AS `cost` " +
       "FROM (`events`, `days`, `categories`, `venues`, `rooms`) " +
       "LEFT JOIN `images` ON `events`.`image_id` = `images`.`id` " +
+      "LEFT JOIN `images` AS `c_images` ON `categories`.`image_id` = `c_images`.`id` " +
       "WHERE " +
       "`day_id` = `days`.`id` AND " +
       "`category_id` = `categories`.`id` AND " +
@@ -48,40 +55,64 @@ export default class Events {
       "LIMIT ? OFFSET ?", [dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
   }
 
-  async #get(id: number) : Promise<Event> {
-    const event = (await query("SELECT " +
-      "`day_id`, " +
-      "`category_id`, " +
-      "`room_id`, " +
-      "`events`.`title` AS `title`, " +
-      "`description`, " +
-      "`image`, " +
-      "`team_size`, " +
-      "`start_datetime`, " +
-      "`end_datetime`, " +
-      "`cost`, " +
-      "`registration` " +
-      "FROM `events` " +
-      "LEFT JOIN `images` " +
-      "ON `events`.`image_id` = `images`.`id`" +
-      "WHERE `events`.`id` = ?", [id]))[0];
+  async #get(id: number) : Promise<any> {
+    const event = (await query(this.#createSelectQueryString(), [id]))[0];
 
     if (typeof event === 'undefined') {
       throw new ClientError(`No event with id '${id}' exists.`);
     }
 
     return {
-      day_id: event.day_id,
-      category_id: event.category_id,
-      room_id: event.room_id,
-      title: event.title,
-      description: event.description,
-      image: event.image,
-      team_size: event.team_size,
-      start_datetime: getUTCFromString(event.start_datetime),
-      end_datetime: getUTCFromString(event.end_datetime),
-      cost: event.cost,
-      registration: event.registration
+      ...event,
+      start_time: getUTCFromString('2020-01-01 ' + event.start_time),
+      end_time: getUTCFromString('2020-01-01 ' + event.end_time)
+    };
+  }
+
+  #createSelectQueryString() {
+    return "SELECT " + 
+      "`events`.`id` AS `id`, " + 
+      "`day_id`, " + 
+      "`category_id`, " + 
+      "`venue_id`, " + 
+      "`room_id`, " + 
+      "`days`.`title` AS `day`, " +
+      "`categories`.`title` AS `category`, " +
+      "`venues`.`title` AS `venue`, " +
+      "`rooms`.`title` AS `room`, " +
+      "`events`.`title` AS `title`, " + 
+      "`events`.`description` AS `description`, " +
+      "`images`.`image` AS `image`, " +
+      "`c_images`.`image` AS `category_image`, " +
+      "`team_size_min`, " +
+      "`team_size_max`, " +
+      "`events`.`start_time` AS `start_time`, " +
+      "`events`.`end_time` AS `end_time`, " +
+      "`events`.`cost` AS `cost` " +
+      "FROM (`events`, `days`, `categories`, `venues`, `rooms`) " +
+      "LEFT JOIN `images` ON `events`.`image_id` = `images`.`id` " +
+      "LEFT JOIN `images` AS `c_images` ON `categories`.`image_id` = `c_images`.`id` " +
+      "WHERE " +
+      "`day_id` = `days`.`id` AND " +
+      "`category_id` = `categories`.`id` AND " +
+      "`room_id` = `rooms`.`id` AND " +
+      "`venue_id` = `venues`.`id` AND " +
+      "`events`.`id` = ?";
+  }
+
+  #reduceObject(ob: any) : Event {
+    return {
+      day_id: ob.day_id,
+      category_id: ob.category_id,
+      room_id : ob.room_id,
+      title: ob.title,
+      description: ob.description,
+      image: ob.image,
+      team_size_min: ob.team_size_min,
+      team_size_max: ob.team_size_max,
+      start_time: ob.start_time,
+      end_time: ob.end_time,
+      cost: ob.cost
     };
   }
 
@@ -90,7 +121,7 @@ export default class Events {
     const queries = [
       ...!existing && event.image ? [Images.createInsertQuery(event.image)] : [],
       {
-        query: "INSERT INTO `events` (`day_id`, `category_id`, `room_id`, `title`, `description`, `image_id`, `team_size`, `start_datetime`, `end_datetime`, `cost`, `registration`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        query: "INSERT INTO `events` (`day_id`, `category_id`, `room_id`, `title`, `description`, `image_id`, `team_size_min`, `team_size_max`, `start_time`, `end_time`, `cost`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           event.day_id,
           event.category_id,
@@ -98,12 +129,18 @@ export default class Events {
           event.title,
           event.description,
           existing?.id ?? (event.image ? results[0].insertId : undefined),
-          event.team_size,
-          getDateTimeFromUTC(event.start_datetime),
-          getDateTimeFromUTC(event.end_datetime),
-          event.cost,
-          event.registration
+          event.team_size_min,
+          event.team_size_max,
+          getTimeFromUTC(event.start_time),
+          getTimeFromUTC(event.end_time),
+          event.cost
         ]
+      },
+      {
+        query: this.#createSelectQueryString(),
+        options: (results: any[]) => {
+          return [results[!existing && event.image ? 1 : 0].insertId];
+        }
       },
       Activities.createInsertQuery({
         actor: this.userId,
@@ -113,10 +150,13 @@ export default class Events {
     ];
 
     try {
+      const results = await transaction(queries);
+      const result = results[results.length - 2][0];
+
       return {
-        id: (await transaction(queries))[!existing && event.image ? 1 : 0].insertId,
-        ...event,
-        image: event.image ? IMAGE_URL + event.image : null
+        ...result,
+        image: result.image ? IMAGE_URL + result.image : null,
+        category_image: result.category_image ? IMAGE_URL + result.category_image : null
       };
     } catch (err) {
       const code = getMysqlErrorCode(err);
@@ -131,27 +171,34 @@ export default class Events {
 
   async edit(id: number, event: OrNull<Event>) {
     const old = await this.#get(id);
+    const oldReduced = this.#reduceObject(old);
     event.day_id = event.day_id ?? old.day_id;
     event.category_id = event.category_id ?? old.category_id;
     event.room_id = event.room_id ?? old.room_id;
     event.title = event.title ?? old.title;
     event.description = event.description ?? old.description;
     event.image = event.image ?? old.image;
-    event.team_size = event.team_size ?? old.team_size;
-    event.start_datetime = event.start_datetime ?? old.start_datetime;
-    event.end_datetime = event.end_datetime ?? old.end_datetime;
+    event.team_size_min = event.team_size_min ?? old.team_size_min;
+    event.team_size_max = event.team_size_max ?? old.team_size_max;
+    event.start_time = event.start_time ?? old.start_time;
+    event.end_time = event.end_time ?? old.end_time;
     event.cost = event.cost ?? old.cost;
-    event.registration = event.registration ?? old.registration;
     const existing = await Images.get(event.image);
 
-    if (isEqual<Event>(old, event as Event)) {
-      return { id, ...event };
+    if (isEqual<Event>(oldReduced, event as Event)) {
+      return {
+        ...old,
+        image: old.image ? IMAGE_URL + old.image : null,
+        category_image: old.category_image ? IMAGE_URL + old.category_image : null,
+        start_time: getTimeFromUTC(event.start_time!),
+        end_time: getTimeFromUTC(event.end_time!)
+      }
     }
 
     const queries = [
       ...!existing && event.image ? [Images.createInsertQuery(event.image)] : [],
       {
-        query: "UPDATE `events` SET `day_id` = ?, `category_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `team_size` = ?, `start_datetime` = ?, `end_datetime` = ?, `cost` = ?, `registration` = ? WHERE `id` = ?",
+        query: "UPDATE `events` SET `day_id` = ?, `category_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `team_size_min` = ?, `team_size_max` = ?, `start_time` = ?, `end_time` = ?, `cost` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           event.day_id,
           event.category_id,
@@ -159,24 +206,41 @@ export default class Events {
           event.title,
           event.description,
           existing?.id ?? (event.image ? results[0].insertId : undefined),
-          event.team_size,
-          getDateTimeFromUTC(event.start_datetime!),
-          getDateTimeFromUTC(event.end_datetime!),
+          event.team_size_min,
+          event.team_size_max,
+          getTimeFromUTC(event.start_time!),
+          getTimeFromUTC(event.end_time!),
           event.cost,
-          event.registration,
           id
         ]
+      },
+      {
+        query: this.#createSelectQueryString(),
+        options: [id]
       },
       Activities.createInsertQuery({
         actor: this.userId,
         action: LogAction.EVENT_EDIT,
-        oldValue: old,
+        oldValue: {
+          ...oldReduced,
+          start_time: getTimeFromUTC(oldReduced.start_time),
+          end_time: getTimeFromUTC(oldReduced.end_time)
+        },
         newValue: event
       })
     ];
 
     try {
-      await transaction(queries);
+      const results = await transaction(queries);
+      const result = results[results.length - 2][0];
+
+      return {
+        ...result,
+        image: result.image ? IMAGE_URL + result.image : null,
+        category_image: result.category_image ? IMAGE_URL + result.category_image : null,
+        start_time: getTimeFromUTC(event.start_time!),
+        end_time: getTimeFromUTC(event.end_time!)
+      };
     } catch (err) {
       const code = getMysqlErrorCode(err);
 
@@ -186,16 +250,11 @@ export default class Events {
         throw err;
       }
     }
-
-    return { 
-      id, 
-      ...event,
-      image: event.image ? IMAGE_URL + event.image : null
-    };
   }
 
   async delete(id: number) {
     const old = await this.#get(id);
+    const oldReduced = this.#reduceObject(old);
     const queries = [
       {
         query: "DELETE FROM `events` WHERE `id` = ?",
@@ -204,7 +263,7 @@ export default class Events {
       Activities.createInsertQuery({
         actor: this.userId,
         action: LogAction.EVENT_DELETE,
-        oldValue: old
+        oldValue: oldReduced
       })
     ];
 

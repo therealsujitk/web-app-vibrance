@@ -14,8 +14,9 @@ export default class Categories {
     this.userId = userId;
   }
 
-  static async getAll(page = 1, types: CategoryType[] = []) {
+  static async getAll(page = 1, types: CategoryType[] = [], searchQuery = '') {
     const offset = (page - 1) * LIMIT;
+    searchQuery = `%${searchQuery}%`;
 
     return await query("SELECT " + 
       "`categories`.`id` AS `id`, " + 
@@ -25,7 +26,8 @@ export default class Categories {
       "FROM `categories` LEFT JOIN `images` " + 
       "ON `images`.`id` = `image_id` " + 
       "WHERE (1 = ? OR `type` IN (?)) " + 
-      "ORDER BY `title` LIMIT ? OFFSET ?", [types.length + 1, types.length == 0 ? [0] : types, LIMIT, offset]);
+      "AND `title` LIKE ? " +
+      "ORDER BY `title` LIMIT ? OFFSET ?", [types.length + 1, types.length == 0 ? [0] : types, searchQuery, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Category> {
