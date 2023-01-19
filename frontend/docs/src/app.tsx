@@ -9,10 +9,7 @@ function App() {
         nativeScrollbars: true,
         theme: { 
           colors: { primary: { main: '#dd5522' } },
-          logo: {
-            gutter: '20px',
-            maxWidth: '80%'
-          }
+          logo: { gutter: '35px' }
         },
       }}
     />
