@@ -4,10 +4,11 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Autocomplete, Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, Icon, IconButton, InputAdornment, Link, Stack, Tooltip, Typography } from "@mui/material";
+import { Autocomplete, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, InputAdornment, Stack, Tooltip, Typography } from "@mui/material";
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import { DomEvent, sleep } from '../../../utils/helpers';
@@ -244,13 +245,13 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
           categoryId: events[i].category_id,
           venueId: events[i].venue_id,
           roomId: events[i].room_id,
-          title: events[i].title,
-          description: events[i].description ?? '',
+          title: validator.unescape(events[i].title),
+          description: validator.unescape(events[i].description ?? ''),
           image: events[i].image,
-          day: events[i].day,
-          category: events[i].category,
-          venue: events[i].venue,
-          room: events[i].room,
+          day: validator.unescape(events[i].day),
+          category: validator.unescape(events[i].category),
+          venue: validator.unescape(events[i].venue),
+          room: validator.unescape(events[i].room),
           teamSizeMin: events[i].team_size_min,
           teamSizeMax: events[i].team_size_max,
           startTime: new Date('2020-01-01 ' + events[i].start_time),
@@ -742,12 +743,17 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
       const dayId = this.selectedDay === null ? this.props.event?.dayId : this.selectedDay;
       const categoryId = this.selectedCategory === null ? this.props.event?.categoryId : this.selectedCategory;
       const roomId = this.selectedVenue === null ? this.props.event?.roomId : this.selectedVenue;
+      var response;
 
       formData.append('day_id', dayId?.toString() ?? '');
       formData.append('category_id', categoryId?.toString() ?? '');
       formData.append('room_id', roomId?.toString() ?? '');
 
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.event.id,
@@ -755,13 +761,13 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
         categoryId: response.event.category_id,
         venueId: response.event.venue_id,
         roomId: response.event.room_id,
-        title: response.event.title,
-        description: response.event.description,
+        title: validator.unescape(response.event.title),
+        description: validator.unescape(response.event.description || ''),
         image: response.event.image,
-        day: response.event.day,
-        category: response.event.category,
-        venue: response.event.venue,
-        room: response.event.room,
+        day: validator.unescape(response.event.day),
+        category: validator.unescape(response.event.category),
+        venue: validator.unescape(response.event.venue),
+        room: validator.unescape(response.event.room),
         teamSizeMin: response.event.team_size_min,
         teamSizeMax: response.event.team_size_max,
         startTime: new Date('2020-01-01 ' + response.event.start_time),
@@ -818,13 +824,10 @@ class DeleteDialog extends React.Component<EventDialogProps, EventDialogState> {
     this.setState({ isLoading: true });
 
     try {
-      const event = {
-        id: this.props.event!.id.toString()
-      }
-      const f = new FormData();
-      f.append("id", this.props.event!.id.toString());
+      const formData = new FormData();
+      formData.append("id", this.props.event!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.event!);
       this.props.onClose();

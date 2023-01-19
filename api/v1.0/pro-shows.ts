@@ -124,7 +124,7 @@ proShowsRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -214,7 +214,7 @@ proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS)
  *      }
  *  }
  */
-proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -292,7 +292,7 @@ proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS
  * @response JSON
  *  {}
  */
-proShowsRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+proShowsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

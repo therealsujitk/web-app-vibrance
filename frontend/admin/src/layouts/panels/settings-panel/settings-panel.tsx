@@ -1,6 +1,7 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import Cookies from "js-cookie";
 import React from "react";
+import validator from 'validator';
 import { Button, TextArea, TextField } from "../../../components";
 import { AppContext, AppContextInterface } from "../../../contexts/app";
 import Network from "../../../utils/network";
@@ -101,6 +102,10 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
       const response = await new Network(this.apiKey).doGet(this.apiBaseUrl);
       const settings = response.settings;
 
+      for (const key in settings) {
+        settings[key] = validator.unescape(settings[key]);
+      }
+
       this.setState({
         isLoading: false,
         settings: settings
@@ -116,6 +121,10 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
     try {
       const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/edit`, { body: this.state.settings });
       const settings = response.settings;
+
+      for (const key in settings) {
+        settings[key] = validator.unescape(settings[key]);
+      }
 
       this.setState({settings: settings});
     } catch (err) {

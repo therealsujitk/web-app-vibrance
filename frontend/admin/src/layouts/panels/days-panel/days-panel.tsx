@@ -5,6 +5,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, Circular
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -184,7 +185,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
       for (var i = 0; i < days.length; ++i) {
         const day: Day = {
           id: days[i].id,
-          title: days[i].title,
+          title: validator.unescape(days[i].title),
           date: new Date(days[i].date)
         };
 
@@ -247,8 +248,7 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  formRef: React.RefObject<HTMLFormElement>;
 
   constructor(props: DayDialogProps) {
     super(props);
@@ -260,8 +260,7 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/days';
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.formRef = React.createRef();
   }
   
   render() {
@@ -273,16 +272,18 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.day ? 'Edit' : 'Add'} Day</DialogTitle>
         <DialogContent>
-          <input value={id} type="hidden" disabled />
-          <Stack spacing={1} mt={0.5}>
-            <TextField placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
-            <TextField placeholder="Date" type="date" defaultValue={date} inputRef={this.dateInput} disabled={this.state.isLoading} />
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEditDay(displayError)}>Save Day</Button>
-              )}
-            </AppContext.Consumer>
-          </Stack>
+          <form ref={this.formRef}>
+            <input name="id" value={id} type="hidden" />
+            <Stack spacing={1} mt={0.5}>
+              <TextField placeholder="Title" name="title" defaultValue={title} disabled={this.state.isLoading} />
+              <TextField placeholder="Date" type="date" name="date" defaultValue={date} disabled={this.state.isLoading} />
+              <AppContext.Consumer>
+                {({ displayError }) => (
+                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEditDay(displayError)}>Save Day</Button>
+                )}
+              </AppContext.Consumer>
+            </Stack>
+          </form>
         </DialogContent>
       </Dialog>
     );
@@ -292,17 +293,18 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
     this.setState({ isLoading: true });
 
     try {
-      const day = {
-        id: this.props.day?.id.toString(),
-        title: this.titleInput.current?.value,
-        date: this.dateInput.current?.value
-      };
+      const formData = new FormData(this.formRef.current!);
+      var response;
 
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${day.id ? 'edit' : 'add'}`, { body: day });
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData });
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData });
+      }
       
       this.props.onUpdate({
         id: response.day.id,
-        title: response.day.title,
+        title: validator.unescape(response.day.title),
         date: new Date(response.day.date)
       });
       this.props.onClose();
@@ -355,11 +357,10 @@ class DeleteDialog extends React.Component<DayDialogProps, DayDialogState> {
     this.setState({ isLoading: true });
 
     try {
-      const day = {
-        id: this.props.day!.id.toString()
-      }
+      const formData = new FormData();
+      formData.append("id", this.props.day!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: day });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.day!);
       this.props.onClose();

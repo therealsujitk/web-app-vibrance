@@ -1,11 +1,11 @@
-import { CallOutlined, EmailOutlined } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Autocomplete, Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, Link, Stack, Tooltip, Typography } from "@mui/material";
+import { Autocomplete, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import { sleep } from '../../../utils/helpers';
@@ -206,12 +206,12 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           dayId: proShows[i].day_id,
           venueId: proShows[i].venue_id,
           roomId: proShows[i].room_id,
-          title: proShows[i].title ?? '',
-          description: proShows[i].description ?? '',
+          title: proShows[i].title ? validator.unescape(proShows[i].title) : '',
+          description: proShows[i].description ? validator.unescape(proShows[i].description) : '',
           image: proShows[i].image,
-          day: proShows[i].day,
-          venue: proShows[i].venue,
-          room: proShows[i].room,
+          day: validator.unescape(proShows[i].day),
+          venue: validator.unescape(proShows[i].venue),
+          room: proShows[i].room ? validator.unescape(proShows[i].room) : null,
         };
 
         this.state.proShows[proShow.id] = proShow;
@@ -584,23 +584,28 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
       const formData = new FormData(this.formRef.current!);
       const dayId = this.selectedDay === null ? this.props.proShow?.dayId : this.selectedDay;
       const roomId = this.selectedVenue === null ? this.props.proShow?.roomId : this.selectedVenue;
+      var response;
 
       formData.append('day_id', dayId?.toString() ?? '');
       formData.append('room_id', roomId?.toString() ?? '');
 
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.pro_show.id,
         dayId: response.pro_show.day_id,
         venueId: response.pro_show.venue_id,
         roomId: response.pro_show.room_id,
-        title: response.pro_show.title,
-        description: response.pro_show.description,
+        title: response.pro_show.title ? validator.unescape(response.pro_show.title) : '',
+        description: response.pro_show.description ? validator.unescape(response.pro_show.description) : '',
         image: response.pro_show.image,
-        day: response.pro_show.day,
-        venue: response.pro_show.venue,
-        room: response.pro_show.room,
+        day: validator.unescape(response.pro_show.day),
+        venue: validator.unescape(response.pro_show.venue),
+        room: response.pro_show.room ? validator.unescape(response.pro_show.room) : null,
       });
       this.props.onClose();
     } catch (err) {
@@ -652,13 +657,10 @@ class DeleteDialog extends React.Component<ProShowDialogProps, ProShowDialogStat
     this.setState({ isLoading: true });
 
     try {
-      const proShow = {
-        id: this.props.proShow!.id.toString()
-      }
-      const f = new FormData();
-      f.append("id", this.props.proShow!.id.toString());
+      const formData = new FormData();
+      formData.append("id", this.props.proShow!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.proShow!);
       this.props.onClose();

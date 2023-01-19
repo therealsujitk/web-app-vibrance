@@ -66,7 +66,7 @@ sponsorsRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-sponsorsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.SPONSORS), uploadMiddleware, async (req, res) => {
+sponsorsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.SPONSORS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -131,7 +131,7 @@ sponsorsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.SPONSOR
  *      }
  *  }
  */
-sponsorsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.SPONSORS), uploadMiddleware, async (req, res) => {
+sponsorsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.SPONSORS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -191,7 +191,7 @@ sponsorsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.SPONSO
  * @response JSON
  *  {}
  */
-sponsorsRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.SPONSORS), async (req, res) => {
+sponsorsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.SPONSORS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

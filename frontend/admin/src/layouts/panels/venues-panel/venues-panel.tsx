@@ -2,9 +2,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, Chip, CircularProgress, DialogContent, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, Chip, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from 'validator';
 import { Button, Dialog, DialogTitle, EmptyState, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -215,12 +216,13 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
       for (var i = 0; i < venues.length; ++i) {
         const venue: Venue = {
           id: venues[i].id,
-          title: venues[i].title,
+          title: validator.unescape(venues[i].title),
           rooms: {}
         };
 
         for (var j = 0; j < venues[i].rooms.length; ++j) {
           const room = venues[i].rooms[j];
+          room.title = room.title ? validator.unescape(room.title) : null;
           venue.rooms[room.id] = room;
         }
 
@@ -356,7 +358,13 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData });
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData });
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData });
+      }
       
       if (this.props.roomAction) {
         this.props.onUpdate(this.props.venue!, {
@@ -416,14 +424,14 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
         <DialogContent>
           <form ref={this.formRef}>
             <input name="id" value={this.props.roomAction ? roomId : venueId} type="hidden" />
-              <Stack spacing={2} mt={0.5}>
-                <Typography>Are you sure you want to delete {this.props.roomAction && <><b>{room}</b> under </>}<b>{venue}</b>?</Typography>
-                <AppContext.Consumer>
-                  {({ displayError }) => (
-                    <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
-                  )}
-                </AppContext.Consumer>
-              </Stack>
+            <Stack spacing={2} mt={0.5}>
+              <Typography>Are you sure you want to delete {this.props.roomAction && <><b>{room}</b> under </>}<b>{venue}</b>?</Typography>
+              <AppContext.Consumer>
+                {({ displayError }) => (
+                  <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                )}
+              </AppContext.Consumer>
+            </Stack>
           </form>
         </DialogContent>
       </Dialog>
@@ -435,7 +443,7 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
 
     try {
       const formData = new FormData(this.formRef.current!);
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: formData });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.venue!, this.props.room);
       this.props.onClose();

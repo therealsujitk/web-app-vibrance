@@ -3,9 +3,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, IconButton, Link, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -232,9 +233,9 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
       for (var i = 0; i < team.length; ++i) {
         const member: Member = {
           id: team[i].id,
-          name: team[i].name,
-          teamName: team[i].team_name,
-          role: team[i].role,
+          name: validator.unescape(team[i].name),
+          teamName: validator.unescape(team[i].team_name),
+          role: validator.unescape(team[i].role),
           image: team[i].image,
           phone: team[i].phone,
           email: team[i].email
@@ -300,8 +301,6 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
   apiBaseUrl: string;
 
   formRef: React.RefObject<HTMLFormElement>;
-  titleInput: React.RefObject<HTMLInputElement>;
-  typeInput: React.RefObject<HTMLInputElement>;
 
   constructor(props: MemberDialogProps) {
     super(props);
@@ -314,8 +313,6 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
     this.apiBaseUrl = '/api/latest/team';
 
     this.formRef = React.createRef();
-    this.titleInput = React.createRef();
-    this.typeInput = React.createRef();
   }
   
   render() {
@@ -356,13 +353,19 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.member.id,
-        name: response.member.name,
-        teamName: response.member.team_name,
-        role: response.member.role,
+        name: validator.unescape(response.member.name),
+        teamName: validator.unescape(response.member.team_name),
+        role: validator.unescape(response.member.role),
         image: response.member.image,
         phone: response.member.phone,
         email: response.member.email,
@@ -417,13 +420,10 @@ class DeleteDialog extends React.Component<MemberDialogProps, MemberDialogState>
     this.setState({ isLoading: true });
 
     try {
-      const member = {
-        id: this.props.member!.id.toString()
-      }
-      const f = new FormData();
-      f.append("id", this.props.member!.id.toString());
+      const formData = new FormData();
+      formData.append("id", this.props.member!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
+      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.member!);
       this.props.onClose();

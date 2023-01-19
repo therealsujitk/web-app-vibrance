@@ -166,7 +166,7 @@ eventsRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -334,7 +334,7 @@ eventsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
  *      }
  *  }
  */
-eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+eventsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -467,7 +467,7 @@ eventsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS),
  * @response JSON
  *  {}
  */
-eventsRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+eventsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

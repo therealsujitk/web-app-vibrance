@@ -1,4 +1,10 @@
-enum Method { GET = 'GET', POST = 'POST' };
+enum Method {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE'
+};
 
 interface NetworkParams {
   [key: string]: any;
@@ -63,6 +69,18 @@ export default class Network {
   
   async doPost(url: string, options?: { headers?: NetworkParams, body: NetworkParams }, forceMultipart = false) {
     return await this.doMethod(url, Method.POST, options, forceMultipart);
+  }
+
+  async doPut(url: string, options?: { headers?: NetworkParams, body: NetworkParams }, forceMultipart = false) {
+    return await this.doMethod(url, Method.PUT, options, forceMultipart);
+  }
+
+  async doPatch(url: string, options?: { headers?: NetworkParams, body: NetworkParams }, forceMultipart = false) {
+    return await this.doMethod(url, Method.PATCH, options, forceMultipart);
+  }
+
+  async doDelete(url: string, options?: { headers?: NetworkParams, body: NetworkParams }, forceMultipart = false) {
+    return await this.doMethod(url, Method.DELETE, options, forceMultipart);
   }
 
   async doFetch(url: string, method: Method, options?: { headers?: NetworkParams, query?: NetworkParams, body?: NetworkParams }) : Promise<any> {

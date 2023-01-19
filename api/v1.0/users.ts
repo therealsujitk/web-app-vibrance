@@ -19,6 +19,7 @@ const usersRouter = express.Router();
  *  {
  *      "users": [
  *          {
+ *              "id": 1,
  *              "username": "admin",
  *              "permissions": [
  *                  "ADMIN",
@@ -76,7 +77,7 @@ usersRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
  *      }
  *  }
  */
-usersRouter.post('/add', Users.checkAuth, checkPermissions(), async (req, res) => {
+usersRouter.put('/add', Users.checkAuth, checkPermissions(), async (req, res) => {
   const user = req.user!;
 
   if (!('username' in req.body)) {
@@ -165,7 +166,7 @@ usersRouter.post('/add', Users.checkAuth, checkPermissions(), async (req, res) =
  *      }
  *  }
  */
-usersRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
+usersRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
   const user = req.user!;
   const editedUser: OrNull<User> = {};
 
@@ -243,7 +244,7 @@ usersRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, res) 
  * @response JSON
  *  {}
  */
-usersRouter.post('/delete', Users.checkAuth, checkPermissions(), async (req, res) => {
+usersRouter.delete('/delete', Users.checkAuth, checkPermissions(), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

@@ -68,7 +68,7 @@ daysRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-daysRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -120,7 +120,7 @@ daysRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), as
  *      }
  *  }
  */
-daysRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {
@@ -175,7 +175,7 @@ daysRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), a
  * @response JSON
  *  {}
  */
-daysRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

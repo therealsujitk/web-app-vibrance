@@ -76,7 +76,7 @@ teamRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
+teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -185,7 +185,7 @@ teamRouter.post('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uplo
  *      }
  *  }
  */
-teamRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
+teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -270,7 +270,7 @@ teamRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), upl
  * @response JSON
  *  {}
  */
-teamRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.TEAM), async (req, res) => {
+teamRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.TEAM), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

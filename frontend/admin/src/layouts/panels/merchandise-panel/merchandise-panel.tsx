@@ -3,9 +3,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, Container, DialogContent, Grid, IconButton, InputAdornment, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, CircularProgress, DialogContent, IconButton, InputAdornment, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -197,7 +198,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
       for (var i = 0; i < merchandise.length; ++i) {
         const merch: Merchandise = {
           id: merchandise[i].id,
-          title: merchandise[i].title,
+          title: validator.unescape(merchandise[i].title),
           cost: merchandise[i].cost,
           image: merchandise[i].image
         };
@@ -320,11 +321,17 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.merchandise.id,
-        title: response.merchandise.title,
+        title: validator.unescape(response.merchandise.title),
         cost: response.merchandise.cost,
         image: response.merchandise.image
       });
@@ -378,13 +385,10 @@ class DeleteDialog extends React.Component<MerchandiseDialogProps, MerchandiseDi
     this.setState({ isLoading: true });
 
     try {
-      const merchandise = {
-        id: this.props.merchandise!.id.toString()
-      }
-      const f = new FormData();
-      f.append("id", this.props.merchandise!.id.toString());
+      const formData = new FormData();
+      formData.append("id", this.props.merchandise!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.merchandise!);
       this.props.onClose();

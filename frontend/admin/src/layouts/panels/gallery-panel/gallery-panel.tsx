@@ -246,8 +246,6 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
   apiBaseUrl: string;
 
   formRef: React.RefObject<HTMLFormElement>;
-  titleInput: React.RefObject<HTMLInputElement>;
-  typeInput: React.RefObject<HTMLInputElement>;
 
   constructor(props: ImageDialogProps) {
     super(props);
@@ -260,8 +258,6 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
     this.apiBaseUrl = '/api/latest/gallery';
 
     this.formRef = React.createRef();
-    this.titleInput = React.createRef();
-    this.typeInput = React.createRef();
   }
   
   render() {    
@@ -289,7 +285,7 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/upload`, { body: formData }, true);
+      const response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/upload`, { body: formData }, true);
       
       this.props.onUpdate(response.images);
       this.props.onClose();
@@ -342,11 +338,10 @@ class DeleteDialog extends React.Component<ImageDialogProps, ImageDialogState> {
     this.setState({ isLoading: true });
 
     try {
-      const image = {
-        id: this.props.image!.id.toString()
-      }
+      const formData = new FormData();
+      formData.append("id", this.props.image!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: image });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.image!);
       this.props.onClose();

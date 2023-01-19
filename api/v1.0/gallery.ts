@@ -53,13 +53,16 @@ galleryRouter.get('', async (req, res) => {
  * @param image File|File[] (required)
  * 
  * {
- *      "images": {
- *          "id": 1,
- *          "image": "e08cc82ab8fdd0c08c910815474b2c0d.jpeg"
- *      }
+ *      "images": [
+ *          {
+ *              "id": 1,
+ *              "image": "e08cc82ab8fdd0c08c910815474b2c0d.jpeg"
+ *          },
+ *          ...
+ *      ]
  *  }
  */
-galleryRouter.post('/upload', Users.checkAuth, checkPermissions(Permission.GALLERY), uploadMiddleware, async (req, res) => {
+galleryRouter.put('/upload', Users.checkAuth, checkPermissions(Permission.GALLERY), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -107,7 +110,7 @@ galleryRouter.post('/upload', Users.checkAuth, checkPermissions(Permission.GALLE
  * @reponse JSON
  *  {}
  */
-galleryRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.GALLERY), async (req, res) => {
+galleryRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.GALLERY), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

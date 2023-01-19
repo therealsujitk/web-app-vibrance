@@ -1,7 +1,6 @@
 import { CheckBox, CheckBoxOutlineBlank, Delete, Edit } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import { Autocomplete, Box, Button as MaterialButton, Checkbox, Chip, CircularProgress, DialogContent, FormControlLabel, Stack, Typography } from "@mui/material";
-import { orange, red } from '@mui/material/colors';
 import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid'
 import Cookies from 'js-cookie';
 import React from "react";
@@ -414,7 +413,13 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
         formData.append('permissions', this.selectedPermsions[i]);
       }
 
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData });
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData });
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData });
+      }
       
       this.props.onUpdate({
         id: response.user.id,
@@ -471,11 +476,10 @@ class DeleteDialog extends React.Component<UserDialogProps, UserDialogState> {
     this.setState({ isLoading: true });
 
     try {
-      const user = {
-        id: this.props.user!.id.toString()
-      }
+      const formData = new FormData();
+      formData.append("id", this.props.user!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: user });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.user!);
       this.props.onClose();

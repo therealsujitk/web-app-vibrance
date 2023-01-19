@@ -5,6 +5,7 @@ import { Masonry } from '@mui/lab';
 import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, Container, DialogContent, Grid, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from "validator";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -195,7 +196,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
       for (var i = 0; i < categories.length; ++i) {
         const category: Category = {
           id: categories[i].id,
-          title: categories[i].title,
+          title: validator.unescape(categories[i].title),
           type: categories[i].type,
           image: categories[i].image
         };
@@ -260,8 +261,6 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
   apiBaseUrl: string;
 
   formRef: React.RefObject<HTMLFormElement>;
-  titleInput: React.RefObject<HTMLInputElement>;
-  typeInput: React.RefObject<HTMLInputElement>;
 
   constructor(props: CategoryDialogProps) {
     super(props);
@@ -274,8 +273,6 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
     this.apiBaseUrl = '/api/latest/categories';
 
     this.formRef = React.createRef();
-    this.titleInput = React.createRef();
-    this.typeInput = React.createRef();
   }
   
   render() {
@@ -292,7 +289,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
                   <ImageInput name="image" defaultValue={this.props.category?.image ?? undefined} onError={displayError} />
-                  <TextField name="title" placeholder="Title" defaultValue={title} inputRef={this.titleInput} disabled={this.state.isLoading} />
+                  <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
                   <Select
                     name="type"
                     defaultValue={this.props.category?.type.toLowerCase() ?? 0}
@@ -316,11 +313,17 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.category.id,
-        title: response.category.title,
+        title: validator.unescape(response.category.title),
         type: response.category.type,
         image: response.category.image
       });
@@ -374,13 +377,10 @@ class DeleteDialog extends React.Component<CategoryDialogProps, CategoryDialogSt
     this.setState({ isLoading: true });
 
     try {
-      const category = {
-        id: this.props.category!.id.toString()
-      }
-      const f = new FormData();
-      f.append("id", this.props.category!.id.toString());
+      const formData = new FormData();
+      formData.append("id", this.props.category!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: f });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.category!);
       this.props.onClose();

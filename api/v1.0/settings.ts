@@ -14,10 +14,10 @@ const settingsRouter = express.Router();
  * 
  * @response JSON
  *  {
- *      "settings": [
+ *      "settings": {
  *          "KEY": "VALUE",
  *          ...
- *      ]
+ *      }
  *  }
  */
 settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
@@ -41,13 +41,13 @@ settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => 
  * 
  * @response JSON
  *  {
- *      "settings": [
+ *      "settings": {
  *          "KEY": "VALUE",
  *          ...
- *      ]
+ *      }
  *  }
  */
-settingsRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
+settingsRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
   const user = req.user!;
   const settings: Setting[] = [];
 

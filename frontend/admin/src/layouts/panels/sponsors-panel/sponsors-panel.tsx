@@ -2,9 +2,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, Container, DialogContent, Grid, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
+import validator from 'validator';
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextArea, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
@@ -191,8 +192,8 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
       for (var i = 0; i < sponsors.length; ++i) {
         const sponsor: Sponsor = {
           id: sponsors[i].id,
-          title: sponsors[i].title,
-          description: sponsors[i].description,
+          title: validator.unescape(sponsors[i].title),
+          description: validator.unescape(sponsors[i].description || ''),
           image: sponsors[i].image
         };
 
@@ -302,12 +303,18 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
 
     try {
       const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/${formData.get('id') ? 'edit' : 'add'}`, { body: formData }, true);
+      var response;
+
+      if (formData.get('id')) {
+        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
+      } else {
+        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
+      }
       
       this.props.onUpdate({
         id: response.sponsor.id,
-        title: response.sponsor.title,
-        description: response.sponsor.description,
+        title: validator.unescape(response.sponsor.title),
+        description: validator.unescape(response.sponsor.description || ''),
         image: response.sponsor.image
       });
       this.props.onClose();
@@ -360,11 +367,10 @@ class DeleteDialog extends React.Component<SponsorDialogProps, SponsorDialogStat
     this.setState({ isLoading: true });
 
     try {
-      const sponsor = {
-        id: this.props.sponsor!.id.toString()
-      }
+      const formData = new FormData();
+      formData.append("id", this.props.sponsor!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: sponsor });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.sponsor!);
       this.props.onClose();
