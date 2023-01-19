@@ -2459,7 +2459,10 @@
             "in": "query",
             "description": "Filter by one or more days.",
             "schema": {
-              "type": ["string", "array"],
+              "type": [
+                "string",
+                "array"
+              ],
               "items": {
                 "type": "string"
               }
@@ -2470,7 +2473,10 @@
             "in": "query",
             "description": "Filter by one or more categories.",
             "schema": {
-              "type": ["string", "array"],
+              "type": [
+                "string",
+                "array"
+              ],
               "items": {
                 "type": "string"
               }
@@ -2481,7 +2487,10 @@
             "in": "query",
             "description": "Filter by one or more venues.",
             "schema": {
-              "type": ["string", "array"],
+              "type": [
+                "string",
+                "array"
+              ],
               "items": {
                 "type": "string"
               }
@@ -2894,7 +2903,10 @@
             "in": "query",
             "description": "Filter by one or more days.",
             "schema": {
-              "type": ["string", "array"],
+              "type": [
+                "string",
+                "array"
+              ],
               "items": {
                 "type": "string"
               }
@@ -2905,7 +2917,10 @@
             "in": "query",
             "description": "Filter by one or more venues.",
             "schema": {
-              "type": ["string", "array"],
+              "type": [
+                "string",
+                "array"
+              ],
               "items": {
                 "type": "string"
               }
@@ -5330,8 +5345,7 @@
               },
               "title": {
                 "type": [
-                  "string",
-                  null
+                  "string"
                 ],
                 "example": "House of Developers"
               },
@@ -5374,7 +5388,10 @@
                 "$ref": "#/components/schemas/image/properties/image"
               },
               "category_image": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "readOnly": true,
                 "example": {
                   "$ref": "#/components/schemas/image/properties/image/example"
@@ -5427,8 +5444,7 @@
           },
           "title": {
             "type": [
-              "string",
-              null
+              "string"
             ],
             "example": null
           },
