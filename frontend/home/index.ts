@@ -1,8 +1,12 @@
 import express from 'express';
-const adminRouter = express.Router();
+const homeRouter = express.Router();
 
-adminRouter.get('/*', (req, res) => {
-  res.status(200).send('Hello world!');
+homeRouter.get('/', async (req, res) => {
+  res.redirect('https://github.com/therealsujitk/web-app-vibrance/blob/main/README.md');
 });
 
-export default adminRouter;
+homeRouter.get('/*', (req, res) => {
+  res.status(404).send('404');
+});
+
+export default homeRouter;
