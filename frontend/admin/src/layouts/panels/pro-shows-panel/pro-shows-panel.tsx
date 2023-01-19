@@ -1,8 +1,10 @@
+import { CurrencyRupee, Schedule } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Autocomplete, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Autocomplete, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, InputAdornment, Stack, Tooltip, Typography } from "@mui/material";
+import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import React from "react";
 import validator from "validator";
@@ -93,6 +95,21 @@ interface ProShow {
    * 
    */
   room: string|null;
+
+  /**
+   * 
+   */
+  startTime: Date;
+
+  /**
+   * 
+   */
+  endTime: Date;
+
+  /**
+   * 
+   */
+  cost: number;
 }
 
 export default class ProShowsPanel extends React.Component<{}, ProShowsPanelState> {
@@ -212,6 +229,9 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           day: validator.unescape(proShows[i].day),
           venue: validator.unescape(proShows[i].venue),
           room: proShows[i].room ? validator.unescape(proShows[i].room) : null,
+          startTime: new Date('2020-01-01 ' + proShows[i].start_time),
+          endTime: new Date('2020-01-01 ' + proShows[i].end_time),
+          cost: proShows[i].cost
         };
 
         this.state.proShows[proShow.id] = proShow;
@@ -279,18 +299,29 @@ class ProShowCard extends React.Component<ProShowCardProps, ProShowCardState> {
           <CardContent>
             <Typography variant="h5">{this.props.title}</Typography>
             <Typography variant="body1">{this.props.description}</Typography>
-            <Stack direction="row" sx={{ pt: 1, flexWrap: 'wrap', gap: 1 }}>
+            
+            <Stack direction="row" sx={{ pt: 1, flexWrap: 'wrap', gap: 1, '& svg': {width: '18px'} }}>
               <Chip 
                 label={this.props.day} 
                 icon={Drawer.items.days.icon} 
-                sx={{ pl: 1 }}
+                sx={{ pl: 0.5 }}
               />
               <Chip 
                 label={this.props.venue + (this.props.room ? ` - ${this.props.room}` : '')} 
                 icon={Drawer.items.venues.icon} 
-                sx={{ pl: 1 }}
+                sx={{ pl: 0.5 }}
               />
-          </Stack>
+              <Chip 
+                label={format(this.props.startTime, 'h:mm a') + ' - ' + format(this.props.endTime, 'h:mm a')} 
+                icon={<Schedule />} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={this.props.cost === 0 ? 'Free' : this.props.cost.toFixed(2)} 
+                icon={<CurrencyRupee />} 
+                sx={{ pl: 0.5 }}
+              />
+            </Stack>
           </CardContent>
           <CardActions disableSpacing>
             <Tooltip title="Edit">
@@ -419,6 +450,9 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
     const image = this.props.proShow?.image ?? undefined;
     const day = this.props.proShow?.day ?? '';
     const venue = (this.props.proShow?.venue ?? '') + (this.props.proShow?.room ? ` - ${this.props.proShow.room}` : '');
+    const startTime = this.props.proShow ? format(this.props.proShow.startTime, 'HH:mm') : '';
+    const endTime = this.props.proShow ? format(this.props.proShow.endTime, 'HH:mm') : '';
+    const cost = this.props.proShow?.cost ?? '';
 
     if (!this.props.opened) {
       this.daySearchQuery = '';
@@ -435,7 +469,9 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
           <form ref={this.formRef}>
             <input name="id" value={id} type="hidden" />
             <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
-              <ImageInput name="image" style={{ height: 'unset', flexGrow: 1 }} defaultValue={image} />
+              <Stack spacing={1} sx={{ flexGrow: 1, width: '40%' }}>
+                <ImageInput name="image" style={{ height: 'unset', flexGrow: 1 }} defaultValue={image} />
+              </Stack>
               <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '60%' }}>
                 <TextField name="title" placeholder="Title" defaultValue={title} />
                 <TextArea name="description" placeholder="Add a description..." style={{ minWidth: '100%' }} defaultValue={description} />
@@ -483,6 +519,23 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
                     }} />
                   }
                 />
+                <Stack direction="row" spacing={1}>
+                  <TextField name="start_time" placeholder="Start Time" type="time" defaultValue={startTime} sx={{ flexGrow: 1 }} />
+                  <TextField name="end_time" placeholder="End Time" type="time" defaultValue={endTime} sx={{ flexGrow: 1 }} />
+                </Stack>
+                <TextField 
+                    name="cost" 
+                    placeholder="Cost" 
+                    type="number" 
+                    defaultValue={cost} 
+                    InputProps={{ 
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CurrencyRupee sx={{ fontSize: 20 }} />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
               </Stack>
             </Stack>
             <AppContext.Consumer>
@@ -606,6 +659,9 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
         day: validator.unescape(response.pro_show.day),
         venue: validator.unescape(response.pro_show.venue),
         room: response.pro_show.room ? validator.unescape(response.pro_show.room) : null,
+        startTime: new Date('2020-01-01 ' + response.pro_show.start_time),
+        endTime: new Date('2020-01-01 ' + response.pro_show.end_time),
+        cost: response.pro_show.cost,
       });
       this.props.onClose();
     } catch (err) {

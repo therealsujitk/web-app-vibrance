@@ -355,7 +355,7 @@ class EventCard extends React.Component<EventCardProps, EventCardState> {
                 icon={<CurrencyRupee />} 
                 sx={{ pl: 0.5 }}
               />
-          </Stack>
+            </Stack>
           </CardContent>
           <CardActions disableSpacing>
             <Tooltip title="Edit">

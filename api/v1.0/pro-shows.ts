@@ -5,7 +5,7 @@ import { ProShows, Users } from '../../interfaces';
 import { ProShow } from '../../models/pro-show';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { OrNull } from '../../utils/helpers';
+import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
 import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
@@ -107,7 +107,9 @@ proShowsRouter.get('', async (req, res) => {
  * @param day_id number (required)
  * @param room_id number (required)
  * @param description string (required)
- * @param registration string
+ * @param start_time HH:MM (required)
+ * @param end_time HH:MM (required)
+ * @param cost number
  * @param image File
  * 
  * @response JSON
@@ -140,8 +142,18 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
     return missingRequiredParameter('room_id', res);
   }
 
+  if (!('start_time' in req.body)) {
+    return missingRequiredParameter('start_time', res);
+  }
+
+  if (!('end_time' in req.body)) {
+    return missingRequiredParameter('end_time', res);
+  }
+
   const dayId = validator.toInt(req.body.day_id);
   const roomId = validator.toInt(req.body.room_id);
+  const startTime = req.body.start_time.trim();
+  const endTime = req.body.end_time.trim();
 
   if (isNaN(dayId)) {
     return invalidValueForParameter('day_id', res);
@@ -151,9 +163,20 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
     return invalidValueForParameter('room_id', res);
   }
 
+  if (!timeRegex.test(startTime)) {
+    return invalidValueForParameter('start_time', res);
+  }
+
+  if (!timeRegex.test(endTime)) {
+    return invalidValueForParameter('end_time', res);
+  }
+
   const proShow: ProShow = {
     day_id: dayId,
-    room_id: roomId
+    room_id: roomId,
+    start_time: getUTCFromString('2020-01-01 ' + startTime),
+    end_time: getUTCFromString('2020-01-01 ' + endTime),
+    cost: 0
   };
 
   if ('title' in req.body) {
@@ -173,6 +196,14 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
       } else {
         return internalServerError(res);
       }
+    }
+  }
+
+  if ('cost' in req.body) {
+    proShow.cost = validator.toFloat(req.body.cost);
+
+    if (isNaN(proShow.cost)) {
+      return invalidValueForParameter('cost', res);
     }
   }
 
@@ -267,6 +298,34 @@ proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENT
       } else {
         return internalServerError(res);
       }
+    }
+  }
+
+  if ('start_time' in req.body) {
+    const startTime = req.body.start_time.trim();
+
+    if (!timeRegex.test(startTime)) {
+      return invalidValueForParameter('start_time', res);
+    } else {
+      proShow.start_time = getUTCFromString('2020-01-01 ' + startTime);
+    }
+  }
+
+  if ('end_time' in req.body) {
+    const endTime = req.body.end_time.trim();
+
+    if (!timeRegex.test(endTime)) {
+      return invalidValueForParameter('end_time', res);
+    } else {
+      proShow.end_time = getUTCFromString('2020-01-01 ' + endTime);
+    }
+  }
+
+  if ('cost' in req.body) {
+    proShow.cost = validator.toFloat(req.body.cost);
+
+    if (isNaN(proShow.cost)) {
+      return invalidValueForParameter('cost', res);
     }
   }
 

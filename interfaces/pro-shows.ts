@@ -2,7 +2,7 @@ import { transaction, query } from '../config/db';
 import Activities from './audit-log';
 import { LogAction } from '../models/log-entry';
 import { ProShow } from '../models/pro-show';
-import { getMysqlErrorCode, isEqual, OrNull } from '../utils/helpers';
+import { getMysqlErrorCode, getTimeFromUTC, getUTCFromString, isEqual, OrNull } from '../utils/helpers';
 import Images from './images';
 import { ClientError } from '../utils/errors';
 import { IMAGE_URL, LIMIT } from '../utils/constants';
@@ -30,7 +30,10 @@ export default class ProShows {
       "`rooms`.`title` AS `room`, " +
       "`pro_shows`.`title` AS `title`, " +
       "`description`, " + 
-      "CONCAT('" + IMAGE_URL + "', `images`.`image`) AS `image` " +
+      "CONCAT('" + IMAGE_URL + "', `images`.`image`) AS `image`, " +
+      "`start_time`, " +
+      "`end_time`, " +
+      "`cost` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `day_id` = `days`.`id` " +
@@ -49,7 +52,11 @@ export default class ProShows {
       throw new ClientError(`No pro show with id '${id}' exists.`);
     }
 
-    return proShow;
+    return {
+      ...proShow,
+      start_time: getUTCFromString('2020-01-01 ' + proShow.start_time),
+      end_time: getUTCFromString('2020-01-01 ' + proShow.end_time)
+    };
   }
 
   #createSelectQueryString() {
@@ -63,7 +70,10 @@ export default class ProShows {
       "`rooms`.`title` AS `room`, " +
       "`pro_shows`.`title` AS `title`, " +
       "`description`, " + 
-      "`images`.`image` AS `image` " +
+      "`images`.`image` AS `image`, " +
+      "`start_time`, " +
+      "`end_time`, " +
+      "`cost` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `day_id` = `days`.`id` " +
@@ -78,7 +88,10 @@ export default class ProShows {
       room_id: ob.room_id,
       title: ob.title,
       description: ob.description,
-      image: ob.image
+      image: ob.image,
+      start_time: ob.start_time,
+      end_time: ob.end_time,
+      cost: ob.cost
     };
   }
 
@@ -87,13 +100,16 @@ export default class ProShows {
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`) VALUES (?, ?, ?, ?, ?)",
+        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`, `start_time`, `end_time`, `cost`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
           proShow.title,
           proShow.description,
-          existing?.id ?? (proShow.image ? results[0].insertId : undefined)
+          existing?.id ?? (proShow.image ? results[0].insertId : undefined),
+          getTimeFromUTC(proShow.start_time),
+          getTimeFromUTC(proShow.end_time),
+          proShow.cost
         ]
       },
       {
@@ -141,20 +157,25 @@ export default class ProShows {
     if (isEqual<ProShow>(oldReduced, proShow as ProShow)) {
       return {
         ...old,
-        image: old.image ? IMAGE_URL + old.image : null
+        image: old.image ? IMAGE_URL + old.image : null,
+        start_time: getTimeFromUTC(old.start_time!),
+        end_time: getTimeFromUTC(old.end_time!)
       }
     }
 
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ? WHERE `id` = ?",
+        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `start_time` = ?, `end_time` = ?, `cost` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
           proShow.title === '' ? null : proShow.title,
           proShow.description === '' ? null : proShow.description,
           existing?.id ?? (proShow.image ? results[0].insertId : undefined),
+          getTimeFromUTC(proShow.start_time!),
+          getTimeFromUTC(proShow.end_time!),
+          proShow.cost,
           id
         ]
       },
