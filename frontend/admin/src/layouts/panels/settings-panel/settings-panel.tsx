@@ -119,7 +119,7 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
     this.setState({isSaving: true});
 
     try {
-      const response = await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/edit`, { body: this.state.settings });
+      const response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: this.state.settings });
       const settings = response.settings;
 
       for (const key in settings) {
