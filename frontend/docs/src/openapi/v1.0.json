@@ -2,9 +2,9 @@
   "openapi": "3.0.2",
   "info": {
     "version": "v1.0",
-    "title": "Vibrance Documentation",
+    "title": "Vibrance - API Documentation",
     "x-logo": {
-      "url": "assets/images/logo.png"
+      "url": "logo.png"
     },
     "contact": {
       "email": "social@therealsuji.tk"
