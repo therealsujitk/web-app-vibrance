@@ -4,6 +4,7 @@ import { LogAction } from '../models/log-entry';
 import { Room } from '../models/room';
 import { getMysqlErrorCode, isEqual, OrNull } from '../utils/helpers';
 import { ClientError } from '../utils/errors';
+import { LIMIT } from '../utils/constants';
 
 export default class Venues {
   userId: number;
@@ -13,10 +14,9 @@ export default class Venues {
   }
 
   static async getAll(venueId: number, page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `id`, `title` FROM `rooms` WHERE `venue_id` = ? LIMIT ? OFFSET ?", [venueId, limit, offset]);
+    return await query("SELECT `id`, `title` FROM `rooms` WHERE `venue_id` = ? LIMIT ? OFFSET ?", [venueId, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Room> {

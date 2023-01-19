@@ -5,6 +5,7 @@ import { LogAction } from '../models/log-entry';
 import { Team as TeamModel } from '../models/team';
 import { isEqual, OrNull } from '../utils/helpers';
 import { ClientError } from '../utils/errors';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 
 export default class Team {
   userId: number;
@@ -14,14 +15,25 @@ export default class Team {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `team`.`id` AS `id`, `name`, `description`, `image`, `phone`, `email` FROM `team` LEFT JOIN `images` ON `image_id` = `images`.`id` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT " + 
+      "`team`.`id` AS `id`, " + 
+      "`name`, " + 
+      "`team_name`, " + 
+      "`role`, " + 
+      "CONCAT('" + IMAGE_URL + "', `image`) AS `image`, " + 
+      "`phone`, " + 
+      "`email` " + 
+      "FROM `team` " + 
+      "LEFT JOIN `images` " + 
+      "ON `image_id` = `images`.`id` " +
+      "ORDER BY `team_name` " + 
+      "LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) {
-    const member = (await query("SELECT `name`, `description`, `image`, `phone`, `email` FROM `team` LEFT JOIN `images` ON `image_id` = `images`.`id` WHERE `team`.`id` = ?", [id]))[0];
+    const member = (await query("SELECT `name`, `team_name`, `role`, `image`, `phone`, `email` FROM `team` LEFT JOIN `images` ON `image_id` = `images`.`id` WHERE `team`.`id` = ?", [id]))[0];
 
     if (typeof member === 'undefined') {
       throw new ClientError(`No team member with id '${id}' exists.`);
@@ -35,10 +47,11 @@ export default class Team {
     const queries = [
       ...!existing && team.image ? [Images.createInsertQuery(team.image)] : [],
       {
-        query: "INSERT INTO `team` (`name`, `description`, `image_id`, `phone`, `email`) VALUES (?, ?, ?, ?, ?)",
+        query: "INSERT INTO `team` (`name`, `team_name`, `role`, `image_id`, `phone`, `email`) VALUES (?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           team.name,
-          team.description,
+          team.team_name,
+          team.role,
           existing?.id ?? (team.image ? results[0].insertId : undefined),
           team.phone,
           team.email
@@ -53,17 +66,19 @@ export default class Team {
   
     return {
       id: (await transaction(queries))[!existing && team.image ? 1 : 0].insertId,
-      ...team
+      ...team,
+      image: team.image ? IMAGE_URL + team.image : null,
     };
   }
 
   async edit(id: number, team: OrNull<TeamModel>) {
     const old = await this.#get(id);
     team.name = team.name ?? old.name;
-    team.description = team.description ?? old.description;
+    team.team_name = team.team_name ?? old.team_name;
+    team.role = team.role ?? old.role;
     team.image = team.image ?? old.image;
-    team.phone = team.image ?? old.phone;
-    team.email = team.image ?? old.email;
+    team.phone = team.phone ?? old.phone;
+    team.email = team.email ?? old.email;
     const existing = await Images.get(team.image);
 
     if (isEqual<Team>(old, team as Team)) {
@@ -73,10 +88,11 @@ export default class Team {
     const queries = [
       ...!existing && team.image ? [Images.createInsertQuery(team.image)] : [],
       {
-        query: "UPDATE `team` SET `name` = ?, `description` = ?, `image_id` = ?, `phone` = ?, `email` = ? WHERE `id` = ?",
+        query: "UPDATE `team` SET `name` = ?, `team_name` = ?, `role` = ?, `image_id` = ?, `phone` = ?, `email` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           team.name,
-          team.description,
+          team.team_name,
+          team.role,
           existing?.id ?? (team.image ? results[0].insertId : undefined),
           team.phone,
           team.email,
@@ -92,7 +108,11 @@ export default class Team {
     ];
   
     await transaction(queries);
-    return { id, ...team };
+    return { 
+      id, 
+      ...team,
+      image: team.image ? IMAGE_URL + team.image : null
+    };
   }
 
   async delete(id: number) {

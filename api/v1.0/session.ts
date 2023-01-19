@@ -15,10 +15,12 @@ const sessionRouter = express.Router();
  * 
  * @response JSON
  *  {
- *      "settings": [
- *          "KEY": "VALUE",
- *          ...
- *      ]
+ *      "session": {
+ *          "username": "admin",
+ *          "permissions": [
+ *              "ADMIN"
+ *          ]
+ *      }
  *  }
  */
 sessionRouter.get('', Users.checkAuth, async (req, res) => {
@@ -43,7 +45,6 @@ sessionRouter.get('', Users.checkAuth, async (req, res) => {
  * @response JSON
  *  {
  *      user: {
- *          "id": "1",
  *          "username": "user",
  *          "password": "***",
  *          "permissions": [
@@ -53,7 +54,7 @@ sessionRouter.get('', Users.checkAuth, async (req, res) => {
  *      }
  *  }
  */
-sessionRouter.post('/edit', Users.checkAuth, async (req, res) => {
+sessionRouter.patch('/edit', Users.checkAuth, async (req, res) => {
   const user = req.user!;
   const editedUser: OrNull<User> = {};
 

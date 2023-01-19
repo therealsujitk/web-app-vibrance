@@ -11,6 +11,7 @@ const auditLogRouter = express.Router();
  * 
  * @header X-Api-Key <API-KEY> (required)
  * @param page number
+ * @param actor_ids number[]
  * 
  * @response JSON
  *  {

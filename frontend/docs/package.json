@@ -1,0 +1,44 @@
+{
+  "name": "docs",
+  "version": "1.0",
+  "description": "Documentation for the Vibrance web application.",
+  "main": "index.ts",
+  "author": "Sujit Kumar",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@types/node": "^16.7.13",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "core-js": "^3.27.2",
+    "mobx": "^6.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "redoc": "^2.0.0",
+    "styled-components": "^5.3.6",
+    "typescript": "^4.4.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": "/docs"
+}

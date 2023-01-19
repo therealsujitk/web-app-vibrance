@@ -15,12 +15,18 @@ const dashboardRouter = express.Router();
  * 
  * @response JSON
  *  {
- *      "softwareInfo": {
- *          "release": "2021.0.0",
- *          "nodejs": "v16.14.2",
- *          "mysql": "10.4.24-MariaDB"
- *      },
- *      "serverStats": {
+ *      "software_info": [
+ *          {
+ *            name: 'Release',
+ *            version: "2021.0.0"
+ *          },
+ *          {
+ *            name: 'Node.js',
+ *            version: "v16.14.2"
+ *          },
+ *          ...
+ *      ],
+ *      "server_stats": {
  *          "totalMemory": 8235102208,
  *          "freeMemory": 3394170880
  *      }
@@ -29,12 +35,21 @@ const dashboardRouter = express.Router();
 dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
   try {
     const response = {
-      softwareInfo: {
-        release: version,
-        nodejs: process.version,
-        mysql: (await query('SELECT VERSION() AS `version`'))[0].version
-      },
-      serverStats: {
+      software_info: [
+        {
+          name: 'Release',
+          version: version
+        },
+        {
+          name: 'Node.js',
+          version: process.version
+        },
+        {
+          name: 'MySQL',
+          version: (await query('SELECT VERSION() AS `version`'))[0].version
+        },
+      ],
+      server_stats: {
         totalMemory: os.totalmem(),
         freeMemory: os.freemem(),
       }

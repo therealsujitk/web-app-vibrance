@@ -1,14 +1,9 @@
+import _ from "lodash";
 
 export type OrNull<T> = { [K in keyof T]?: T[K] };
 
-export function isEqual<T>(a: T, b: T) : boolean {
-  for (const key in a) {
-    if (a[key] != b[key]) {
-      return false;
-    }
-  }
-
-  return true;
+export function isEqual<T>(oldObject: T, newObject: T) : boolean {
+  return _.isEqual(oldObject, newObject);
 }
 
 export function getMysqlErrorCode(err: unknown) {
@@ -36,6 +31,14 @@ export function getDateFromUTC(date: Date) {
   }
 
   return date.toISOString().substring(0, 10);
+}
+
+export function getTimeFromUTC(date: Date) {
+  if (isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString().substring(11, 16);
 }
 
 const dateRegexSource = '20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])';

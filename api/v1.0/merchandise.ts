@@ -67,7 +67,7 @@ merchandiseRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-merchandiseRouter.post('/add', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
+merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -139,7 +139,7 @@ merchandiseRouter.post('/add', Users.checkAuth, checkPermissions(Permission.MERC
  *      }
  *  }
  */
-merchandiseRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
+merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -208,7 +208,7 @@ merchandiseRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.MER
  * @reponse JSON
  *  {}
  */
-merchandiseRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), async (req, res) => {
+merchandiseRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

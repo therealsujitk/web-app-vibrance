@@ -36,8 +36,7 @@ const uploadMiddleware = getUploadMiddleware();
  *  }
  */
 categoriesRouter.get('', async (req, res) => {
-  var page = 1;
-  var type: CategoryType[] = [];
+  var page = 1, type: CategoryType[] = [], query = '';
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -69,8 +68,12 @@ categoriesRouter.get('', async (req, res) => {
     }
   }
 
+  if ('query' in req.query) {
+    query = validator.escape((req.query.query as string).trim());
+  }
+
   try {
-    const categories = await Categories.getAll(page, type);
+    const categories = await Categories.getAll(page, type, query);
     res.status(200).json({
       categories: categories,
       types: Object.keys(CategoryType)
@@ -98,7 +101,7 @@ categoriesRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-categoriesRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+categoriesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -165,7 +168,7 @@ categoriesRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENT
  *      }
  *  }
  */
-categoriesRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+categoriesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   const user = req.user!;
   const category: OrNull<Category> = {};
 
@@ -229,7 +232,7 @@ categoriesRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVEN
  * @response JSON
  *  {}
  */
-categoriesRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+categoriesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

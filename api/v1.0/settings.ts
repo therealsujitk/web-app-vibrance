@@ -14,18 +14,19 @@ const settingsRouter = express.Router();
  * 
  * @response JSON
  *  {
- *      "settings": [
+ *      "settings": {
  *          "KEY": "VALUE",
  *          ...
- *      ]
+ *      }
  *  }
  */
 settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
   try {
     const settings = await Settings.getAll();
+    const settingsObject = Object.fromEntries(settings.map((s: { key: string, value: string }) => [s.key, s.value]));
 
     res.status(200).json({
-      settings: Object.fromEntries(settings.map((s: { key: string, value: string }) => [s.key, s.value]))
+      settings: settingsObject
     });
   } catch (_) {
     return internalServerError(res);
@@ -40,13 +41,13 @@ settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => 
  * 
  * @response JSON
  *  {
- *      "settings": [
+ *      "settings": {
  *          "KEY": "VALUE",
  *          ...
- *      ]
+ *      }
  *  }
  */
-settingsRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
+settingsRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
   const user = req.user!;
   const settings: Setting[] = [];
 
@@ -63,8 +64,10 @@ settingsRouter.post('/edit', Users.checkAuth, checkPermissions(), async (req, re
   }
 
   try {
+    const settingsArray = await new Settings(user.id).update(settings);
+    const settingsObject = Object.fromEntries(settingsArray!.map((s: { key: string, value: string }) => [s.key, s.value]));
     res.status(200).json({
-      settings: await new Settings(user.id).update(settings)
+      settings: settingsObject
     });
   } catch (_) {
     internalServerError(res);

@@ -1,222 +1,86 @@
 # Vibrance
 
-![Heroku](https://pyheroku-badge.herokuapp.com/?app=vitvibrance) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A web application for VIT Chennai's cultural festival with a built-in Rest API for easy access of data on other platforms and an admin panel to make life easier for the event organisers.
 
-> **Disclaimer:** This application is still under development and is not currently installable. However you can still test out the API using the link attached to this repository.
+## Links
+
+- [Admin Panel](https://vitvibrance.onrender.com/admin)
+- [API Documentation](https://vitvibrance.onrender.com/docs)
+- [GitHub Repository](https://github.com/therealsujitk/web-app-vibrance)
+- [Donate](https://therealsuji.tk/donate)
 
 ## Requirements
 
-- Node.js 10+
+- Node.js 12+
 - MySQL 5.6+ or MariaDB 10.0.5+
 
-## Dependencies
+## Installation & Setup
 
-Install the necessary dependencies by running either of the commands below.
+Firstly you'll need a local copy of this project to get started. You can either use git to clone this repository, or manually download it from GitHub.
 
-Using **npm**:
-```sh
-$ npm install
-```
+The package manager used in this project is yarn, incase you don't have it you'll need to [install](https://classic.yarnpkg.com/lang/en/docs/install) it first.
 
-Using **yarn**:
+Install the project dependencies by running the following command in the project's root directory.
+
 ```sh
 $ yarn install
 ```
 
+After the installation is complete you can then start setting up your database.
+
+- The first thing you need is to set some environment variables, you can do that by creating a `.env` file in your project's root directory. Here are the variables used in this project.
+
+    - `PORT` - The port that your server will run on. (If this is a production deployment, your server should automatically set it to 80)
+    - `MYSQL_HOST` - The host of your MySQL connection.
+    - `MYSQL_USER` - The username used to access the MySQL database.
+    - `MYSQL_PASSWORD` - The password for the given MySQL username.
+    - `MYSQL_DATABASE` - The name of the database used by this application.
+    - `API_EXPIRY_DAYS` - The number of days after which a user's API key will expire.
+
+    Here's an example of the final `.env` file.
+
+    ```env
+    PORT=8080
+    MYSQL_HOST=localhost
+    MYSQL_USER=root
+    MYSQL_PASSWORD=
+    MYSQL_DATABASE=vibrance
+    API_EXPIRY_DAYS=10
+    ```
+- After setting up your environment variables, run the following command in your project's root directory to fill up the database with some necessary information.
+
+    ```sh
+    $ yarn migrate up
+    ```
+
+If you are running a production build of this application, you'll need to build this project. To do that run the following command in your project's root directory.
+
+```sh
+$ yarn build
+````
+
+> **Note:** All of the commands above are executed only in the project's root directory, ensure not to run them in sub-directories.
+
+> **Note:** The migration/build step automatically creates a default user with the username 'admin' and password 'password' for you to sign in to the admin panel.
+
 ## Usage
 
-**Note:** Before running either of the commands below to start the server, install the necessary dependencies by running either of the commands above.
+### Production
 
-Using **npm**:
+If you are running a production build of this application, just run the following command in your project's root directory and you're good to go!
+
 ```sh
-$ npm run start
+$ yarn start
 ```
 
-Using **yarn**:
+### Development
+
+If you are running a development build, you'll first have to start your server by running the following command in your project's root directory. (Ensure you've installed all dependencies and executed the build command as mentioned in the steps above.)
+
 ```sh
-$ yarn run start
+$ yarn dev
 ```
 
-**Note:** `start` should be replaced with `dev` if not in a production environment.
-
-## API
-
-### About
-
-The endpoint **`/api/about.json`** will return an object similar to the one shown below.
-```json
-{
-    "title": "Vibrance 2020",
-    "description": "The official website for VIT Chennai's cultural festival.",
-    "opening_date": "2020-02-06",
-    "opening_time": "09:00",
-    "social": {
-        "facebook": "VibranceVIT",
-        "instagram": "vibrancevit",
-        "twitter": "VibranceVIT",
-        "youtube": "vibrancevit"
-    }
-}
-```
-
-### Days
-
-The endpoint **`/api/days.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "day_string": "Day 1",
-        "date_string": "2020-02-06"
-    },
-    "1": {
-        "day_string": "Day 2",
-        "date_string": "2020-02-07"
-    },
-    "2": {
-        "day_string": "Day 3",
-        "date_string": "2020-02-08"
-    }
-}
-```
-
-### Categories
-
-The endpoint **`/api/categories.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "category": "Code-Y-Gen",
-        "category_type": "Chapter",
-        "image": "http://localhost/public/assets/categories/code-y-gen.png"
-    },
-    "1": {
-        "category": "Dramatics Club",
-        "category_type": "Club",
-        "image": "http://localhost/public/assets/categories/dramatics-club.png"
-    }
-}
-```
-
-#### Parameters
-
-- **`?type=`**
-    - **`club`** - Returns an object of all clubs.
-    - **`chapter`** - Returns an object of all chapters.
-
-To get an object with multiple category types, combine them with **`&`**. For example: `/api/categories.json?type=club&type=chapter`.
-
-#### Examples
-
-The request `/api/categories.json?type=club` will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "category": "Dramatics Club",
-        "image": "http://localhost/public/assets/categories/dramatics-club.png"
-    },
-    "1": {
-        "category": "Photography Club",
-        "image": "http://localhost/public/assets/categories/photography-club.png"
-    }
-}
-```
-
-### Venues
-
-The endpoint **`/api/venues.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "venue": "Academic Block 1",
-        "rooms": [
-            "101",
-            "209",
-            "206",
-            "301"
-        ]
-    },
-    "1": {
-        "venue": "Online",
-        "rooms": []
-    }
-}
-```
-
-### Events
-
-The endpoint **`/api/events.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "title": "Anime",
-        "description": "",
-        "category_image": "http://localhost/public/assets/categories/socrates-club.png",
-        "event_image": "http://localhost/public/assets/events/anime.png",
-        "start_time": "10:00",
-        "end_time": "11:00",
-        "members": "1",
-        "entry_fee": 10,
-        "day_string": "Day 1",
-        "category": "Socrates Club",
-        "venue": "Academic Block 1",
-        "room": "301"
-    }
-}
-```
-
-#### Parameters
-
-- **`?day=`**
-    - `day-string` - Returns an object with events of that day.
-- **`?category=`**
-    - `category-string` - Returns an object with events of that category.
-- **`?venue=`**
-    - `venue-string` - Returns an object with events in that venue.
-- **`?room=`**
-    - `room-string` - Returns an object with events in that room.
-- **`?offset=`**
-    - `offset-value` - Returns an object starting from that offset value. For performance reasons, only 40 events are loaded per request.
-
-To use multiple paramaters, combine them with **`&`**. For example: `/api/events.json?day=day 1&category=club`. The same parameter can also be used multiple times.
-
-### Pro Shows
-
-The endpoint **`/api/pro_shows.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "description": "",
-        "day_string": "Day 1",
-        "venue": "Academic Block 1",
-        "room": "101",
-        "image": "http://localhost/public/assets/pro-shows/day-1.png"
-    },
-    "1": {
-        "description": "",
-        "day_string": "Day 2",
-        "venue": "Academic Block 2",
-        "room": "ACT Lab",
-        "image": "http://localhost/public/assets/pro-shows/day-2.png"
-    }
-}
-```
-
-### Merchandise
-
-The endpoint **`/api/merchandise.json`** will return an object similar to the one shown below.
-```json
-{
-    "0": {
-        "title": "Hoodie",
-        "image": "http://localhost/public/assets/merch/hoodie.png",
-        "cost": "500"
-    },
-    "1": {
-        "title": "Wrist Band",
-        "image": "http://localhost/public/assets/merch/wrist-band.png",
-        "cost": "30"
-    }
-}
-```
+Open up another terminal, and run the deveopment command of the frontend that you require. For example to run the dev build of the admin frontend, head over to the `frontend/admin` directory and run the `$ yarn dev` command.

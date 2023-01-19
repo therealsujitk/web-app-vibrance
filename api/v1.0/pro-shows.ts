@@ -5,7 +5,7 @@ import { ProShows, Users } from '../../interfaces';
 import { ProShow } from '../../models/pro-show';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { OrNull } from '../../utils/helpers';
+import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
 import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
@@ -16,23 +16,28 @@ const uploadMiddleware = getUploadMiddleware();
  * [GET] /api/v1.0/pro-shows
  * 
  * @param page number
+ * @param day_id number|number[]
+ * @param venue_id number|number[]
  * 
  * @response JSON
  *  {
  *      "pro_shows": [
  *          {
- *              "id": 1,
+ *              "id": 2,
  *              "day_id": 1,
- *              "room_id": 1,
+ *              "day": "Day 1",
+ *              "room_id": 2,
+ *              "room": "103",
+ *              "venue": "Academic Block - 1",
  *              "description": "...",
- *              "image": null,
- *              "registration": null
- *          }
+ *              "image": null
+ *          },
+ *          ...
  *      ]
  *  }
  */
 proShowsRouter.get('', async (req, res) => {
-  var page = 1;
+  var page = 1, dayIds = [], venueIds = [];
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -42,9 +47,53 @@ proShowsRouter.get('', async (req, res) => {
     }
   }
 
+  if ('day_id' in req.query) {
+    if (Array.isArray(req.query.day_id)) {
+      const day_ids = req.query.day_id;
+
+      for (var i = 0; i < day_ids.length; ++i) {
+        const dayId = validator.toInt(day_ids[i] as string);
+
+        if (isNaN(dayId)) {
+          return invalidValueForParameter('day_id', res);
+        }
+
+        dayIds.push(dayId);
+      }
+    } else {
+      dayIds.push(validator.toInt(req.query.day_id as string));
+
+      if (isNaN(dayIds[0])) {
+        return invalidValueForParameter('day_id', res);
+      }
+    }
+  }
+
+  if ('venue_id' in req.query) {
+    if (Array.isArray(req.query.venue_id)) {
+      const venue_ids = req.query.venue_id;
+
+      for (var i = 0; i < venue_ids.length; ++i) {
+        const venueId = validator.toInt(venue_ids[i] as string);
+
+        if (isNaN(venueId)) {
+          return invalidValueForParameter('venue_id', res);
+        }
+
+        venueIds.push(venueId);
+      }
+    } else {
+      venueIds.push(validator.toInt(req.query.venue_id as string));
+
+      if (isNaN(venueIds[0])) {
+        return invalidValueForParameter('venue_id', res);
+      }
+    }
+  }
+
   try {
     res.status(200).json({
-      pro_shows: await ProShows.getAll(page)
+      pro_shows: await ProShows.getAll(page, dayIds, venueIds)
     });
   } catch (_) {
     internalServerError(res);
@@ -58,21 +107,26 @@ proShowsRouter.get('', async (req, res) => {
  * @param day_id number (required)
  * @param room_id number (required)
  * @param description string (required)
- * @param registration string
+ * @param start_time HH:MM (required)
+ * @param end_time HH:MM (required)
+ * @param cost number
  * @param image File
  * 
  * @response JSON
  *  {
  *      "pro_show": {
- *          "id": 1,
- *          "dayId": 1,
- *          "roomId": 1,
+ *          "id": 2,
+ *          "day_id": 1,
+ *          "day": "Day 1",
+ *          "room_id": 2,
+ *          "room": "103",
+ *          "venue": "Academic Block - 1",
  *          "description": "...",
- *          "registration": null
+ *          "image": null
  *      }
  *  }
  */
-proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -88,13 +142,18 @@ proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS)
     return missingRequiredParameter('room_id', res);
   }
 
-  if (!('description' in req.body)) {
-    return missingRequiredParameter('description', res);
+  if (!('start_time' in req.body)) {
+    return missingRequiredParameter('start_time', res);
+  }
+
+  if (!('end_time' in req.body)) {
+    return missingRequiredParameter('end_time', res);
   }
 
   const dayId = validator.toInt(req.body.day_id);
   const roomId = validator.toInt(req.body.room_id);
-  const description = validator.escape(req.body.description.trim());
+  const startTime = req.body.start_time.trim();
+  const endTime = req.body.end_time.trim();
 
   if (isNaN(dayId)) {
     return invalidValueForParameter('day_id', res);
@@ -104,15 +163,29 @@ proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS)
     return invalidValueForParameter('room_id', res);
   }
 
-  if (validator.isEmpty(description)) {
-    return invalidValueForParameter('description', res);
+  if (!timeRegex.test(startTime)) {
+    return invalidValueForParameter('start_time', res);
+  }
+
+  if (!timeRegex.test(endTime)) {
+    return invalidValueForParameter('end_time', res);
   }
 
   const proShow: ProShow = {
     day_id: dayId,
     room_id: roomId,
-    description: description
+    start_time: getUTCFromString('2020-01-01 ' + startTime),
+    end_time: getUTCFromString('2020-01-01 ' + endTime),
+    cost: 0
   };
+
+  if ('title' in req.body) {
+    proShow.title = validator.escape((req.body.title as string).trim());
+  }
+
+  if ('description' in req.body) {
+    proShow.description = validator.escape((req.body.description as string).trim());
+  }
   
   if (req.files && 'image' in req.files) {
     try {
@@ -126,11 +199,11 @@ proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS)
     }
   }
 
-  if ('registration' in req.body) {
-    proShow.registration = validator.escape(req.body.registration.trim());
+  if ('cost' in req.body) {
+    proShow.cost = validator.toFloat(req.body.cost);
 
-    if (!validator.isURL(proShow.registration)) {
-      return invalidValueForParameter('registration', res);
+    if (isNaN(proShow.cost)) {
+      return invalidValueForParameter('cost', res);
     }
   }
 
@@ -161,15 +234,18 @@ proShowsRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS)
  * @response JSON
  *  {
  *      "pro_show": {
- *          "id": 1,
- *          "dayId": 1,
- *          "roomId": 1,
+ *          "id": 2,
+ *          "day_id": 1,
+ *          "day": "Day 1",
+ *          "room_id": 2,
+ *          "room": "103",
+ *          "venue": "Academic Block - 1",
  *          "description": "...",
- *          "registration": null
+ *          "image": null
  *      }
  *  }
  */
-proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -204,12 +280,13 @@ proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS
     }
   }
 
-  if ('description' in req.body) {
-    proShow.description = validator.escape(req.body.description.trim());
 
-    if (validator.isEmpty(proShow.description)) {
-      return invalidValueForParameter('description', res);
-    }
+  if ('title' in req.body) {
+    proShow.title = validator.escape((req.body.title as string).trim());
+  }
+
+  if ('description' in req.body) {
+    proShow.description = validator.escape((req.body.description as string).trim());
   }
   
   if (req.files && 'image' in req.files) {
@@ -224,11 +301,31 @@ proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS
     }
   }
 
-  if ('registration' in req.body) {
-    proShow.registration = validator.escape(req.body.registration.trim());
+  if ('start_time' in req.body) {
+    const startTime = req.body.start_time.trim();
 
-    if (!validator.isURL(proShow.registration)) {
-      return invalidValueForParameter('registration', res);
+    if (!timeRegex.test(startTime)) {
+      return invalidValueForParameter('start_time', res);
+    } else {
+      proShow.start_time = getUTCFromString('2020-01-01 ' + startTime);
+    }
+  }
+
+  if ('end_time' in req.body) {
+    const endTime = req.body.end_time.trim();
+
+    if (!timeRegex.test(endTime)) {
+      return invalidValueForParameter('end_time', res);
+    } else {
+      proShow.end_time = getUTCFromString('2020-01-01 ' + endTime);
+    }
+  }
+
+  if ('cost' in req.body) {
+    proShow.cost = validator.toFloat(req.body.cost);
+
+    if (isNaN(proShow.cost)) {
+      return invalidValueForParameter('cost', res);
     }
   }
 
@@ -254,7 +351,7 @@ proShowsRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS
  * @response JSON
  *  {}
  */
-proShowsRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+proShowsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

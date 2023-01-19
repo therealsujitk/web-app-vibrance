@@ -35,6 +35,7 @@ exports.up = function(db) {
         onUpdate: 'RESTRICT'
       },
     }},
+    title: type.STRING,
     description: type.TEXT,
     image_id: { type: type.INTEGER, foreignKey: {
       name: 'pro_shows_image_id_fk',
@@ -45,7 +46,9 @@ exports.up = function(db) {
         onUpdate: 'RESTRICT'
       },
     }},
-    registration: type.STRING
+    start_time: { type: type.TIME, notNull: true },
+    end_time: { type: type.TIME, notNull: true },
+    cost: { type: type.REAL, notNull: true, defaultValue: 0 }
   });
 };
 

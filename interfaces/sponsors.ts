@@ -5,6 +5,7 @@ import { LogAction } from '../models/log-entry';
 import { Sponsor } from '../models/sponsor';
 import { isEqual, OrNull } from '../utils/helpers';
 import { ClientError } from '../utils/errors';
+import { IMAGE_URL, LIMIT } from '../utils/constants';
 
 export default class Sponsors {
   userId: number;
@@ -14,10 +15,17 @@ export default class Sponsors {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    return await query("SELECT `sponsors`.`id` AS `id`, `title`, `description`, `image` FROM `sponsors` LEFT JOIN `images` ON `image_id` = `images`.`id` LIMIT ? OFFSET ?", [limit, offset]);
+    return await query("SELECT " + 
+      "`sponsors`.`id` AS `id`, " + 
+      "`title`, " + 
+      "`description`, " + 
+      "CONCAT('" + IMAGE_URL + "', `image`) AS `image` " + 
+      "FROM `sponsors` " + 
+      "LEFT JOIN `images` " + 
+      "ON `image_id` = `images`.`id` " + 
+      "LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
   async #get(id: number) {
@@ -51,7 +59,8 @@ export default class Sponsors {
   
     return {
       id: (await transaction(queries))[!existing && sponsor.image ? 1 : 0].insertId,
-      ...sponsor
+      ...sponsor,
+      image: sponsor.image ? IMAGE_URL + sponsor.image : null
     };
   }
 
@@ -86,7 +95,11 @@ export default class Sponsors {
     ];
   
     await transaction(queries);
-    return { id, ...sponsor };
+    return { 
+      id,
+      ...sponsor,
+      image: sponsor.image ? IMAGE_URL + sponsor.image : null
+    };
   }
 
   async delete(id: number) {

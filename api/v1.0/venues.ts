@@ -15,6 +15,7 @@ const venuesRouter = express.Router();
  * [GET] /api/v1.0/venues
  * 
  * @param page number
+ * @param query string
  * 
  * @response JSON
  *  {
@@ -39,7 +40,7 @@ const venuesRouter = express.Router();
  *  }
  */
 venuesRouter.get('', async (req, res) => {
-  var page = 1;
+  var page = 1, query = '';
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -49,11 +50,15 @@ venuesRouter.get('', async (req, res) => {
     }
   }
 
+  if ('query' in req.query) {
+    query = validator.escape((req.query.query as string).trim());
+  }
+
   try {
     res.status(200).json({
-      venues: await Venues.getAll(page)
+      venues: await Venues.getAll(page, query)
     });
-  } catch (_) {
+  } catch (e) {console.log(e)
     internalServerError(res);
   }
 });
@@ -72,7 +77,7 @@ venuesRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-venuesRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -109,7 +114,7 @@ venuesRouter.post('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), 
  *      }
  *  }
  */
-venuesRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
   const venue: OrNull<Venue> = {};
 
@@ -153,7 +158,7 @@ venuesRouter.post('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS),
  * @response JSON
  *  {}
  */
-venuesRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {
@@ -246,7 +251,7 @@ venuesRouter.post('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS
  *      }
  *  }
  */
-venuesRouter.post('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('venue_id' in req.body)) {
@@ -303,7 +308,7 @@ venuesRouter.post('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVE
  *      }
  *  }
  */
- venuesRouter.post('/rooms/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+ venuesRouter.patch('/rooms/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
   const room: OrNull<Room> = {};
 
@@ -355,7 +360,7 @@ venuesRouter.post('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVE
  * @response JSON
  *  {}
  */
-venuesRouter.post('/rooms/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.delete('/rooms/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

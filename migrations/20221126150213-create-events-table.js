@@ -55,11 +55,11 @@ exports.up = function(db) {
         onUpdate: 'RESTRICT'
       },
     }},
-    team_size: type.STRING,
+    team_size_min: { type: type.INTEGER, notNull: true },
+    team_size_max: { type: type.INTEGER, notNull: true },
     cost: { type: type.REAL, notNull: true, defaultValue: 0 },
-    start_datetime: { type: type.DATE_TIME, notNull: true },
-    end_datetime: { type: type.DATE_TIME, notNull: true },
-    registration: type.STRING
+    start_time: { type: type.TIME, notNull: true },
+    end_time: { type: type.TIME, notNull: true }
   });
 };
 

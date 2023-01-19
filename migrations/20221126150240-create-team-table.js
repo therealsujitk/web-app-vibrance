@@ -18,7 +18,8 @@ exports.up = function(db) {
   return db.createTable('team', {
     id: { type: type.INTEGER, notNull: true, primaryKey: true, autoIncrement: true },
     name: { type: type.STRING, notNull: true },
-    description: type.STRING,
+    team_name: type.STRING,
+    role: type.STRING,
     image_id: { type: type.INTEGER, foreignKey: {
       name: 'team_image_id_fk',
       table: 'images',

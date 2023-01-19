@@ -10,6 +10,7 @@ import { NextFunction, Request, Response } from 'express';
 import { API_EXPIRY_DAYS } from '../config';
 import { ClientError, InvalidCredentials } from '../utils/errors';
 import { internalServerError } from '../api/utils/errors';
+import { LIMIT } from '../utils/constants';
 
 export default class Users {
   userId: number;
@@ -19,10 +20,9 @@ export default class Users {
   }
 
   static async getAll(page = 1) {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * LIMIT;
 
-    const rawUsers = await query("SELECT * FROM `users` LIMIT ? OFFSET ?", [limit, offset]);
+    const rawUsers = await query("SELECT * FROM `users` LIMIT ? OFFSET ?", [LIMIT, offset]);
     const users: any[] = [];
 
     for (var i = 0; i < rawUsers.length; ++i) {

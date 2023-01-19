@@ -1,0 +1,12 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "build:admin": "cd admin && yarn build",
+    "build:docs": "cd docs && yarn build",
+    "build": "yarn build:admin && yarn build:docs",
+    "movebuild": "ts-node move-builds",
+    "install:admin": "cd admin && yarn",
+    "install:docs": "cd docs && yarn",
+    "preinstall": "yarn install:admin && yarn install:docs"
+  }
+}
