@@ -1,0 +1,12 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "description": "Documentation for the Vibrance web application.",
+  "main": "index.ts",
+  "author": "Sujit Kumar",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "redoc": "^2.0.0"
+  }
+}

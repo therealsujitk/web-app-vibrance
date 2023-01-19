@@ -1,0 +1,5575 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "version": "v1.0",
+    "title": "Vibrance Documentation",
+    "x-logo": {
+      "url": "assets/images/logo.png"
+    },
+    "contact": {
+      "email": "social@therealsuji.tk"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "description": "This page contains the documnetation on how to communicate with this application through API calls. The official project can be found on my [GitHub repository](https://github.com/therealsujitk/web-app-vibrance), any issues are recommended to be opened here as I'll probably respond much faster there than on email.\n\n### API Endpoints\n\nAll endpoints are of the format `/api/<VERSION>/<API_PATH>`, where `<VERSION>` should be replaced with any version you'd like to use (preferably the latest one available). A list of available versions can be found [here](https://github.com/therealsujitk/web-app-vibrance/tree/main/api).\n\n> **Note:** Technically `<VERSION>` can be replaced with `latest` as well, however I **highly** recommend not doing so.\n\nIncase an incorrect version is used you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"error\": \"Invalid API version in URI.\"\n}\n```\n\nIncase the endpoint or request method used is invalid, you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"error\": \"Invalid API endpoint or request method used.\"\n}\n```\n\n### Application Installation\n\nNo installation is required to test this API, you can use this site as the base url for your API requests. However to use your own data you'll have to install this application, instructions for which can be found in my repository. You can then sign in to the admin panel to add your own data.\n"
+  },
+  "servers": [
+    {
+      "url": "/api/v1.0"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Session"
+    },
+    {
+      "name": "Users"
+    },
+    {
+      "name": "Days"
+    },
+    {
+      "name": "Categories"
+    },
+    {
+      "name": "Venues"
+    },
+    {
+      "name": "Events"
+    },
+    {
+      "name": "Pro Shows"
+    },
+    {
+      "name": "Gallery"
+    },
+    {
+      "name": "Merchandise"
+    },
+    {
+      "name": "Sponsors"
+    },
+    {
+      "name": "Team"
+    },
+    {
+      "name": "Admin"
+    }
+  ],
+  "paths": {
+    "/session": {
+      "get": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Get the user session",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "session": {
+                      "properties": {
+                        "username": {
+                          "type": "string",
+                          "example": "admin"
+                        },
+                        "permissions": {
+                          "$ref": "#/components/schemas/user/properties/permissions"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/edit": {
+      "patch": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Edit user details",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "old_password": {
+                    "type": "string",
+                    "example": "password"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "new_password"
+                  }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1session~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/login": {
+      "post": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Create a new session (Login)",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1session~1login/post/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "session": {
+                      "properties": {
+                        "api_key": {
+                          "type": "string",
+                          "example": "q_EaTiX+xbBXLyO05.+zDXjI+Qi_X0v"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/logout": {
+      "post": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Destroy an existing session (Logout)",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/logout-all": {
+      "post": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Destroy all active sessions",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a list of users",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the user list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/user"
+                      }
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "description": "The list of all available permissions.",
+                      "items": {
+                        "$ref": "#/components/schemas/user/properties/permissions"
+                      },
+                      "example": {
+                        "$ref": "#/components/schemas/user/properties/permissions/items/enum"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/add": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Add a new user",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password"
+                  },
+                  "permissions": {
+                    "type": [
+                      "string",
+                      "array"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/user/properties/permissions"
+                    }
+                  }
+                },
+                "required": [
+                  "username",
+                  "password",
+                  "permissions"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1users~1add/put/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/edit": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Edit an existing user",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password"
+                  },
+                  "permissions": {
+                    "type": [
+                      "string",
+                      "array"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/user/properties/permissions"
+                    }
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1users~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/delete": {
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Delete an existing user",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1users~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/days": {
+      "get": {
+        "tags": [
+          "Days"
+        ],
+        "summary": "Get a list of days",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the day list.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for days.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "days": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/day"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/days/add": {
+      "put": {
+        "tags": [
+          "Days"
+        ],
+        "summary": "Add a new day",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/day"
+                  },
+                  {
+                    "properties": {
+                      "date": {
+                        "example": "2020-02-07"
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "title",
+                  "date"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1days~1add/put/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "day": {
+                      "$ref": "#/components/schemas/day"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/days/edit": {
+      "patch": {
+        "tags": [
+          "Days"
+        ],
+        "summary": "Edit an existing day",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/day"
+                  },
+                  {
+                    "properties": {
+                      "date": {
+                        "example": "2020-02-07"
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1days~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "day": {
+                      "$ref": "#/components/schemas/day"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/days/delete": {
+      "delete": {
+        "tags": [
+          "Days"
+        ],
+        "summary": "Delete an existing day",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1days~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Get a list of categories",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the category list.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "array"
+              ],
+              "items": {
+                "$ref": "#/components/schemas/category/properties/type"
+              }
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for categories.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/category"
+                      }
+                    },
+                    "types": {
+                      "type": "array",
+                      "description": "The list of all available types.",
+                      "items": {
+                        "$ref": "#/components/schemas/category/properties/type"
+                      },
+                      "example": {
+                        "$ref": "#/components/schemas/category/properties/type/enum"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories/add": {
+      "put": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Add a new category",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/category"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "title",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "category": {
+                      "$ref": "#/components/schemas/category"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories/edit": {
+      "patch": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Edit an existing category",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/category"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "category": {
+                      "$ref": "#/components/schemas/category"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories/delete": {
+      "delete": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Delete an existing category",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1categories~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Get a list of venues",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the venue list.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for venues & rooms.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "venues": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/venue"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/add": {
+      "put": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Add a new venue",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Academic Block 1"
+                  }
+                },
+                "required": [
+                  "title"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1add/put/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "venue": {
+                      "$ref": "#/components/schemas/venue"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/edit": {
+      "patch": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Edit an existing venue",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "Academic Block 1"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "venue": {
+                      "$ref": "#/components/schemas/venue"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/delete": {
+      "delete": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Delete an existing venue",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/rooms": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Get a list of rooms",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "venue_id",
+            "in": "query",
+            "description": "The venue id of the rooms.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the room list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "rooms": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/room"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/rooms/add": {
+      "put": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Add a new room",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "venue_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "101"
+                  }
+                },
+                "required": [
+                  "venue_id",
+                  "title"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1add/put/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "room": {
+                      "$ref": "#/components/schemas/room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/rooms/edit": {
+      "patch": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Edit an existing room",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "101"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1rooms~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "room": {
+                      "$ref": "#/components/schemas/room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/venues/rooms/delete": {
+      "delete": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Delete an existing room",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1venues~1rooms~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get a list of events",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the event list.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "day_id",
+            "in": "query",
+            "description": "Filter by one or more days.",
+            "schema": {
+              "type": ["string", "array"],
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "Filter by one or more categories.",
+            "schema": {
+              "type": ["string", "array"],
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "venue_id",
+            "in": "query",
+            "description": "Filter by one or more venues.",
+            "schema": {
+              "type": ["string", "array"],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/event"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/add": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Add a new event",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/event"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "day_id",
+                  "category_id",
+                  "room_id",
+                  "start_time",
+                  "end_time",
+                  "team_size_min",
+                  "team_size_max"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "event": {
+                      "$ref": "#/components/schemas/event"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/edit": {
+      "patch": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Edit an existing event",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/event"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "event": {
+                      "$ref": "#/components/schemas/event"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/delete": {
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Delete an existing event",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1events~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pro-shows": {
+      "get": {
+        "tags": [
+          "Pro Shows"
+        ],
+        "summary": "Get a list of pro shows",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the pro show list.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "day_id",
+            "in": "query",
+            "description": "Filter by one or more days.",
+            "schema": {
+              "type": ["string", "array"],
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "venue_id",
+            "in": "query",
+            "description": "Filter by one or more venues.",
+            "schema": {
+              "type": ["string", "array"],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "pro_shows": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/pro_show"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pro-shows/add": {
+      "put": {
+        "tags": [
+          "Pro Shows"
+        ],
+        "summary": "Add a new pro show",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/pro_show"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "day_id",
+                  "room_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "pro_show": {
+                      "$ref": "#/components/schemas/pro_show"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pro-shows/edit": {
+      "patch": {
+        "tags": [
+          "Pro Shows"
+        ],
+        "summary": "Edit an existing pro show",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/pro_show"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "pro_show": {
+                      "$ref": "#/components/schemas/pro_show"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pro-shows/delete": {
+      "delete": {
+        "tags": [
+          "Pro Shows"
+        ],
+        "summary": "Delete an existing pro show",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1pro-shows~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gallery": {
+      "get": {
+        "tags": [
+          "Gallery"
+        ],
+        "summary": "Get a list of gallery images",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the gallery list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "gallery": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/image"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gallery/add": {
+      "put": {
+        "tags": [
+          "Gallery"
+        ],
+        "summary": "Add one or more gallery images",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "image": {
+                    "type": [
+                      "file",
+                      "array"
+                    ],
+                    "items": {
+                      "type": "files"
+                    }
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "images": {
+                          "$ref": "#/components/schemas/image"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "images": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gallery/delete": {
+      "delete": {
+        "tags": [
+          "Gallery"
+        ],
+        "summary": "Delete an existing gallery image",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1gallery~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchandise": {
+      "get": {
+        "tags": [
+          "Merchandise"
+        ],
+        "summary": "Get a list of merchandise",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the merchandise list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "merchandise": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/merchandise"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchandise/add": {
+      "put": {
+        "tags": [
+          "Merchandise"
+        ],
+        "summary": "Add a new merchandise",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/merchandise"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "merchandise": {
+                      "$ref": "#/components/schemas/merchandise"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchandise/edit": {
+      "patch": {
+        "tags": [
+          "Merchandise"
+        ],
+        "summary": "Edit an existing merchandise",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/merchandise"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "merchandise": {
+                      "$ref": "#/components/schemas/merchandise"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchandise/delete": {
+      "delete": {
+        "tags": [
+          "Merchandise"
+        ],
+        "summary": "Delete an existing merchandise",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1merchandise~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sponsors": {
+      "get": {
+        "tags": [
+          "Sponsors"
+        ],
+        "summary": "Get a list of sponsors",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the sponsor list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "sponsors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/sponsor"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sponsors/add": {
+      "put": {
+        "tags": [
+          "Sponsors"
+        ],
+        "summary": "Add a new sponsor",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/sponsor"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "sponsor": {
+                      "$ref": "#/components/schemas/sponsor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sponsors/edit": {
+      "patch": {
+        "tags": [
+          "Sponsors"
+        ],
+        "summary": "Edit an existing sponsor",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/sponsor"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "sponsor": {
+                      "$ref": "#/components/schemas/sponsor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sponsors/delete": {
+      "delete": {
+        "tags": [
+          "Sponsors"
+        ],
+        "summary": "Delete an existing sponsor",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1sponsors~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Get a list of team members",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the team list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "team": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/member"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team/add": {
+      "put": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Add a new team member",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/member"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "name",
+                  "team_name",
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "member": {
+                      "$ref": "#/components/schemas/member"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team/edit": {
+      "patch": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Edit an existing team member",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "readOnly": false,
+                        "example": 1
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/member"
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": null
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "image": {
+                        "type": [
+                          "file",
+                          null
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "member": {
+                      "$ref": "#/components/schemas/member"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team/delete": {
+      "delete": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Delete an existing team member",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1team~1delete/delete/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get server info and other site statistics",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "software_info": {
+                      "type": "array",
+                      "items": {
+                        "data": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "example": [
+                        {
+                          "name": "Release",
+                          "version": "2021.0.0"
+                        },
+                        {
+                          "name": "Node.js",
+                          "version": "v16.14.2"
+                        },
+                        {
+                          "name": "MySQL",
+                          "version": "MariaDB 10.0"
+                        }
+                      ]
+                    },
+                    "server_stats": {
+                      "type": "object",
+                      "properties": {
+                        "total_memory": {
+                          "type": "integer"
+                        },
+                        "free_memory": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit-log": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get a list of user actions",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of the audit log list.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "audit_log": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "actor": {
+                            "$ref": "#/components/schemas/user/properties/username"
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "SETTINGS_EDIT",
+                              "USER_ADD",
+                              "USER_EDIT",
+                              "USER_DELETE",
+                              "DAY_ADD",
+                              "DAY_EDIT",
+                              "DAY_DELETE",
+                              "CATEGORY_ADD",
+                              "CATEGORY_EDIT",
+                              "CATEGORY_DELETE",
+                              "VENUE_ADD",
+                              "VENUE_EDIT",
+                              "VENUE_DELETE",
+                              "ROOM_ADD",
+                              "ROOM_EDIT",
+                              "ROOM_DELETE",
+                              "EVENT_ADD",
+                              "EVENT_EDIT",
+                              "EVENT_DELETE",
+                              "PRO_SHOW_ADD",
+                              "PRO_SHOW_EDIT",
+                              "PRO_SHOW_DELETE",
+                              "GALLERY_ADD",
+                              "GALLERY_DELETE",
+                              "MERCHANDISE_ADD",
+                              "MERCHANDISE_EDIT",
+                              "MERCHANDISE_DELETE",
+                              "SPONSOR_ADD",
+                              "SPONSOR_EDIT",
+                              "SPONSOR_DELETE",
+                              "TEAM_ADD",
+                              "TEAM_EDIT",
+                              "TEAM_DELETE"
+                            ],
+                            "example": "DAY_ADD"
+                          },
+                          "old": {
+                            "type": [
+                              "string",
+                              null
+                            ],
+                            "example": null
+                          },
+                          "new": {
+                            "type": [
+                              "string",
+                              null
+                            ],
+                            "example": "{\"title\":\"Day 1\",\"date\":\"2020-02-06T05:30:00.000Z\"}"
+                          },
+                          "timestamp": {
+                            "type": "datetime",
+                            "example": "2022-12-05T07:52:23.000Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get the site settings",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "SITE_TITLE": "Vibrance",
+                    "SITE_DESCRIPTION": "A web application for VIT Chennai's Cultural Festival, Vibrance."
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/edit": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update the site settings",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "example": {
+                  "SITE_TITLE": "Vibrance 2020"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1settings~1edit/patch/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "SITE_TITLE": "Vibrance 2020",
+                    "SITE_DESCRIPTION": "A web application for VIT Chennai's Cultural Festival, Vibrance."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "user": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "example": "admin"
+          },
+          "password": {
+            "type": "string",
+            "enum": [
+              "***"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "EVENTS",
+                "GALLERY",
+                "MERCHANDISE",
+                "SPONSORS",
+                "TEAM"
+              ]
+            },
+            "example": [
+              "ADMIN"
+            ]
+          }
+        }
+      },
+      "image": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "image": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": "https://vitvibrance.com/public/uploads/images/a8f2291dc5e5d67d9947707235b099b2.jpg"
+          }
+        }
+      },
+      "day": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Day 1"
+          },
+          "date": {
+            "type": "date",
+            "example": "2020-02-07T18:30:00.000Z"
+          }
+        }
+      },
+      "category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Google Student Developer Club"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CLUB",
+              "CHAPTER"
+            ]
+          },
+          "image": {
+            "$ref": "#/components/schemas/image/properties/image"
+          }
+        }
+      },
+      "venue": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Academic Block 1"
+          },
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/room"
+            }
+          }
+        }
+      },
+      "room": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": "101"
+          }
+        }
+      },
+      "event": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "id": {
+                "type": "integer",
+                "readOnly": true,
+                "example": 1
+              },
+              "day_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "category_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "venue_id": {
+                "type": "integer",
+                "readOnly": true,
+                "example": 1
+              },
+              "room_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "title": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": "House of Developers"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
+              },
+              "day": {
+                "type": "string",
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/day/properties/title/example"
+                }
+              },
+              "category": {
+                "type": "string",
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/category/properties/title/example"
+                }
+              },
+              "venue": {
+                "type": "string",
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/venue/properties/title/example"
+                }
+              },
+              "room": {
+                "type": "string",
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/room/properties/title/example"
+                }
+              },
+              "image": {
+                "$ref": "#/components/schemas/image/properties/image"
+              },
+              "category_image": {
+                "type": ["string", null],
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/image/properties/image/example"
+                }
+              },
+              "start_time": {
+                "type": "time",
+                "example": "08:00:00"
+              },
+              "end_time": {
+                "type": "time",
+                "example": "18:00:00"
+              },
+              "team_size_min": {
+                "type": "integer",
+                "example": 2
+              },
+              "team_size_max": {
+                "type": "integer",
+                "example": 5
+              },
+              "cost": {
+                "type": "number",
+                "example": 100
+              }
+            }
+          }
+        ]
+      },
+      "pro_show": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "day_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "venue_id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "room_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "description": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "day": {
+            "type": "string",
+            "readOnly": true,
+            "example": {
+              "$ref": "#/components/schemas/day/properties/title/example"
+            }
+          },
+          "venue": {
+            "type": "string",
+            "readOnly": true,
+            "example": {
+              "$ref": "#/components/schemas/venue/properties/title/example"
+            }
+          },
+          "room": {
+            "type": "string",
+            "readOnly": true,
+            "example": {
+              "$ref": "#/components/schemas/room/properties/title/example"
+            }
+          },
+          "image": {
+            "$ref": "#/components/schemas/image/properties/image"
+          }
+        }
+      },
+      "merchandise": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Hoodie"
+          },
+          "image": {
+            "$ref": "#/components/schemas/image/properties/image"
+          },
+          "cost": {
+            "type": "number",
+            "example": 100
+          }
+        }
+      },
+      "sponsor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Google LLC"
+          },
+          "description": {
+            "type": "string",
+            "example": "Software Company"
+          },
+          "image": {
+            "$ref": "#/components/schemas/image/properties/image"
+          }
+        }
+      },
+      "member": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Sujit Kumar"
+          },
+          "image": {
+            "$ref": "#/components/schemas/image/properties/image"
+          },
+          "team_name": {
+            "type": "string",
+            "example": "Core Team"
+          },
+          "role": {
+            "type": "string",
+            "example": "Technical Lead"
+          },
+          "phone": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": "9999999999"
+          },
+          "email": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": "social@therealsuji.tk"
+          }
+        }
+      },
+      "errors": {
+        "type": "object",
+        "properties": {
+          "internal_server_error": {
+            "type": "string",
+            "enum": [
+              "An internal server error occurred."
+            ]
+          },
+          "client_error": {
+            "type": "string",
+            "enum": [
+              "Missing required parameter 'parameter_name'.",
+              "Invalid value for parameter 'parameter_name'.",
+              "'data' cannot be deleted as it is being referenced.",
+              "Invalid MIME type, expected 'expected_mime_types' but got 'received_mime_type'",
+              "File size exceeded the 'file_size' MB limit."
+            ]
+          },
+          "unauthorised_access": {
+            "type": "string",
+            "enum": [
+              "You are not authorised to access this resource.",
+              "API Key has expired, sign in again."
+            ]
+          }
+        }
+      }
+    }
+  }
+}
