@@ -65,7 +65,7 @@ export default class App extends React.Component<{}, AppState> {
           permissions: undefined
         });
       },
-      displayAlert: (type: AlertColor, message: string, action?: { name: string, onClick: () => void }) => {
+      displayAlert: (type: AlertColor, message: string|Error, action?: { name: string, onClick: () => void }) => {
         var alertId = Math.random();
 
         while (alertId in this.state.alerts) {
@@ -74,14 +74,14 @@ export default class App extends React.Component<{}, AppState> {
 
         this.state.alerts[alertId] = {
           type: type,
-          message: message,
+          message: message.toString(),
           action: action
         }
 
         this.setState({ alerts: this.state.alerts });
       },
-      displayError: (message: string, action?: { name: string, onClick: () => void }) => {
-        if (message.toLowerCase().includes('api key has expired')) {
+      displayError: (message: string|Error, action?: { name: string, onClick: () => void }) => {
+        if (message.toString().toLowerCase().includes('api key has expired')) {
           action = {
             name: 'Sign In',
             onClick: () => appContext.destroySession()
@@ -190,8 +190,8 @@ export default class App extends React.Component<{}, AppState> {
       const permissions = response.session.permissions;
 
       setSession(username, permissions);
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getSession(apiKey, setSession, onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getSession(apiKey, setSession, onError) });
     }
   }
 }

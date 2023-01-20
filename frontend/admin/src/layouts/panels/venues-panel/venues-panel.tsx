@@ -233,8 +233,8 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
         venues: this.state.venues,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getVenues(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getVenues(onError) });
     }
   }
 
@@ -379,8 +379,8 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
         });
       }
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -447,8 +447,8 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
       
       this.props.onUpdate(this.props.venue!, this.props.room);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

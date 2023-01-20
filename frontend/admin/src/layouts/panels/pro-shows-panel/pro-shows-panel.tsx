@@ -241,8 +241,8 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
         proShows: this.state.proShows,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getProShows(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getProShows(onError) });
     }
   }
 
@@ -664,8 +664,8 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
         cost: response.pro_show.cost,
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -720,8 +720,8 @@ class DeleteDialog extends React.Component<ProShowDialogProps, ProShowDialogStat
       
       this.props.onUpdate(this.props.proShow!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

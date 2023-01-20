@@ -234,8 +234,8 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
         users: this.state.users,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getUsers(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getUsers(onError) });
     }
   }
 
@@ -427,8 +427,8 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
         permissions: response.user.permissions
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -483,8 +483,8 @@ class DeleteDialog extends React.Component<UserDialogProps, UserDialogState> {
       
       this.props.onUpdate(this.props.user!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

@@ -263,8 +263,8 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
         analyticsEnabled: true,
         isLoading: false
       })
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
   }
 

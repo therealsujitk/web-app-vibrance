@@ -99,8 +99,8 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
         auditLog: this.state.auditLog,
         isLoading: false
       })
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getAuditLog(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getAuditLog(onError) });
     }
   }
 }

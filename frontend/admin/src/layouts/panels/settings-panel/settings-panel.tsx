@@ -110,8 +110,8 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
         isLoading: false,
         settings: settings
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getSettings(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getSettings(onError) });
     }
   }
 
@@ -127,8 +127,8 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
       }
 
       this.setState({settings: settings});
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({isSaving: false});

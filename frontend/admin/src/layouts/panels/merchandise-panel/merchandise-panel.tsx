@@ -210,8 +210,8 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
         merchandise: this.state.merchandise,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getMerchandise(onError) })
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getMerchandise(onError) })
     }
   }
 
@@ -336,8 +336,8 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
         image: response.merchandise.image
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -392,8 +392,8 @@ class DeleteDialog extends React.Component<MerchandiseDialogProps, MerchandiseDi
       
       this.props.onUpdate(this.props.merchandise!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

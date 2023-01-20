@@ -248,8 +248,8 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
         team: this.state.team,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getTeam(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getTeam(onError) });
     }
   }
 
@@ -371,8 +371,8 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
         email: response.member.email,
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -427,8 +427,8 @@ class DeleteDialog extends React.Component<MemberDialogProps, MemberDialogState>
       
       this.props.onUpdate(this.props.member!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

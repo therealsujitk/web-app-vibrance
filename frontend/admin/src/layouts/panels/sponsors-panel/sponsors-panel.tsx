@@ -204,8 +204,8 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         sponsors: this.state.sponsors,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getSponsors(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getSponsors(onError) });
     }
   }
 
@@ -318,8 +318,8 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
         image: response.sponsor.image
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -374,8 +374,8 @@ class DeleteDialog extends React.Component<SponsorDialogProps, SponsorDialogStat
       
       this.props.onUpdate(this.props.sponsor!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

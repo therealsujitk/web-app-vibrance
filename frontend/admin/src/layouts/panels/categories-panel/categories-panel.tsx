@@ -208,8 +208,8 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
         categories: this.state.categories,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getCategories(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getCategories(onError) });
     }
   }
 
@@ -328,8 +328,8 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
         image: response.category.image
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -384,8 +384,8 @@ class DeleteDialog extends React.Component<CategoryDialogProps, CategoryDialogSt
       
       this.props.onUpdate(this.props.category!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

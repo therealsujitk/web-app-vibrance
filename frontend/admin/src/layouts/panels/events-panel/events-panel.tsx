@@ -266,8 +266,8 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
         events: this.state.events,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getEvents(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getEvents(onError) });
     }
   }
 
@@ -775,8 +775,8 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
         cost: response.event.cost,
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -831,8 +831,8 @@ class DeleteDialog extends React.Component<EventDialogProps, EventDialogState> {
       
       this.props.onUpdate(this.props.event!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

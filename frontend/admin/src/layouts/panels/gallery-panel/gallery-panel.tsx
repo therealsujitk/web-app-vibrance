@@ -179,8 +179,8 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
         gallery: this.state.gallery,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getGallery(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getGallery(onError) });
     }
   }
 
@@ -289,8 +289,8 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
       
       this.props.onUpdate(response.images);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -345,8 +345,8 @@ class DeleteDialog extends React.Component<ImageDialogProps, ImageDialogState> {
       
       this.props.onUpdate(this.props.image!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });

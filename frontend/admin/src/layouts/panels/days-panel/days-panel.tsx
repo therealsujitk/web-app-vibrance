@@ -196,8 +196,8 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
         days: this.state.days,
         isLoading: false
       });
-    } catch (err) {
-      onError(err as string, { name: 'Retry', onClick: () => this.getDays(onError) });
+    } catch (err: any) {
+      onError(err, { name: 'Retry', onClick: () => this.getDays(onError) });
     }
   }
 
@@ -308,8 +308,8 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
         date: new Date(response.day.date)
       });
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
@@ -364,8 +364,8 @@ class DeleteDialog extends React.Component<DayDialogProps, DayDialogState> {
       
       this.props.onUpdate(this.props.day!);
       this.props.onClose();
-    } catch (err) {
-      onError(err as string);
+    } catch (err: any) {
+      onError(err);
     }
 
     this.setState({ isLoading: false });
