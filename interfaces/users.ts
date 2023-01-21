@@ -69,7 +69,7 @@ export default class Users {
     const apiKey = generateApiKey();
     await query("INSERT INTO `api_keys` (`api_key`, `user_id`) VALUES (?, ?)", [md5(apiKey as string), user.id]);
 
-    return { apiKey: apiKey };
+    return { api_key: apiKey };
   }
 
   static async checkAuth(req: Request, res: Response, next: NextFunction) {

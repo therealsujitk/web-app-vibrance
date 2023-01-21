@@ -71,12 +71,8 @@ export default class Login extends React.Component<{}, LoginState> {
 
     try {
       const response = await new Network().doPost('/api/latest/session/login', { body: credentials });
-      const apiKey = response?.session?.apiKey;
-
-      if (!apiKey) {
-        throw "Unknown error retriving API key";
-      }
-
+      const apiKey = response.session.api_key;
+      
       initSession(apiKey);
     } catch (err) {
       this.setErrorMessage(err as string);
