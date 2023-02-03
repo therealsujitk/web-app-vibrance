@@ -5444,7 +5444,8 @@
           },
           "title": {
             "type": [
-              "string"
+              "string",
+              null
             ],
             "example": null
           },
