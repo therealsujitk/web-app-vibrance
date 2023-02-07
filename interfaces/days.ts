@@ -17,7 +17,7 @@ export default class Days {
     const offset = (page - 1) * LIMIT;
     searchQuery = `%${searchQuery}%`;
 
-    return await query("SELECT * FROM `days` WHERE `title` LIKE ? ORDER BY `date` LIMIT ? OFFSET ?", [searchQuery, LIMIT, offset]);
+    return await query("SELECT * FROM `days` WHERE `title` LIKE ? OR `date` LIKE ? ORDER BY `date` LIMIT ? OFFSET ?", [searchQuery, searchQuery, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<Day> {
