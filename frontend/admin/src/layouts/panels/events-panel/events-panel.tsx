@@ -438,7 +438,7 @@ interface EventDialogState {
   /**
    * Autofill options for days
    */
-  dayOptions?: { id: number, title: string }[];
+  dayOptions?: { id: number, title: string, date: Date }[];
 
   /**
    * Autofill options for categories
@@ -542,7 +542,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
                   onOpen={() => this.query('days')}
                   onClose={() => this.setState({dayOptions: []})}
                   filterOptions={(x) => x}
-                  defaultValue={dayId !== -1 ? { id: dayId, title: day } : undefined}
+                  defaultValue={dayId !== -1 ? { id: dayId, title: day, date: new Date() } : undefined}
                   loading={this.state.isDaysLoading}
                   renderInput={(params) => 
                     <TextField {...params} placeholder="Select a day" InputProps={{
@@ -555,6 +555,12 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
                       ),
                     }} />
                   }
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <span>{option.title}</span>
+                      <span style={{ color: 'grey', marginLeft: 'auto', textAlign: 'right' }}>{format(option.date, 'yyyy-MM-dd')}</span>
+                    </Box>
+                  )}
                 />
                 <Autocomplete
                   options={this.state.categoryOptions!}
@@ -687,6 +693,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
           options.push({
             id: response[base][i].id,
             title: response[base][i].title,
+            date: new Date(response[base][i].date)
           });
         }
 
