@@ -1,5 +1,5 @@
 export enum CategoryType {
-  CHAPTER = 'chapter',
+  CENTRAL = 'central',
   CLUB = 'club'
 }
 

@@ -5270,8 +5270,8 @@
           "type": {
             "type": "string",
             "enum": [
-              "CLUB",
-              "CHAPTER"
+              "CENTRAL",
+              "CLUB"
             ]
           },
           "image": {

@@ -30,7 +30,7 @@ const uploadMiddleware = getUploadMiddleware();
  *          ...
  *      ],
  *      "types": [
- *          "CHAPTER",
+ *          "CENTRAL",
  *          "CLUB"
  *      ]
  *  }

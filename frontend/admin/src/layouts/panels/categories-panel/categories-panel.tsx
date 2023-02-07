@@ -19,6 +19,11 @@ interface CategoriesPanelState {
   categories: { [x: number]: Category };
 
   /**
+   * The types of categories
+   */
+  categoryTypes: string[];
+
+  /**
    * The current category details for the dialog
    */
   currentCategory?: Category;
@@ -78,6 +83,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
     this.state = {
       categories: [],
+      categoryTypes: [],
       currentCategory: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
@@ -153,11 +159,13 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
         </Box>
         <AddEditDialog
           category={this.state.currentCategory}
+          types={this.state.categoryTypes}
           opened={this.state.isAddEditDialogOpen}
           onClose={() => this.toggleAddEditDialog(false)}
           onUpdate={this.saveCategory} />
         <DeleteDialog
           category={this.state.currentCategory}
+          types={this.state.categoryTypes}
           opened={this.state.isDeleteDialogOpen}
           onClose={() => this.toggleDeleteDialog(false)}
           onUpdate={this.deleteCategory} />
@@ -206,6 +214,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
       this.setState({ 
         categories: this.state.categories,
+        categoryTypes: response.types,
         isLoading: false
       });
     } catch (err: any) {
@@ -230,6 +239,11 @@ interface CategoryDialogProps {
    * @default undefined
    */
   category?: Category;
+
+  /**
+   * The types of categories
+   */
+  types: string[];
 
   /**
    * `true` if the dialog is in it's opened state
@@ -295,8 +309,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
                     defaultValue={this.props.category?.type.toLowerCase() ?? 0}
                     disabled={this.state.isLoading}>
                     <MenuItem value="0" disabled>Select Type</MenuItem>
-                    <MenuItem value="chapter">Chapter</MenuItem>
-                    <MenuItem value="club">Club</MenuItem>
+                    {this.props.types.map((type) => <MenuItem value={type}>{type}</MenuItem>)}
                   </Select>
                   <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Category</Button>
                 </Stack>
