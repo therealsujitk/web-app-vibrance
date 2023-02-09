@@ -127,35 +127,31 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
   render() {
     const panelInfo = Drawer.items.categories;
 
-    const CategoryCard = (props: Category) => {
-      const type = props.type.charAt(0) + props.type.slice(1).toLowerCase();
-
-      return (
-        <Card>
-          {props.image && <CardMedia
-            component="img"
-            height="120"
-            image={props.image}
-          />}
-          <CardContent>
-            <Typography variant="h5">{props.title}</Typography>
-            <Chip size="small" sx={{ mt: 1 }} label={type} />
-          </CardContent>
-          <CardActions disableSpacing>
-            <Tooltip title="Edit">
-              <IconButton onClick={() => this.openEditDialog(props)}>
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete">
-              <IconButton onClick={() => this.openDeleteDialog(props)}>
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </CardActions>
-        </Card>
-      );
-    }
+    const CategoryCard = (props: Category) => (
+      <Card>
+        {props.image && <CardMedia
+          component="img"
+          height="120"
+          image={props.image}
+        />}
+        <CardContent>
+          <Typography variant="h5">{props.title}</Typography>
+          <Chip size="small" sx={{ mt: 1 }} label={this.beautifyType(props.type)} />
+        </CardContent>
+        <CardActions disableSpacing>
+          <Tooltip title="Edit">
+            <IconButton onClick={() => this.openEditDialog(props)}>
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton onClick={() => this.openDeleteDialog(props)}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </CardActions>
+      </Card>
+    );
 
     return (
       <Box>
@@ -189,6 +185,10 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
           onUpdate={this.deleteCategory} />
       </Box>
     );
+  }
+
+  beautifyType(type: string) {
+    return type.charAt(0) + type.slice(1).toLowerCase();
   }
 
   openAddDialog() {
@@ -236,6 +236,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
       this.setState({ 
         categories: this.state.categories,
+        categoryTypes: response.types.map(((t: string) => this.beautifyType(t))),
         isLoading: false
       });
     } catch (err: any) {
