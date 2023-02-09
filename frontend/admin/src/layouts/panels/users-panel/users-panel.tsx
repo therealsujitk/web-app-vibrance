@@ -17,6 +17,11 @@ interface UsersPanelState {
   users: { [x: number]: User };
 
   /**
+   * The list of available permissions
+   */
+  permissions: string[];
+
+  /**
    * The current user details for the dialog
    */
   currentUser?: User;
@@ -75,7 +80,8 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
     super(props);
 
     this.state = {
-      users: [],
+      users: {},
+      permissions: [],
       currentUser: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
@@ -180,6 +186,7 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
         </Box>
         <AddEditDialog
           user={this.state.currentUser}
+          permissions={this.state.permissions}
           opened={this.state.isAddEditDialogOpen}
           onClose={() => this.toggleAddEditDialog(false)}
           onUpdate={this.saveUser} />
@@ -232,6 +239,7 @@ export default class UsersPanel extends React.Component<{}, UsersPanelState> {
 
       this.setState({ 
         users: this.state.users,
+        permissions: response.permissions,
         isLoading: false
       });
     } catch (err: any) {
@@ -286,6 +294,11 @@ interface UserDialogProps {
   user?: User;
 
   /**
+   * The list of available permissions
+   */
+  permissions?: string[];
+
+  /**
    * `true` if the dialog is in it's opened state
    * @default false
    */
@@ -317,7 +330,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
   apiBaseUrl: string;
 
   formRef: React.RefObject<HTMLFormElement>;
-  selectedPermsions: string[];
+  selectedPermsions?: string[];
 
   constructor(props: UserDialogProps) {
     super(props);
@@ -330,23 +343,19 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
     this.apiBaseUrl = '/api/latest/users';
 
     this.formRef = React.createRef();
-    this.selectedPermsions = [];
   }
   
   render() {
     const id = this.props.user?.id;
     const username = this.props.user ? this.props.user.username : '';
 
-    this.selectedPermsions = this.props.user?.permissions || [];
+    if (!this.selectedPermsions) {
+      this.selectedPermsions = this.props.user?.permissions || [];
+    }
 
-    const options = [
-      "ADMIN",
-      "EVENTS",
-      "GALLERY",
-      "MERCHANDISE",
-      "SPONSORS",
-      "TEAM"
-    ];
+    if (!this.props.opened) {
+      this.selectedPermsions = undefined;
+    }
     
     return(
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
@@ -361,7 +370,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
               }
               <Autocomplete
                 onChange={(e, v) => this.selectedPermsions = v}
-                options={options}
+                options={this.props.permissions!}
                 defaultValue={this.props.user?.permissions}
                 renderOption={(props, option, { selected }) => (
                   <li {...props} style={{ paddingTop: 0, paddingBottom: 0 }}>
@@ -409,8 +418,8 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
     try {
       const formData = new FormData(this.formRef.current!);
 
-      for (var i = 0; i < this.selectedPermsions.length; ++i) {
-        formData.append('permissions', this.selectedPermsions[i]);
+      for (var i = 0; i < this.selectedPermsions!.length; ++i) {
+        formData.append('permissions', this.selectedPermsions![i]);
       }
 
       var response;
