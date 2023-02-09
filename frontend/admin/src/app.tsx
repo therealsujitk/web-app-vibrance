@@ -143,42 +143,44 @@ export default class App extends React.Component<{}, AppState> {
             </AppContext.Consumer>
           </BrowserRouter>
         </AppContext.Provider>
-        <MediaQuery query={(theme) => theme.breakpoints.up('sm')}>
-          {(theme) => <Stack sx={{
-            position: 'fixed',
-            left: 0,
-            bottom: 0,
-            padding: 2,
-            zIndex: 1500,
-            width: theme ? '400px' : '100%'
-          }}
-          spacing={1.5}
-          >
-            {Object.entries(this.state.alerts).map(([k, v]) => (
-              <Alert 
-                key={k} 
-                severity={v.type} 
-                onClose={() => {
-                  delete this.state.alerts[k];
-                  this.setState({ alerts: this.state.alerts });
-                }}
-                { ...v.action
-                  ? {action: <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', whiteSpace: 'nowrap' }}>
-                    <Button color="inherit" onClick={() => {
-                      delete this.state.alerts[k];
-                      this.setState({ alerts: this.state.alerts });
-                      v.action!.onClick();
-                    }}>
-                      {v.action.name}
-                    </Button>
-                  </Box>
-                } : {}}
-              >
-                <strong>{v.type.charAt(0).toUpperCase() + v.type.slice(1)} —</strong> {v.message}
-              </Alert>
-            ))}
-          </Stack>}
-        </MediaQuery>
+        {Object.keys(this.state.alerts).length !== 0 &&
+          <MediaQuery query={(theme) => theme.breakpoints.up('sm')}>
+            {(theme) => <Stack sx={{
+              position: 'fixed',
+              left: 0,
+              bottom: 0,
+              padding: 2,
+              zIndex: 1500,
+              width: theme ? '400px' : '100%'
+            }}
+            spacing={1.5}
+            >
+              {Object.entries(this.state.alerts).map(([k, v]) => (
+                <Alert 
+                  key={k} 
+                  severity={v.type} 
+                  onClose={() => {
+                    delete this.state.alerts[k];
+                    this.setState({ alerts: this.state.alerts });
+                  }}
+                  { ...v.action
+                    ? {action: <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', whiteSpace: 'nowrap' }}>
+                      <Button color="inherit" onClick={() => {
+                        delete this.state.alerts[k];
+                        this.setState({ alerts: this.state.alerts });
+                        v.action!.onClick();
+                      }}>
+                        {v.action.name}
+                      </Button>
+                    </Box>
+                  } : {}}
+                >
+                  <strong>{v.type.charAt(0).toUpperCase() + v.type.slice(1)} —</strong> {v.message}
+                </Alert>
+              ))}
+            </Stack>}
+          </MediaQuery>
+        }
       </ThemeProvider>
     );
   }
