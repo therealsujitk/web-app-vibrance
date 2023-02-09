@@ -28,6 +28,7 @@ export default class Events {
       "`venue_id`, " + 
       "`room_id`, " + 
       "`days`.`title` AS `day`, " +
+      "`days`.`date` AS `date`, " +
       "`categories`.`title` AS `category`, " +
       "`venues`.`title` AS `venue`, " +
       "`rooms`.`title` AS `room`, " +
@@ -77,6 +78,7 @@ export default class Events {
       "`venue_id`, " + 
       "`room_id`, " + 
       "`days`.`title` AS `day`, " +
+      "`days`.`date` AS `date`, " +
       "`categories`.`title` AS `category`, " +
       "`venues`.`title` AS `venue`, " +
       "`rooms`.`title` AS `room`, " +
