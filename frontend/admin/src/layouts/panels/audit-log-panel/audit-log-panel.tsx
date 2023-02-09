@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import Cookies from "js-cookie";
 import React from "react";
 import ReactDiffViewer from 'react-diff-viewer';
+import { EmptyState } from "../../../components";
 import { AppContext, AppContextInterface } from "../../../contexts/app";
 import Network from "../../../utils/network";
 import Drawer from "../../drawer/drawer";
@@ -35,6 +36,8 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
   apiKey: string;
   onError?: AppContextInterface['displayError'];
 
+  page: number;
+
   constructor(props: {}) {
     super(props);
 
@@ -43,46 +46,67 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
       isLoading: true
     };
 
+    this.page = 1;
     this.apiKey = Cookies.get('apiKey')!;
   }
 
   componentDidMount() {
     this.getAuditLog(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getAuditLog(this.onError!);
+    }
   }
 
   render() {
     const panelInfo = Drawer.items["audit-log"];
 
-    const Logs = () => (
-      <Paper sx={{display: 'flex', m: 2}}>
-        <List sx={{width: '100%'}}>
-          {Array.from(this.state.auditLog).map(([k, l]) => <LogItem key={l.key} log={l} />)}
-        </List>
-      </Paper>
-    );
-
     return (
       <Box>
-      <AppContext.Consumer>
-        {({displayError}) => <>{this.onError = displayError}</>}
-      </AppContext.Consumer>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} />
-        {this.state.isLoading
-          ? (<Box sx={{p: 2, textAlign: 'center'}}>
-            <CircularProgress sx={{mt: 10}} />
-          </Box>)
-          : (<Logs />)
-        }
+        <Paper sx={{display: 'flex', flexDirection: 'column', m: 2}}>
+          { this.state.isLoading || this.state.auditLog.size != 0 
+            ? <List sx={{width: '100%'}}>
+                {Array.from(this.state.auditLog).map(([k, log]) => <LogItem key={log.key} log={log} />)}
+              </List>
+            : <EmptyState>User actions will show up here.</EmptyState>
+          }
+          <Box sx={{ mt: 4, mb: 4, textAlign: 'center', visibility: this.state.isLoading ? 'visible' : 'hidden' }}>
+            <CircularProgress />
+          </Box>
+        </Paper>
       </Box>
     );
   }
 
   getAuditLog = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network(this.apiKey).doGet('/api/latest/audit-log');
+      const response = await new Network(this.apiKey).doGet('/api/latest/audit-log', { query: { page: this.page } });
       const auditLogs = response.audit_log;
 
       for (var i = 0; i < auditLogs.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const log: LogEntry = {
           key: auditLogs[i].id,
           actor: auditLogs[i].actor,

@@ -10,7 +10,7 @@ import { badRequestError, internalServerError, invalidValueForParameter, missing
 import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const sponsorsRouter = express.Router();
-const uploadMiddleware = getUploadMiddleware(10);
+const uploadMiddleware = getUploadMiddleware();
 
 /**
  * [GET] /api/v1.0/sponsors
@@ -42,7 +42,8 @@ sponsorsRouter.get('', async (req, res) => {
   
   try {
     res.status(200).json({
-      sponsors: await Sponsors.getAll(page)
+      sponsors: await Sponsors.getAll(page),
+      next_page: page + 1
     });
   } catch (_) {
     return internalServerError(res);

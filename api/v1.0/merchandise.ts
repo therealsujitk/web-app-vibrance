@@ -42,7 +42,8 @@ merchandiseRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      merchandise: await Merchandise.getAll(page)
+      merchandise: await Merchandise.getAll(page),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

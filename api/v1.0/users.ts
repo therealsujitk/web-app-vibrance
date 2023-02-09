@@ -49,7 +49,8 @@ usersRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
   try {
     res.status(200).json({
       users: await Users.getAll(page),
-      permissions: Object.keys(Permission).filter(p => isNaN(parseInt(p)))
+      permissions: Object.keys(Permission).filter(p => isNaN(parseInt(p))),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

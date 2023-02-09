@@ -10,7 +10,7 @@ import { badRequestError, internalServerError, invalidValueForParameter, missing
 import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const teamRouter = express.Router();
-const uploadMiddleware = getUploadMiddleware(10);
+const uploadMiddleware = getUploadMiddleware();
 
 /**
  * [GET] /api/v1.0/team
@@ -46,7 +46,8 @@ teamRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      team: await Team.getAll(page)
+      team: await Team.getAll(page),
+      next_page: page + 1
     });
   } catch (_) {
     return internalServerError(res);

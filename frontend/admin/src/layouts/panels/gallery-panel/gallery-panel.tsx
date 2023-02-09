@@ -14,7 +14,7 @@ interface GalleryPanelState {
   /**
    * The list of gallery
    */
-  gallery: { [x: number]: Image };
+  gallery: Map<number, Image>;
 
   /**
    * The current image details for the dialog
@@ -56,8 +56,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -65,18 +64,17 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
     super(props);
 
     this.state = {
-      gallery: [],
+      gallery: new Map(),
       currentImage: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
-
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/gallery';
+
+    this.page = 1;
 
     this.openAddDialog.bind(this);
     this.openEditDialog.bind(this);
@@ -87,6 +85,25 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
 
   componentDidMount() {
     this.getGallery(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+  
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getGallery(this.onError!);
+    }
   }
 
   render() {
@@ -113,16 +130,17 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Images</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.gallery).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-                {Object.values(this.state.gallery).map(image => 
-                  <ImageCard key={image.id} {...image} />)}
-                </Masonry>)
-              : (<EmptyState>No gallery images have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.gallery.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.gallery).map(([k, image]) => 
+                <ImageCard key={image.id} {...image} />)}
+              </Masonry>)
+            : (<EmptyState>No gallery images have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddDialog
           image={this.state.currentImage}
@@ -163,16 +181,20 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
 
   getGallery = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const gallery = response.gallery;
 
       for (var i = 0; i < gallery.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const image: Image = {
           id: gallery[i].id,
           image: gallery[i].image
         };
 
-        this.state.gallery[image.id] = image;
+        this.state.gallery.set(image.id, image);
       }
 
       this.setState({ 
@@ -187,10 +209,10 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
   saveImage = (images: Image|Image[]) => {
     if (Array.isArray(images)) {
       for (var i = 0; i < images.length; ++i) {
-        this.state.gallery[images[i].id] = images[i];
+        this.state.gallery.set(images[i].id, images[i]);
       }
     } else {
-      this.state.gallery[images.id] = images;
+      this.state.gallery.set(images.id, images);
     }
 
     this.setState({ gallery: this.state.gallery });
@@ -199,10 +221,10 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
   deleteImage = (images: Image|Image[]) => {
     if (Array.isArray(images)) {
       for (var i = 0; i < images.length; ++i) {
-        delete this.state.gallery[images[i].id];
+        this.state.gallery.delete(images[i].id);
       }
     } else {
-      delete this.state.gallery[images.id];
+      this.state.gallery.delete(images.id);
     }
 
     this.setState({ gallery: this.state.gallery });

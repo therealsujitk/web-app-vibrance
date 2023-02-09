@@ -16,7 +16,7 @@ interface CategoriesPanelState {
   /**
    * The list of categories
    */
-  categories: { [x: number]: Category };
+  categories: Map<number, Category>;
 
   /**
    * The types of categories
@@ -73,8 +73,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -82,7 +81,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
     super(props);
 
     this.state = {
-      categories: [],
+      categories: new Map(),
       categoryTypes: [],
       currentCategory: undefined,
       isAddEditDialogOpen: false,
@@ -90,8 +89,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/categories';
@@ -105,6 +103,25 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
   componentDidMount() {
     this.getCategories(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getCategories(this.onError!);
+    }
   }
 
   render() {
@@ -146,16 +163,17 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Category</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.categories).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-                {Object.values(this.state.categories).map(category => 
-                  <CategoryCard key={category.id} {...category} />)}
-                </Masonry>)
-              : (<EmptyState>No categories have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.categories.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.categories).map(([k, category]) => 
+                <CategoryCard key={category.id} {...category} />)}
+              </Masonry>)
+            : (<EmptyState>No categories have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           category={this.state.currentCategory}
@@ -198,10 +216,14 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
   getCategories = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const categories = response.categories;
 
       for (var i = 0; i < categories.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const category: Category = {
           id: categories[i].id,
           title: validator.unescape(categories[i].title),
@@ -209,12 +231,11 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
           image: categories[i].image
         };
 
-        this.state.categories[category.id] = category;
+        this.state.categories.set(category.id, category);
       }
 
       this.setState({ 
         categories: this.state.categories,
-        categoryTypes: response.types,
         isLoading: false
       });
     } catch (err: any) {
@@ -223,12 +244,12 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
   }
 
   saveCategory = (category: Category) => {
-    this.state.categories[category.id] = category;
+    this.state.categories.set(category.id, category);
     this.setState({ categories: this.state.categories });
   }
 
   deleteCategory = (category: Category) => {
-    delete this.state.categories[category.id];
+    this.state.categories.delete(category.id);
     this.setState({ categories: this.state.categories });
   }
 }

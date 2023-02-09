@@ -16,7 +16,7 @@ interface SponsorsPanelState {
   /**
    * The list of sponsors
    */
-  sponsors: { [x: number]: Sponsor };
+  sponsors: Map<number, Sponsor>;
 
   /**
    * The current sponsor details for the dialog
@@ -68,8 +68,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -77,15 +76,14 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
     super(props);
 
     this.state = {
-      sponsors: [],
+      sponsors: new Map(),
       currentSponsor: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/sponsors';
@@ -99,6 +97,25 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
   componentDidMount() {
     this.getSponsors(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getSponsors(this.onError!);
+    }
   }
 
   render() {
@@ -136,16 +153,17 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Sponsor</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.sponsors).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-                {Object.values(this.state.sponsors).map(sponsor => 
-                  <SponsorCard key={sponsor.id} {...sponsor} />)}
-                </Masonry>)
-              : (<EmptyState>No sponsors have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.sponsors.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.sponsors).map(([k, sponsor]) => 
+                <SponsorCard key={sponsor.id} {...sponsor} />)}
+              </Masonry>)
+            : (<EmptyState>No sponsors have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           sponsor={this.state.currentSponsor}
@@ -186,10 +204,14 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
   getSponsors = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const sponsors = response.sponsors;
 
       for (var i = 0; i < sponsors.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const sponsor: Sponsor = {
           id: sponsors[i].id,
           title: validator.unescape(sponsors[i].title),
@@ -197,7 +219,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
           image: sponsors[i].image
         };
 
-        this.state.sponsors[sponsor.id] = sponsor;
+        this.state.sponsors.set(sponsor.id, sponsor);
       }
 
       this.setState({ 
@@ -210,12 +232,12 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
   }
 
   saveSponsor = (sponsor: Sponsor) => {
-    this.state.sponsors[sponsor.id] = sponsor;
+    this.state.sponsors.set(sponsor.id, sponsor);
     this.setState({ sponsors: this.state.sponsors });
   }
 
   deleteSponsor = (sponsor: Sponsor) => {
-    delete this.state.sponsors[sponsor.id];
+    this.state.sponsors.delete(sponsor.id);
     this.setState({ sponsors: this.state.sponsors });
   }
 }

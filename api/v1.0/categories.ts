@@ -76,7 +76,8 @@ categoriesRouter.get('', async (req, res) => {
     const categories = await Categories.getAll(page, type, query);
     res.status(200).json({
       categories: categories,
-      types: Object.keys(CategoryType)
+      types: Object.keys(CategoryType),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

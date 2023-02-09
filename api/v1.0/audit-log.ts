@@ -41,7 +41,8 @@ auditLogRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => 
 
   try {
     res.status(200).json({
-      audit_log: await AuditLog.getAll(page)
+      audit_log: await AuditLog.getAll(page),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

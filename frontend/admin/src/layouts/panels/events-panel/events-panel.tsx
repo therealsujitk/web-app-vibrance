@@ -20,7 +20,7 @@ interface EventsPanelState {
   /**
    * The list of events
    */
-  events: { [x: number]: Event };
+  events: Map<number, Event>;
 
   /**
    * The current event details for the dialog
@@ -137,8 +137,7 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -146,15 +145,14 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
     super(props);
 
     this.state = {
-      events: [],
+      events: new Map(),
       currentEvent: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/events';
@@ -168,6 +166,25 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
 
   componentDidMount() {
     this.getEvents(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: DomEvent) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getEvents(this.onError!);
+    }
   }
 
   render() {
@@ -179,22 +196,23 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Event</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.events).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-                {Object.values(this.state.events).map(event => 
-                  <EventCard 
-                    key={event.id} 
-                    onEdit={this.openEditDialog} 
-                    onDelete={this.openDeleteDialog} 
-                    {...event} 
-                  />)
-                }
-                </Masonry>)
-              : (<EmptyState>No events have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.events.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
+              {Array.from(this.state.events).map(([k, event]) => 
+                <EventCard 
+                  key={event.id} 
+                  onEdit={this.openEditDialog} 
+                  onDelete={this.openDeleteDialog} 
+                  {...event} 
+                />)
+              }
+              </Masonry>)
+            : (<EmptyState>No events have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           event={this.state.currentEvent}
@@ -235,10 +253,14 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
 
   getEvents = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const events = response.events;
 
       for (var i = 0; i < events.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const event: Event = {
           id: events[i].id,
           dayId: events[i].day_id,
@@ -259,7 +281,7 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
           cost: events[i].cost
         };
 
-        this.state.events[event.id] = event;
+        this.state.events.set(event.id, event);
       }
 
       this.setState({ 
@@ -272,12 +294,12 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
   }
 
   saveEvent = (event: Event) => {
-    this.state.events[event.id] = event;
+    this.state.events.set(event.id, event);
     this.setState({ events: this.state.events });
   }
 
   deleteEvent = (event: Event) => {
-    delete this.state.events[event.id];
+    this.state.events.delete(event.id);
     this.setState({ events: this.state.events });
   }
 }

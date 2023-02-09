@@ -122,7 +122,8 @@ eventsRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      events: await Events.getAll(page, dayIds, categoryIds, venueIds)
+      events: await Events.getAll(page, dayIds, categoryIds, venueIds),
+      next_page: page + 1
     });
   } catch (e) {
     internalServerError(res);

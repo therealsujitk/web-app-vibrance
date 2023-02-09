@@ -17,7 +17,7 @@ interface MerchandisePanelState {
   /**
    * The list of merchandise
    */
-  merchandise: { [x: number]: Merchandise };
+  merchandise: Map<number, Merchandise>;
 
   /**
    * The current merchandise details for the dialog
@@ -69,8 +69,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -78,15 +77,14 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
     super(props);
 
     this.state = {
-      merchandise: [],
+      merchandise: new Map(),
       currentMerchandise: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/merchandise';
@@ -100,6 +98,25 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
 
   componentDidMount() {
     this.getMerchandise(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getMerchandise(this.onError!);
+    }
   }
 
   render() {
@@ -142,16 +159,17 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Merchandise</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.merchandise).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-                {Object.values(this.state.merchandise).map(merchandise => 
-                  <MerchandiseCard key={merchandise.id} {...merchandise} />)}
-                </Masonry>)
-              : (<EmptyState>No merchandise have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.merchandise.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.merchandise).map(([k, merchandise]) => 
+                <MerchandiseCard key={merchandise.id} {...merchandise} />)}
+              </Masonry>)
+            : (<EmptyState>No merchandise have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           merchandise={this.state.currentMerchandise}
@@ -192,10 +210,14 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
 
   getMerchandise = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const merchandise = response.merchandise;
 
       for (var i = 0; i < merchandise.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+        
         const merch: Merchandise = {
           id: merchandise[i].id,
           title: validator.unescape(merchandise[i].title),
@@ -203,7 +225,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
           image: merchandise[i].image
         };
 
-        this.state.merchandise[merch.id] = merch;
+        this.state.merchandise.set(merch.id, merch);
       }
 
       this.setState({ 
@@ -216,12 +238,12 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
   }
 
   saveMerchandise = (merchandise: Merchandise) => {
-    this.state.merchandise[merchandise.id] = merchandise;
+    this.state.merchandise.set(merchandise.id, merchandise);
     this.setState({ merchandise: this.state.merchandise });
   }
 
   deleteMerchandise = (merchandise: Merchandise) => {
-    delete this.state.merchandise[merchandise.id];
+    this.state.merchandise.delete(merchandise.id);
     this.setState({ merchandise: this.state.merchandise });
   }
 }

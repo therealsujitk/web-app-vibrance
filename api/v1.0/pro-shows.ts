@@ -93,7 +93,8 @@ proShowsRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      pro_shows: await ProShows.getAll(page, dayIds, venueIds)
+      pro_shows: await ProShows.getAll(page, dayIds, venueIds),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

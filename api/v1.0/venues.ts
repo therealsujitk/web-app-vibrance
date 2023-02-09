@@ -56,7 +56,8 @@ venuesRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      venues: await Venues.getAll(page, query)
+      venues: await Venues.getAll(page, query),
+      next_page: page + 1
     });
   } catch (e) {console.log(e)
     internalServerError(res);
@@ -228,7 +229,8 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
 
   try {
     res.status(200).json({
-      rooms: await Rooms.getAll(venueId, page)
+      rooms: await Rooms.getAll(venueId, page),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

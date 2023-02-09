@@ -1,7 +1,8 @@
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Masonry } from '@mui/lab';
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import React from "react";
@@ -16,7 +17,7 @@ interface DaysPanelState {
   /**
    * The list of days
    */
-  days: { [x: number]: Day };
+  days: Map<number, Day>;
 
   /**
    * The current day details for the dialog
@@ -63,8 +64,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -72,15 +72,14 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
     super(props);
 
     this.state = {
-      days: [],
+      days: new Map(),
       currentDay: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/days';
@@ -94,14 +93,33 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
 
   componentDidMount() {
     this.getDays(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getDays(this.onError!);
+    }
   }
 
   render() {
     const panelInfo = Drawer.items.days;
 
     const DayCard = (props: Day) => (
-      <Card>
-        <CardContent>
+      <Card sx={{ display: 'flex', flexDirection: 'row' }}>
+        <CardContent sx={{ flexGrow: 1 }}>
           <Typography variant="h5">{props.title}</Typography>
           <Typography variant="body1">{format(props.date, 'do LLL yyyy')}</Typography>
         </CardContent>
@@ -126,20 +144,17 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Day</MaterialButton>} />
-        {this.state.isLoading
-          ? (<Box sx={{p: 2, textAlign: 'center'}}>
-            <CircularProgress sx={{mt: 10}} />
-          </Box>)
-          : Object.keys(this.state.days).length != 0 ?
-            (<Grid spacing={2} sx={{p: 2}} container>
-              {Object.values(this.state.days).map(day => 
-                <Grid key={day.id} xs={12} sm={6} md={4} lg={3} xl={2} item>
-                  <DayCard {...day} />
-                </Grid>
-              )}
-            </Grid>) :
-            (<EmptyState>No days have been added yet.</EmptyState>)
-        }
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.days.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
+                {Array.from(this.state.days).map(([k, day]) => <DayCard {...day} />)}
+              </Masonry>) 
+            : (<EmptyState>No days have been added yet.</EmptyState>)
+          }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
+        </Box>
         <AddEditDialog
           day={this.state.currentDay}
           opened={this.state.isAddEditDialogOpen}
@@ -179,17 +194,21 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
 
   getDays = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const days = response.days;
 
       for (var i = 0; i < days.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const day: Day = {
           id: days[i].id,
           title: validator.unescape(days[i].title),
           date: new Date(days[i].date)
         };
 
-        this.state.days[day.id] = day;
+        this.state.days.set(day.id, day);
       }
 
       this.setState({ 
@@ -202,12 +221,12 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
   }
 
   saveDay = (day: Day) => {
-    this.state.days[day.id] = day;
+    this.state.days.set(day.id, day);
     this.setState({ days: this.state.days });
   }
 
   deleteDay = (day: Day) => {
-    delete this.state.days[day.id];
+    this.state.days.delete(day.id);
     this.setState({ days: this.state.days });
   }
 }

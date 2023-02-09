@@ -16,7 +16,7 @@ interface VenuesPanelState {
   /**
    * The list of venues
    */
-  venues: { [x: number]: Venue };
+  venues: Map<number, Venue>;
 
   /**
    * The current venue details for the dialog
@@ -85,8 +85,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -94,7 +93,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
     super(props);
 
     this.state = {
-      venues: [],
+      venues: new Map(),
       currentVenue: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
@@ -102,8 +101,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/venues';
@@ -117,6 +115,25 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
   componentDidMount() {
     this.getVenues(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getVenues(this.onError!);
+    }
   }
 
   render() {
@@ -154,18 +171,17 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Venue</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box sx={{textAlign: 'center'}}>
-              <CircularProgress sx={{mt: 10}} />
-            </Box>)
-            : Object.keys(this.state.venues).length != 0
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.venues.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-              {Object.values(this.state.venues).map(venue => 
-                <VenueCard {...venue} />)}
+              {Array.from(this.state.venues).map(([k, venue]) => 
+                <VenueCard key={venue.id} {...venue} />)}
               </Masonry>)
               : (<EmptyState>No venues have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           venue={this.state.currentVenue}
@@ -210,10 +226,14 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
   getVenues = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const venues = response.venues;
 
       for (var i = 0; i < venues.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const venue: Venue = {
           id: venues[i].id,
           title: validator.unescape(venues[i].title),
@@ -226,7 +246,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
           venue.rooms[room.id] = room;
         }
 
-        this.state.venues[venue.id] = venue;
+        this.state.venues.set(venue.id, venue);
       }
 
       this.setState({ 
@@ -240,12 +260,12 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
   saveVenueOrRoom = (venue: Venue, room?: Room) => {
     if (room) {
-      this.state.venues[venue.id].rooms[room.id] = room;
+      this.state.venues.get(venue.id)!.rooms[room.id] = room;
     } else {
-      this.state.venues[venue.id] = {
+      this.state.venues.set(venue.id, {
         ...venue,
-        rooms: venue.rooms ?? this.state.venues[venue.id]?.rooms ?? {}
-      };
+        rooms: venue.rooms ?? this.state.venues.get(venue.id)?.rooms ?? {}
+      });
     }
 
     this.setState({ venues: this.state.venues });
@@ -253,9 +273,9 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
   deleteVenueOrRoom = (venue: Venue, room?: Room) => {
     if (room) {
-      delete this.state.venues[venue.id].rooms[room.id];
+      delete this.state.venues.get(venue.id)!.rooms[room.id];
     } else {
-      delete this.state.venues[venue.id];
+      this.state.venues.delete(venue.id);
     }
 
     this.setState({ venues: this.state.venues });

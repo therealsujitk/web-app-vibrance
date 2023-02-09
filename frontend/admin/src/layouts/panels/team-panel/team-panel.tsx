@@ -17,7 +17,7 @@ interface TeamPanelState {
   /**
    * The list of team
    */
-  team: { [x: number]: Member };
+  team: Map<number, Member>;
 
   /**
    * The current member details for the dialog
@@ -84,8 +84,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -93,15 +92,14 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
     super(props);
 
     this.state = {
-      team: [],
+      team: new Map(),
       currentMember: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/team';
@@ -115,6 +113,25 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
 
   componentDidMount() {
     this.getTeam(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getTeam(this.onError!);
+    }
   }
 
   render() {
@@ -177,16 +194,17 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Member</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.team).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-                {Object.values(this.state.team).map(member => 
-                  <MemberCard key={member.id} {...member} />)}
-                </Masonry>)
-              : (<EmptyState>No team members have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.team.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.team).map(([k, member]) => 
+                <MemberCard key={member.id} {...member} />)}
+              </Masonry>)
+            : (<EmptyState>No team members have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           member={this.state.currentMember}
@@ -227,10 +245,14 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
 
   getTeam = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const team = response.team;
 
       for (var i = 0; i < team.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const member: Member = {
           id: team[i].id,
           name: validator.unescape(team[i].name),
@@ -241,7 +263,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
           email: team[i].email
         };
 
-        this.state.team[member.id] = member;
+        this.state.team.set(member.id, member);
       }
 
       this.setState({ 
@@ -254,12 +276,12 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
   }
 
   saveMember = (member: Member) => {
-    this.state.team[member.id] = member;
+    this.state.team.set(member.id, member);
     this.setState({ team: this.state.team });
   }
 
   deleteMember = (member: Member) => {
-    delete this.state.team[member.id];
+    this.state.team.delete(member.id);
     this.setState({ team: this.state.team });
   }
 }

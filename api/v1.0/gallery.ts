@@ -39,7 +39,8 @@ galleryRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      gallery: await Gallery.getAll(page)
+      gallery: await Gallery.getAll(page),
+      next_page: page + 1
     });
   } catch (_) {
     return internalServerError(res);

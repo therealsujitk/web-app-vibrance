@@ -45,7 +45,8 @@ daysRouter.get('', async (req, res) => {
 
   try {
     res.status(200).json({
-      days: await Days.getAll(page, query)
+      days: await Days.getAll(page, query),
+      next_page: page + 1
     });
   } catch (_) {
     internalServerError(res);

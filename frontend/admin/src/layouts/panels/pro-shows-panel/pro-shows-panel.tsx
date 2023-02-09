@@ -19,7 +19,7 @@ interface ProShowsPanelState {
   /**
    * The list of proShows
    */
-  proShows: { [x: number]: ProShow };
+  proShows: Map<number, ProShow>;
 
   /**
    * The current proShow details for the dialog
@@ -116,8 +116,7 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
   apiKey: string;
   apiBaseUrl: string;
 
-  titleInput: React.RefObject<HTMLInputElement>;
-  dateInput: React.RefObject<HTMLInputElement>;
+  page: number;
 
   onError?: AppContextInterface['displayError'];
 
@@ -125,15 +124,14 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
     super(props);
 
     this.state = {
-      proShows: [],
+      proShows: new Map(),
       currentProShow: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
 
-    this.titleInput = React.createRef();
-    this.dateInput = React.createRef();
+    this.page = 1;
 
     this.apiKey = Cookies.get('apiKey')!;
     this.apiBaseUrl = '/api/latest/pro-shows';
@@ -147,6 +145,25 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
 
   componentDidMount() {
     this.getProShows(this.onError!);
+    document.addEventListener('scroll', this.loadMore);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this.loadMore);
+  }
+
+  loadMore = (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+
+    const document = event.target as Document;
+    const scrollingElement = document.scrollingElement || document.body;
+
+    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
+      this.setState({ isLoading: true });
+      this.getProShows(this.onError!);
+    }
   }
 
   render() {
@@ -158,22 +175,23 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Pro Show</MaterialButton>} />
-        <Box sx={{pl: 2, pt: 2}}>
-          {this.state.isLoading
-            ? (<Box textAlign="center"><CircularProgress sx={{mt: 10}} /></Box>)
-            : Object.keys(this.state.proShows).length != 0
-              ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-                {Object.values(this.state.proShows).map(proShow => 
-                  <ProShowCard 
-                    key={proShow.id} 
-                    onEdit={this.openEditDialog} 
-                    onDelete={this.openDeleteDialog} 
-                    {...proShow} 
-                  />)
-                }
-                </Masonry>)
-              : (<EmptyState>No pro shows have been added yet.</EmptyState>)
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.proShows.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
+              {Array.from(this.state.proShows).map(([k, proShow]) => 
+                <ProShowCard 
+                  key={proShow.id} 
+                  onEdit={this.openEditDialog} 
+                  onDelete={this.openDeleteDialog} 
+                  {...proShow} 
+                />)
+              }
+              </Masonry>)
+            : (<EmptyState>No pro shows have been added yet.</EmptyState>)
           }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
         </Box>
         <AddEditDialog
           proShow={this.state.currentProShow}
@@ -214,10 +232,14 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
 
   getProShows = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl);
+      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
       const proShows = response.pro_shows;
 
       for (var i = 0; i < proShows.length; ++i) {
+        if (i === 0) {
+          this.page = response.next_page;
+        }
+
         const proShow: ProShow = {
           id: proShows[i].id,
           dayId: proShows[i].day_id,
@@ -234,7 +256,7 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           cost: proShows[i].cost
         };
 
-        this.state.proShows[proShow.id] = proShow;
+        this.state.proShows.set(proShow.id, proShow);
       }
 
       this.setState({ 
@@ -247,12 +269,12 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
   }
 
   saveProShow = (proShow: ProShow) => {
-    this.state.proShows[proShow.id] = proShow;
+    this.state.proShows.set(proShow.id, proShow);
     this.setState({ proShows: this.state.proShows });
   }
 
   deleteProShow = (proShow: ProShow) => {
-    delete this.state.proShows[proShow.id];
+    this.state.proShows.delete(proShow.id);
     this.setState({ proShows: this.state.proShows });
   }
 }
