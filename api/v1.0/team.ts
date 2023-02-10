@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const teamRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -77,7 +77,7 @@ teamRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
+teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -186,7 +186,7 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), uploa
  *      }
  *  }
  */
-teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), uploadMiddleware, async (req, res) => {
+teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -271,7 +271,7 @@ teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), up
  * @response JSON
  *  {}
  */
-teamRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.TEAM), async (req, res) => {
+teamRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

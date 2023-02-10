@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const categoriesRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -102,7 +102,7 @@ categoriesRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-categoriesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+categoriesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, uploadMiddleware, async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -169,7 +169,7 @@ categoriesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS
  *      }
  *  }
  */
-categoriesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), uploadMiddleware, async (req, res) => {
+categoriesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, uploadMiddleware, async (req, res) => {
   const user = req.user!;
   const category: OrNull<Category> = {};
 
@@ -233,7 +233,7 @@ categoriesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVE
  * @response JSON
  *  {}
  */
-categoriesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+categoriesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

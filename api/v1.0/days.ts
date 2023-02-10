@@ -6,7 +6,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { dateRegex, getUTCFromString, OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions } from '../utils/helpers';
+import { checkPermissions, checkReadOnly } from '../utils/helpers';
 
 const daysRouter = express.Router();
 
@@ -69,7 +69,7 @@ daysRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -121,7 +121,7 @@ daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), asy
  *      }
  *  }
  */
-daysRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {
@@ -176,7 +176,7 @@ daysRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), 
  * @response JSON
  *  {}
  */
-daysRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+daysRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

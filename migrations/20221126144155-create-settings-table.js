@@ -1,5 +1,3 @@
-const { SettingKey }  = require('../models/setting');
-
 'use strict';
 
 var dbm;
@@ -18,7 +16,7 @@ exports.setup = function(options, seedLink) {
 
 exports.up = function(db) {
   return db.createTable('settings', {
-    key: { type: `enum('${Object.keys(SettingKey).join('\',\'')}')`, notNull: true, primaryKey: true },
+    key: { type: type.STRING, notNull: true, primaryKey: true },
     value: type.TEXT
   });
 };

@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const merchandiseRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -68,7 +68,7 @@ merchandiseRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
+merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -140,7 +140,7 @@ merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCH
  *      }
  *  }
  */
-merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), uploadMiddleware, async (req, res) => {
+merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -209,7 +209,7 @@ merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.ME
  * @reponse JSON
  *  {}
  */
-merchandiseRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), async (req, res) => {
+merchandiseRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

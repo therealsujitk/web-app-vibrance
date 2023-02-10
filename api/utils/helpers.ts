@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import fileUpload, { UploadedFile } from "express-fileupload";
 import fs from "fs";
+import { query } from "../../config/db";
 import { Permission } from "../../models/user";
 import { IMAGE_PATH } from "../../utils/constants";
-import { InvalidMIMEType } from "./errors";
+import { internalServerError, InvalidMIMEType } from "./errors";
 
 export function checkPermissions(permissions = 0) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -70,4 +71,20 @@ export function handleFileUpload(file: UploadedFile, mimetypes: string[]) {
   });
 
   return fileName;
+}
+
+export async function checkReadOnly(req: Request, res: Response, next: NextFunction) {
+  try {
+    const readOnly = (await query("SELECT `value` FROM `settings` WHERE `key` = 'read_only'"))[0].value;
+
+    if (readOnly === "1") {
+      return res.status(409).json({
+        error: 'Read only mode is enabled, contact an administrator to disable it.'
+      });
+    }
+
+    return next();
+  } catch (_) {
+    return internalServerError(res);
+  }
 }

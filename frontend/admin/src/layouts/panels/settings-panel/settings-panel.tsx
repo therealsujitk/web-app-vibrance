@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, CircularProgress, FormControlLabel, Switch, Typography } from "@mui/material";
 import Cookies from "js-cookie";
 import React from "react";
 import validator from 'validator';
@@ -12,7 +12,7 @@ interface SettingsPanelState {
   /**
    * The list of settings
    */
-  settings: { [x: string]: string };
+  settings: { [x: string]: any };
 
   /**
    * If `true`, the panel is in a loading state
@@ -69,10 +69,12 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
             },
           })}>
             <this.Label text="Site Title" mt={0} />
-            <this.Input settingsKey="SITE_TITLE" />
+            <this.Input settingsKey="site_title" />
             <this.Label text="Site Description" />
             <this.Subtitle text="Enter a short sentence or two that describes this site. This will appear in the meta tag and show up in search engines." />
-            <TextArea value={this.state.settings.SITE_DESCRIPTION ?? ''} sx={{ mt: 1, p: 1, height: '75px' }} onChange={(event) => this.handleChange(event, "SITE_DESCRIPTION")} />
+            <TextArea value={this.state.settings.site_description ?? ''} sx={{ mt: 1, p: 1, height: '75px' }} onChange={(event) => this.handleChange(event, "site_description")} />
+            <this.Label text="Read Only Mode" />
+            <FormControlLabel control={<Switch defaultChecked={this.state.settings.read_only} onChange={(event) => this.state.settings.read_only = event.target.checked} />} label={<this.Subtitle text="If true, users will not be allowed to make any changes to the data." />} /><br />
             <Button variant="contained" size="medium" sx={{mt: 2}} onClick={() => this.saveSettings(this.onError!)} isLoading={this.state.isSaving}>Save Changes</Button>
           </Box>
         }
@@ -103,7 +105,9 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
       const settings = response.settings;
 
       for (const key in settings) {
-        settings[key] = validator.unescape(settings[key]);
+        if (typeof settings[key] === 'string') {
+          settings[key] = validator.unescape(settings[key]);
+        }
       }
 
       this.setState({
@@ -123,7 +127,9 @@ export default class SettingsPanel extends React.Component<{}, SettingsPanelStat
       const settings = response.settings;
 
       for (const key in settings) {
-        settings[key] = validator.unescape(settings[key]);
+        if (typeof settings[key] === 'string') {
+          settings[key] = validator.unescape(settings[key]);
+        }
       }
 
       this.setState({settings: settings});

@@ -14,6 +14,10 @@ const settings = [
   {
     key: SettingKey.SITE_DESCRIPTION,
     value: 'A web application for VIT Chennai\'s Cultural Festival, Vibrance.'
+  },
+  {
+    key: SettingKey.READ_ONLY,
+    value: false
   }
 ];
 

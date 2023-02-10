@@ -7,7 +7,7 @@ import { Venue } from '../../models/venue';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions } from '../utils/helpers';
+import { checkPermissions, checkReadOnly } from '../utils/helpers';
 
 const venuesRouter = express.Router();
 
@@ -78,7 +78,7 @@ venuesRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('title' in req.body)) {
@@ -115,7 +115,7 @@ venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), a
  *      }
  *  }
  */
-venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
   const venue: OrNull<Venue> = {};
 
@@ -159,7 +159,7 @@ venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS)
  * @response JSON
  *  {}
  */
-venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {
@@ -253,7 +253,7 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
  *      }
  *  }
  */
-venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('venue_id' in req.body)) {
@@ -310,7 +310,7 @@ venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVEN
  *      }
  *  }
  */
- venuesRouter.patch('/rooms/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+ venuesRouter.patch('/rooms/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
   const room: OrNull<Room> = {};
 
@@ -362,7 +362,7 @@ venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVEN
  * @response JSON
  *  {}
  */
-venuesRouter.delete('/rooms/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), async (req, res) => {
+venuesRouter.delete('/rooms/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {

@@ -25,6 +25,10 @@ settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => 
     const settings = await Settings.getAll();
     const settingsObject = Object.fromEntries(settings.map((s: { key: string, value: string }) => [s.key, s.value]));
 
+    if (SettingKey.READ_ONLY in settingsObject) {
+      settingsObject[SettingKey.READ_ONLY] = settingsObject[SettingKey.READ_ONLY] === "1";
+    }
+
     res.status(200).json({
       settings: settingsObject
     });
@@ -57,8 +61,8 @@ settingsRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, r
 
     if (key in SettingKey) {
       settings.push({
-        key: key as SettingKey,
-        value: validator.escape(value.trim())
+        key: key.toLowerCase() as SettingKey,
+        value: typeof value === 'string' ? validator.escape(value.trim()) : value
       });
     }
   }

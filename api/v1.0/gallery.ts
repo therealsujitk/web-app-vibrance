@@ -5,7 +5,7 @@ import { Gallery, Users } from '../../interfaces';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { internalServerError, invalidValueForParameter, missingRequiredParameter, badRequestError } from '../utils/errors';
-import { checkPermissions, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const galleryRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware(10);
@@ -63,7 +63,7 @@ galleryRouter.get('', async (req, res) => {
  *      ]
  *  }
  */
-galleryRouter.put('/upload', Users.checkAuth, checkPermissions(Permission.GALLERY), uploadMiddleware, async (req, res) => {
+galleryRouter.put('/upload', Users.checkAuth, checkPermissions(Permission.GALLERY), checkReadOnly, uploadMiddleware, async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
@@ -111,7 +111,7 @@ galleryRouter.put('/upload', Users.checkAuth, checkPermissions(Permission.GALLER
  * @reponse JSON
  *  {}
  */
-galleryRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.GALLERY), async (req, res) => {
+galleryRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.GALLERY), checkReadOnly, async (req, res) => {
   const user = req.user!;
 
   if (!('id' in req.body)) {
