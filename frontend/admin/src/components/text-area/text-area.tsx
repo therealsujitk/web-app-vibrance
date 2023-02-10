@@ -3,6 +3,7 @@ import { styled } from '@mui/material';
 const TextArea = styled('textarea')(({ theme }) => ({
   minWidth: '100%',
   maxWidth: '100%',
+  fontSize: '1rem',
   paddingLeft: theme.spacing(1.75),
   paddingTop: theme.spacing(2),
   paddingRight: theme.spacing(1.75),
