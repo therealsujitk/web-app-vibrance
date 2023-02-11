@@ -64,6 +64,8 @@ export default class App extends React.Component<{}, AppState> {
           username: undefined,
           permissions: undefined
         });
+        
+        this.isSessionCalled = false;
       },
       displayAlert: (type: AlertColor, message: string|Error, action?: { name: string, onClick: () => void }) => {
         var alertId = Math.random();
@@ -92,6 +94,9 @@ export default class App extends React.Component<{}, AppState> {
       },
       displayWarning: (message: string) => {
         appContext.displayAlert('warning', message);
+      },
+      displaySuccess: (message: string) => {
+        appContext.displayAlert('success', message);
       }
     };
 
