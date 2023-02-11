@@ -210,7 +210,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
 
   getMerchandise = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const merchandise = response.merchandise;
 
       for (var i = 0; i < merchandise.length; ++i) {

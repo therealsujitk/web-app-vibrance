@@ -181,7 +181,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
 
   getGallery = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const gallery = response.gallery;
 
       for (var i = 0; i < gallery.length; ++i) {

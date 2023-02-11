@@ -226,7 +226,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
 
   getVenues = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const venues = response.venues;
 
       for (var i = 0; i < venues.length; ++i) {

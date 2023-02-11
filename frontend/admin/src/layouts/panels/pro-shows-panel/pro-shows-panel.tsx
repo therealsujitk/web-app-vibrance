@@ -232,7 +232,7 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
 
   getProShows = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const proShows = response.pro_shows;
 
       for (var i = 0; i < proShows.length; ++i) {

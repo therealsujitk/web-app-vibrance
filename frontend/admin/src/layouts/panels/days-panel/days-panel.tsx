@@ -194,7 +194,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
 
   getDays = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const days = response.days;
 
       for (var i = 0; i < days.length; ++i) {

@@ -122,7 +122,7 @@ eventsRouter.get('', async (req, res) => {
     }
   }
 
-  if (cachedEvents) {
+  if (cachedEvents && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       events: cachedEvents,
       next_page: page + 1

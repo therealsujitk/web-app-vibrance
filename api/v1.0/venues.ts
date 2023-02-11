@@ -56,7 +56,7 @@ venuesRouter.get('', async (req, res) => {
     query = validator.escape((req.query.query as string).trim());
   }
 
-  if (cachedVenue) {
+  if (cachedVenue && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       venues: cachedVenue,
       next_page: page + 1
@@ -243,7 +243,7 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
     }
   }
 
-  if (cachedRooms) {
+  if (cachedRooms && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       rooms: cachedRooms,
       next_page: page + 1

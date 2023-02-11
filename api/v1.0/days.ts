@@ -45,7 +45,7 @@ daysRouter.get('', async (req, res) => {
     query = validator.escape((req.query.query as string).trim());
   }
 
-  if (cachedDays) {
+  if (cachedDays && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       days: cachedDays,
       next_page: page + 1

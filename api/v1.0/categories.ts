@@ -74,7 +74,7 @@ categoriesRouter.get('', async (req, res) => {
     query = validator.escape((req.query.query as string).trim());
   }
 
-  if (cachedCategories) {
+  if (cachedCategories && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       categories: cachedCategories,
       types: Object.keys(CategoryType),

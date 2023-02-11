@@ -42,7 +42,7 @@ merchandiseRouter.get('', async (req, res) => {
     }
   }
 
-  if (cachedMerchandise) {
+  if (cachedMerchandise && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       merchandise: cachedMerchandise,
       next_page: page + 1

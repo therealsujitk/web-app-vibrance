@@ -235,7 +235,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
   getSponsors = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const sponsors = response.sponsors;
 
       for (var i = 0; i < sponsors.length; ++i) {

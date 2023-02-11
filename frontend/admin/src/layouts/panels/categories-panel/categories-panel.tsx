@@ -179,7 +179,6 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
           onUpdate={this.saveCategory} />
         <DeleteDialog
           category={this.state.currentCategory}
-          types={this.state.categoryTypes}
           opened={this.state.isDeleteDialogOpen}
           onClose={() => this.toggleDeleteDialog(false)}
           onUpdate={this.deleteCategory} />
@@ -216,7 +215,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
 
   getCategories = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const categories = response.categories;
 
       for (var i = 0; i < categories.length; ++i) {
@@ -265,7 +264,7 @@ interface CategoryDialogProps {
   /**
    * The types of categories
    */
-  types: string[];
+  types?: string[];
 
   /**
    * `true` if the dialog is in it's opened state
@@ -331,7 +330,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
                     defaultValue={this.props.category?.type.toLowerCase() ?? 0}
                     disabled={this.state.isLoading}>
                     <MenuItem value="0" disabled>Select Type</MenuItem>
-                    {this.props.types.map((type) => <MenuItem value={type.toLowerCase()}>{type}</MenuItem>)}
+                    {this.props.types!.map((type) => <MenuItem value={type.toLowerCase()}>{type}</MenuItem>)}
                   </Select>
                   <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Category</Button>
                 </Stack>

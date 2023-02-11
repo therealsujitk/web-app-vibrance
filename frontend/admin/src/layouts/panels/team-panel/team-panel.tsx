@@ -245,7 +245,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
 
   getTeam = async (onError: AppContextInterface['displayError']) => {
     try {
-      const response = await new Network().doGet(this.apiBaseUrl, { query: { page: this.page } });
+      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
       const team = response.team;
 
       for (var i = 0; i < team.length; ++i) {

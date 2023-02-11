@@ -93,7 +93,7 @@ proShowsRouter.get('', async (req, res) => {
     }
   }
 
-  if (cachedProShows) {
+  if (cachedProShows && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       pro_shows: cachedProShows,
       next_page: page + 1

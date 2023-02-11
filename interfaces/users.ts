@@ -72,6 +72,26 @@ export default class Users {
     return { api_key: apiKey };
   }
 
+  static async checkValidApiKey(req: Request) {
+    const apiKey = req.header("x-api-key");
+
+    if (typeof apiKey == 'undefined') {
+      return false;
+    }
+
+    try {
+      const user = (await query("SELECT `users`.`id` AS `id`, `username`, `permission_code` FROM `users`, `api_keys` WHERE `api_key` = ? AND `users`.`id` = `api_keys`.`user_id` AND `date_created` > CURRENT_TIMESTAMP - INTERVAL ? DAY", [md5(apiKey), API_EXPIRY_DAYS]))[0];
+
+      if (typeof user == 'undefined') {
+        return false;
+      }
+
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static async checkAuth(req: Request, res: Response, next: NextFunction) {
     const apiKey = req.header("x-api-key");
 

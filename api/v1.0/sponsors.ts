@@ -42,7 +42,7 @@ sponsorsRouter.get('', async (req, res) => {
     }
   }
 
-  if (cachedSponsors) {
+  if (cachedSponsors && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       sponsors: cachedSponsors,
       types: Object.keys(SponsorType),

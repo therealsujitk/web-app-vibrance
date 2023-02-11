@@ -39,7 +39,7 @@ galleryRouter.get('', async (req, res) => {
     }
   }
 
-  if (cachedGallery) {
+  if (cachedGallery && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       gallery: cachedGallery,
       next_page: page + 1
