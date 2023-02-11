@@ -1,3 +1,5 @@
+const { SponsorType }  = require('../models/sponsor');
+
 'use strict';
 
 var dbm;
@@ -18,6 +20,7 @@ exports.up = function(db) {
   return db.createTable('sponsors', {
     id: { type: type.INTEGER, notNull: true, primaryKey: true, autoIncrement: true },
     title: { type: type.STRING, notNull: true },
+    type: { type: `enum('${Object.keys(SponsorType).join('\',\'')}')`, notNull: true, defaultValue: SponsorType.OTHER },
     description: type.TEXT,
     image_id: { type: type.INTEGER, foreignKey: {
       name: 'sponsors_image_id_fk',

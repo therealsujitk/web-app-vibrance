@@ -1,8 +1,9 @@
+import { SwitchAccessShortcutOutlined } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
 import validator from 'validator';
@@ -17,6 +18,11 @@ interface SponsorsPanelState {
    * The list of sponsors
    */
   sponsors: Map<number, Sponsor>;
+
+  /**
+   * The types of sponsors
+   */
+  types: string[];
 
   /**
    * The current sponsor details for the dialog
@@ -54,6 +60,11 @@ interface Sponsor {
   title: string;
 
   /**
+   * 
+   */
+  type: string;
+
+  /**
    * The date of the categroy
    */
   description: string;
@@ -62,6 +73,23 @@ interface Sponsor {
    * The image of the sponsor
    */
   image: string|null;
+}
+
+function getSponsorType(sponsorKey: string) {
+  switch (sponsorKey) {
+    case 'TITLE':
+      return 'Title Sponsor';
+    case 'FOOD_PARTNER':
+      return 'Food Partner';
+    case 'MEDIA_PARTNER':
+      return 'Media Partner';
+    case 'BANKING_PARTNER':
+      return 'Banking Partner';
+    case 'MERCHANDISE_PARTNER':
+      return 'Merchandise Partner';
+    default:
+      return 'Other';
+  }
 }
 
 export default class SponsorsPanel extends React.Component<{}, SponsorsPanelState> {
@@ -77,6 +105,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
     this.state = {
       sponsors: new Map(),
+      types: [],
       currentSponsor: undefined,
       isAddEditDialogOpen: false,
       isDeleteDialogOpen: false,
@@ -131,6 +160,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         <CardContent>
           <Typography variant="h5">{props.title}</Typography>
           <Typography variant="body1">{props.description}</Typography>
+          <Chip size="small" sx={{ mt: 1 }} label={getSponsorType(props.type)} />
         </CardContent>
         <CardActions disableSpacing>
           <Tooltip title="Edit">
@@ -167,6 +197,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         </Box>
         <AddEditDialog
           sponsor={this.state.currentSponsor}
+          types={this.state.types}
           opened={this.state.isAddEditDialogOpen}
           onClose={() => this.toggleAddEditDialog(false)}
           onUpdate={this.saveSponsor} />
@@ -215,6 +246,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         const sponsor: Sponsor = {
           id: sponsors[i].id,
           title: validator.unescape(sponsors[i].title),
+          type: sponsors[i].type,
           description: validator.unescape(sponsors[i].description || ''),
           image: sponsors[i].image
         };
@@ -224,6 +256,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
 
       this.setState({ 
         sponsors: this.state.sponsors,
+        types: response.types,
         isLoading: false
       });
     } catch (err: any) {
@@ -248,6 +281,11 @@ interface SponsorDialogProps {
    * @default undefined
    */
   sponsor?: Sponsor;
+
+  /**
+   * The types of sponsors
+   */
+  types?: string[];
 
   /**
    * `true` if the dialog is in it's opened state
@@ -309,6 +347,13 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
                 <Stack spacing={1} mt={0.5}>
                   <ImageInput name="image" defaultValue={this.props.sponsor?.image ?? undefined} onError={displayError} />
                   <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
+                  <Select
+                    name="type"
+                    defaultValue={this.props.sponsor?.type.toLowerCase() ?? 0}
+                    disabled={this.state.isLoading}>
+                    <MenuItem value="0" disabled>Select Type</MenuItem>
+                    {this.props.types!.map((type) => <MenuItem value={type.toLowerCase()}>{getSponsorType(type)}</MenuItem>)}
+                  </Select>
                   <TextArea name="description" placeholder="Add a description..." defaultValue={description} />
                       <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Sponsor</Button>
                 </Stack>
@@ -336,6 +381,7 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
       this.props.onUpdate({
         id: response.sponsor.id,
         title: validator.unescape(response.sponsor.title),
+        type: response.sponsor.type,
         description: validator.unescape(response.sponsor.description || ''),
         image: response.sponsor.image
       });

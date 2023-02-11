@@ -20,6 +20,7 @@ export default class Sponsors {
     return await query("SELECT " + 
       "`sponsors`.`id` AS `id`, " + 
       "`title`, " + 
+      "`type`, " + 
       "`description`, " + 
       "CONCAT('" + IMAGE_URL + "', `image`) AS `image` " + 
       "FROM `sponsors` " + 
@@ -29,7 +30,7 @@ export default class Sponsors {
   }
 
   async #get(id: number) {
-    const sponsor = (await query("SELECT `title`, `description`, `image` FROM `sponsors` LEFT JOIN `images` ON `image_id` = `images`.`id` WHERE `sponsors`.`id` = ?", [id]))[0];
+    const sponsor = (await query("SELECT `title`, `type`, `description`, `image` FROM `sponsors` LEFT JOIN `images` ON `image_id` = `images`.`id` WHERE `sponsors`.`id` = ?", [id]))[0];
 
     if (typeof sponsor === 'undefined') {
       throw new ClientError(`No sponsor with id '${id}' exists.`);
@@ -43,9 +44,10 @@ export default class Sponsors {
     const queries = [
       ...!existing && sponsor.image ? [Images.createInsertQuery(sponsor.image)] : [],
       {
-        query: "INSERT INTO `sponsors` (`title`, `description`, `image_id`) VALUES (?, ?, ?)",
+        query: "INSERT INTO `sponsors` (`title`, `type`, `description`, `image_id`) VALUES (?, ?, ?, ?)",
         options: (results: any[]) => [
           sponsor.title,
+          sponsor.type,
           sponsor.description,
           existing?.id ?? (sponsor.image ? results[0].insertId : undefined)
         ]
@@ -67,6 +69,7 @@ export default class Sponsors {
   async edit(id: number, sponsor: OrNull<Sponsor>) {
     const old = await this.#get(id);
     sponsor.title = sponsor.title ?? old.title;
+    sponsor.type = sponsor.type ?? old.type;
     sponsor.description = sponsor.description ?? old.description;
     sponsor.image = sponsor.image ?? old.image;
     const existing = await Images.get(sponsor.image);
@@ -78,9 +81,10 @@ export default class Sponsors {
     const queries = [
       ...!existing && sponsor.image ? [Images.createInsertQuery(sponsor.image)] : [],
       {
-        query: "UPDATE `sponsors` SET `title` = ?, `description` = ?, `image_id` = ? WHERE `id` = ?",
+        query: "UPDATE `sponsors` SET `title` = ?, `type` = ?, `description` = ?, `image_id` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           sponsor.title,
+          sponsor.type,
           sponsor.description,
           existing?.id ?? (sponsor.image ? results[0].insertId : undefined),
           id

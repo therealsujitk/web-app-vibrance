@@ -2,7 +2,7 @@ import express from 'express';
 import { UploadedFile } from 'express-fileupload';
 import validator from 'validator';
 import { Sponsors, Users } from '../../interfaces';
-import { Sponsor } from '../../models/sponsor';
+import { Sponsor, SponsorType } from '../../models/sponsor';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
@@ -55,6 +55,7 @@ sponsorsRouter.get('', async (req, res) => {
 
     res.status(200).json({
       sponsors: sponsors,
+      types: Object.keys(SponsorType),
       next_page: page + 1
     });
 
@@ -93,14 +94,20 @@ sponsorsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.SPONSORS
     return missingRequiredParameter('title', res);
   }
 
+  if (!('type' in req.body)) {
+    return missingRequiredParameter('type', res);
+  }
+
   const title = validator.escape(req.body.title.trim());
+  const type = (req.body.type as string).toUpperCase() as SponsorType;
 
   if (validator.isEmpty(title)) {
     return invalidValueForParameter('title', res);
   }
 
   const sponsor: Sponsor = {
-    title: title
+    title: title,
+    type: type
   };
 
   if ('description' in req.body) {
@@ -166,6 +173,14 @@ sponsorsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.SPONS
 
     if (validator.isEmpty(sponsor.title)) {
       return invalidValueForParameter('title', res);
+    }
+  }
+
+  if ('type' in req.body) {
+    sponsor.type = (req.body.type as string).toUpperCase() as SponsorType;
+
+    if (!(sponsor.type in SponsorType)) {
+      return invalidValueForParameter('type', res);
     }
   }
 
