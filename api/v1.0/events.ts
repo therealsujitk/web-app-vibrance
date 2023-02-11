@@ -139,7 +139,9 @@ eventsRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, events);
   } catch (e) {
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

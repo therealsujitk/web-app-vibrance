@@ -59,7 +59,9 @@ merchandiseRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, merchandise);
   } catch (_) {
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

@@ -93,7 +93,9 @@ categoriesRouter.get('', async (req, res) => {
     
     cache.set(req.originalUrl, categories);
   } catch (_) {
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

@@ -94,7 +94,7 @@ proShowsRouter.get('', async (req, res) => {
   }
 
   if (cachedProShows) {
-    res.status(200).json({
+    return res.status(200).json({
       pro_shows: cachedProShows,
       next_page: page + 1
     });
@@ -110,7 +110,9 @@ proShowsRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, proShows);
   } catch (_) {
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

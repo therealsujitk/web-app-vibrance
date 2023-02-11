@@ -56,7 +56,9 @@ galleryRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, gallery);
   } catch (_) {
-    return internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

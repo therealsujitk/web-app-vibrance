@@ -61,7 +61,9 @@ sponsorsRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, sponsors);
   } catch (_) {
-    return internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 

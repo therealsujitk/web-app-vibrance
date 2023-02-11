@@ -73,7 +73,9 @@ venuesRouter.get('', async (req, res) => {
 
     cache.set(req.originalUrl, venues);
   } catch (e) {console.log(e)
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 
@@ -258,7 +260,9 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
 
     cache.set(req.originalUrl, rooms);
   } catch (_) {
-    internalServerError(res);
+    if (!res.headersSent) {
+      internalServerError(res);
+    }
   }
 });
 
