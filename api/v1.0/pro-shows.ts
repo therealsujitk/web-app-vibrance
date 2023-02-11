@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const proShowsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -38,6 +38,8 @@ const uploadMiddleware = getUploadMiddleware();
  */
 proShowsRouter.get('', async (req, res) => {
   var page = 1, dayIds = [], venueIds = [];
+
+  const cachedProShows = cache.get(req.url);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -91,11 +93,22 @@ proShowsRouter.get('', async (req, res) => {
     }
   }
 
-  try {
+  if (cachedProShows) {
     res.status(200).json({
-      pro_shows: await ProShows.getAll(page, dayIds, venueIds),
+      pro_shows: cachedProShows,
       next_page: page + 1
     });
+  }
+
+  try {
+    const proShows = await ProShows.getAll(page, dayIds, venueIds);
+
+    res.status(200).json({
+      pro_shows: proShows,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, proShows);
   } catch (_) {
     internalServerError(res);
   }

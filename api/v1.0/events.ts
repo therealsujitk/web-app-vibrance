@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const eventsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -45,6 +45,8 @@ const uploadMiddleware = getUploadMiddleware();
  */
 eventsRouter.get('', async (req, res) => {
   var page = 1, dayIds = [], categoryIds = [], venueIds = [];
+
+  const cachedEvents = cache.get(req.url);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -120,11 +122,22 @@ eventsRouter.get('', async (req, res) => {
     }
   }
 
-  try {
-    res.status(200).json({
-      events: await Events.getAll(page, dayIds, categoryIds, venueIds),
+  if (cachedEvents) {
+    return res.status(200).json({
+      events: cachedEvents,
       next_page: page + 1
     });
+  }
+
+  try {
+    const events = await Events.getAll(page, dayIds, categoryIds, venueIds);
+
+    res.status(200).json({
+      events: events,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, events);
   } catch (e) {
     internalServerError(res);
   }

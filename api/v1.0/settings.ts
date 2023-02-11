@@ -3,7 +3,7 @@ import validator from 'validator';
 import { Settings, Users } from '../../interfaces';
 import { Setting, SettingKey } from '../../models/setting';
 import { internalServerError } from '../utils/errors';
-import { checkPermissions } from '../utils/helpers';
+import { cache, checkPermissions } from '../utils/helpers';
 
 const settingsRouter = express.Router();
 
@@ -73,6 +73,15 @@ settingsRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, r
     res.status(200).json({
       settings: settingsObject
     });
+  } catch (_) {
+    internalServerError(res);
+  }
+});
+
+settingsRouter.post('/clear-cache', Users.checkAuth, async (req, res) => {
+  try {
+    cache.flushAll();
+    res.status(200).json({});
   } catch (_) {
     internalServerError(res);
   }

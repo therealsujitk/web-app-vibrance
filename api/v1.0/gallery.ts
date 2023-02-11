@@ -5,7 +5,7 @@ import { Gallery, Users } from '../../interfaces';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { internalServerError, invalidValueForParameter, missingRequiredParameter, badRequestError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const galleryRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware(10);
@@ -29,6 +29,8 @@ const uploadMiddleware = getUploadMiddleware(10);
 galleryRouter.get('', async (req, res) => {
   var page = 1;
 
+  const cachedGallery = cache.get(req.url);
+
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
 
@@ -37,11 +39,22 @@ galleryRouter.get('', async (req, res) => {
     }
   }
 
-  try {
-    res.status(200).json({
-      gallery: await Gallery.getAll(page),
+  if (cachedGallery) {
+    return res.status(200).json({
+      gallery: cachedGallery,
       next_page: page + 1
     });
+  }
+
+  try {
+    const gallery = await Gallery.getAll(page);
+
+    res.status(200).json({
+      gallery: gallery,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, gallery);
   } catch (_) {
     return internalServerError(res);
   }

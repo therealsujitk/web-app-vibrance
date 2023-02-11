@@ -1,10 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import fileUpload, { UploadedFile } from "express-fileupload";
 import fs from "fs";
+import NodeCache from "node-cache";
 import { query } from "../../config/db";
 import { Permission } from "../../models/user";
 import { IMAGE_PATH } from "../../utils/constants";
 import { internalServerError, InvalidMIMEType } from "./errors";
+
+const cacheObject = new NodeCache({
+  stdTTL: 24 * 60 * 60,
+  checkperiod: 12 * 60 * 60
+});
 
 export function checkPermissions(permissions = 0) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -88,3 +94,5 @@ export async function checkReadOnly(req: Request, res: Response, next: NextFunct
     return internalServerError(res);
   }
 }
+
+export const cache = cacheObject;

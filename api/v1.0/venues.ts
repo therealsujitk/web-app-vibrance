@@ -7,7 +7,7 @@ import { Venue } from '../../models/venue';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly } from '../utils/helpers';
 
 const venuesRouter = express.Router();
 
@@ -42,6 +42,8 @@ const venuesRouter = express.Router();
 venuesRouter.get('', async (req, res) => {
   var page = 1, query = '';
 
+  const cachedVenue = cache.get(req.url);
+
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
 
@@ -54,11 +56,22 @@ venuesRouter.get('', async (req, res) => {
     query = validator.escape((req.query.query as string).trim());
   }
 
-  try {
-    res.status(200).json({
-      venues: await Venues.getAll(page, query),
+  if (cachedVenue) {
+    return res.status(200).json({
+      venues: cachedVenue,
       next_page: page + 1
     });
+  }
+
+  try {
+    const venues = await Venues.getAll(page, query);
+
+    res.status(200).json({
+      venues: venues,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, venues);
   } catch (e) {console.log(e)
     internalServerError(res);
   }
@@ -206,6 +219,9 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
  *  }
  */
  venuesRouter.get('/rooms', async (req, res) => {
+  var page = 1;
+
+  const cachedRooms = cache.get(req.url);
   
   if (!('venue_id' in req.body)) {
     return missingRequiredParameter('venue_id', res);
@@ -217,8 +233,6 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
     return invalidValueForParameter('venue_id', res);
   }
 
-  var page = 1;
-
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
 
@@ -227,11 +241,22 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
     }
   }
 
-  try {
-    res.status(200).json({
-      rooms: await Rooms.getAll(venueId, page),
+  if (cachedRooms) {
+    return res.status(200).json({
+      rooms: cachedRooms,
       next_page: page + 1
     });
+  }
+
+  try {
+    const rooms = await Rooms.getAll(venueId, page);
+
+    res.status(200).json({
+      rooms: rooms,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, rooms);
   } catch (_) {
     internalServerError(res);
   }

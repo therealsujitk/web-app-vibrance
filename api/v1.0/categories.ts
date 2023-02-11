@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const categoriesRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -37,6 +37,8 @@ const uploadMiddleware = getUploadMiddleware();
  */
 categoriesRouter.get('', async (req, res) => {
   var page = 1, type: CategoryType[] = [], query = '';
+
+  const cachedCategories = cache.get(req.url);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -72,13 +74,24 @@ categoriesRouter.get('', async (req, res) => {
     query = validator.escape((req.query.query as string).trim());
   }
 
+  if (cachedCategories) {
+    return res.status(200).json({
+      categories: cachedCategories,
+      types: Object.keys(CategoryType),
+      next_page: page + 1
+    });
+  }
+
   try {
     const categories = await Categories.getAll(page, type, query);
+
     res.status(200).json({
       categories: categories,
       types: Object.keys(CategoryType),
       next_page: page + 1
     });
+    
+    cache.set(req.url, categories);
   } catch (_) {
     internalServerError(res);
   }

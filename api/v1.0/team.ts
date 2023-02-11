@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const teamRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -36,6 +36,8 @@ const uploadMiddleware = getUploadMiddleware();
 teamRouter.get('', async (req, res) => {
   var page = 1;
 
+  const cachedTeam = cache.get(req.url);
+
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
 
@@ -44,11 +46,22 @@ teamRouter.get('', async (req, res) => {
     }
   }
 
-  try {
-    res.status(200).json({
-      team: await Team.getAll(page),
+  if (cachedTeam) {
+    return res.status(200).json({
+      team: cachedTeam,
       next_page: page + 1
     });
+  }
+
+  try {
+    const team = await Team.getAll(page);
+
+    res.status(200).json({
+      team: team,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, team);
   } catch (_) {
     return internalServerError(res);
   }

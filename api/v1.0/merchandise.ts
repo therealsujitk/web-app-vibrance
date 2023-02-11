@@ -7,7 +7,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
 const merchandiseRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -32,6 +32,8 @@ const uploadMiddleware = getUploadMiddleware();
 merchandiseRouter.get('', async (req, res) => {
   var page = 1;
 
+  const cachedMerchandise = cache.get(req.url);
+
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
 
@@ -40,11 +42,22 @@ merchandiseRouter.get('', async (req, res) => {
     }
   }
 
-  try {
-    res.status(200).json({
-      merchandise: await Merchandise.getAll(page),
+  if (cachedMerchandise) {
+    return res.status(200).json({
+      merchandise: cachedMerchandise,
       next_page: page + 1
     });
+  }
+
+  try {
+    const merchandise = await Merchandise.getAll(page);
+
+    res.status(200).json({
+      merchandise: merchandise,
+      next_page: page + 1
+    });
+
+    cache.set(req.url, merchandise);
   } catch (_) {
     internalServerError(res);
   }
