@@ -31,7 +31,7 @@ const daysRouter = express.Router();
 daysRouter.get('', async (req, res) => {
   var page = 1, query = '';
 
-  const cachedDays = cache.get(req.url);
+  const cachedDays = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -60,7 +60,7 @@ daysRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, days);
+    cache.set(req.originalUrl, days);
   } catch (_) {
     internalServerError(res);
   }

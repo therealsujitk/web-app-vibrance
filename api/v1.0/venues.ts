@@ -42,7 +42,7 @@ const venuesRouter = express.Router();
 venuesRouter.get('', async (req, res) => {
   var page = 1, query = '';
 
-  const cachedVenue = cache.get(req.url);
+  const cachedVenue = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -71,7 +71,7 @@ venuesRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, venues);
+    cache.set(req.originalUrl, venues);
   } catch (e) {console.log(e)
     internalServerError(res);
   }
@@ -221,7 +221,7 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
  venuesRouter.get('/rooms', async (req, res) => {
   var page = 1;
 
-  const cachedRooms = cache.get(req.url);
+  const cachedRooms = cache.get(req.originalUrl);
   
   if (!('venue_id' in req.body)) {
     return missingRequiredParameter('venue_id', res);
@@ -256,7 +256,7 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
       next_page: page + 1
     });
 
-    cache.set(req.url, rooms);
+    cache.set(req.originalUrl, rooms);
   } catch (_) {
     internalServerError(res);
   }

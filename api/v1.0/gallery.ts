@@ -29,7 +29,7 @@ const uploadMiddleware = getUploadMiddleware(10);
 galleryRouter.get('', async (req, res) => {
   var page = 1;
 
-  const cachedGallery = cache.get(req.url);
+  const cachedGallery = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -54,7 +54,7 @@ galleryRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, gallery);
+    cache.set(req.originalUrl, gallery);
   } catch (_) {
     return internalServerError(res);
   }

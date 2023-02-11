@@ -38,7 +38,7 @@ const uploadMiddleware = getUploadMiddleware();
 categoriesRouter.get('', async (req, res) => {
   var page = 1, type: CategoryType[] = [], query = '';
 
-  const cachedCategories = cache.get(req.url);
+  const cachedCategories = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -91,7 +91,7 @@ categoriesRouter.get('', async (req, res) => {
       next_page: page + 1
     });
     
-    cache.set(req.url, categories);
+    cache.set(req.originalUrl, categories);
   } catch (_) {
     internalServerError(res);
   }

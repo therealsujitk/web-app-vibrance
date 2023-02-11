@@ -46,7 +46,7 @@ const uploadMiddleware = getUploadMiddleware();
 eventsRouter.get('', async (req, res) => {
   var page = 1, dayIds = [], categoryIds = [], venueIds = [];
 
-  const cachedEvents = cache.get(req.url);
+  const cachedEvents = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -137,7 +137,7 @@ eventsRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, events);
+    cache.set(req.originalUrl, events);
   } catch (e) {
     internalServerError(res);
   }

@@ -32,7 +32,7 @@ const uploadMiddleware = getUploadMiddleware();
 sponsorsRouter.get('', async (req, res) => {
   var page = 1;
 
-  const cachedSponsors = cache.get(req.url);
+  const cachedSponsors = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -45,6 +45,7 @@ sponsorsRouter.get('', async (req, res) => {
   if (cachedSponsors) {
     return res.status(200).json({
       sponsors: cachedSponsors,
+      types: Object.keys(SponsorType),
       next_page: page + 1
     });
   }
@@ -57,7 +58,7 @@ sponsorsRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, sponsors);
+    cache.set(req.originalUrl, sponsors);
   } catch (_) {
     return internalServerError(res);
   }

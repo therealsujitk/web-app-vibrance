@@ -39,7 +39,7 @@ const uploadMiddleware = getUploadMiddleware();
 proShowsRouter.get('', async (req, res) => {
   var page = 1, dayIds = [], venueIds = [];
 
-  const cachedProShows = cache.get(req.url);
+  const cachedProShows = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -108,7 +108,7 @@ proShowsRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, proShows);
+    cache.set(req.originalUrl, proShows);
   } catch (_) {
     internalServerError(res);
   }

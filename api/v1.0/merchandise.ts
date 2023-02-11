@@ -32,7 +32,7 @@ const uploadMiddleware = getUploadMiddleware();
 merchandiseRouter.get('', async (req, res) => {
   var page = 1;
 
-  const cachedMerchandise = cache.get(req.url);
+  const cachedMerchandise = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -57,7 +57,7 @@ merchandiseRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, merchandise);
+    cache.set(req.originalUrl, merchandise);
   } catch (_) {
     internalServerError(res);
   }

@@ -36,7 +36,7 @@ const uploadMiddleware = getUploadMiddleware();
 teamRouter.get('', async (req, res) => {
   var page = 1;
 
-  const cachedTeam = cache.get(req.url);
+  const cachedTeam = cache.get(req.originalUrl);
 
   if ('page' in req.query) {
     page = validator.toInt(req.query.page as string);
@@ -61,7 +61,7 @@ teamRouter.get('', async (req, res) => {
       next_page: page + 1
     });
 
-    cache.set(req.url, team);
+    cache.set(req.originalUrl, team);
   } catch (_) {
     return internalServerError(res);
   }
