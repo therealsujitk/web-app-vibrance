@@ -14,9 +14,10 @@ export default class Events {
     this.userId = userId;
   }
 
-  static async getAll(page = 1, dayIds: number[] = [], categoryIds: number[] = [], venueIds: number[] = []) {
+  static async getAll(page = 1, searchQuery = '', dayIds: number[] = [], categoryIds: number[] = [], venueIds: number[] = []) {
     const offset = (page - 1) * LIMIT;
 
+    searchQuery = `%${searchQuery}%`;
     dayIds.push(0);
     categoryIds.push(0);
     venueIds.push(0);
@@ -45,6 +46,7 @@ export default class Events {
       "LEFT JOIN `images` ON `events`.`image_id` = `images`.`id` " +
       "LEFT JOIN `images` AS `c_images` ON `categories`.`image_id` = `c_images`.`id` " +
       "WHERE " +
+      "`events`.`title` LIKE ? AND " +
       "`day_id` = `days`.`id` AND " +
       "`category_id` = `categories`.`id` AND " +
       "`room_id` = `rooms`.`id` AND " +
@@ -53,7 +55,7 @@ export default class Events {
       "(1 = ? OR `category_id` IN (?)) AND " +
       "(1 = ? OR `venue_id` IN (?)) " +
       "ORDER BY `events`.`title` " +
-      "LIMIT ? OFFSET ?", [dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
+      "LIMIT ? OFFSET ?", [searchQuery, dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<any> {

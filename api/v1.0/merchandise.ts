@@ -30,7 +30,7 @@ const uploadMiddleware = getUploadMiddleware();
  *  }
  */
 merchandiseRouter.get('', async (req, res) => {
-  var page = 1;
+  var page = 1, query = '';
 
   const cachedMerchandise = cache.get(req.originalUrl);
 
@@ -42,6 +42,10 @@ merchandiseRouter.get('', async (req, res) => {
     }
   }
 
+  if ('query' in req.query) {
+    query = validator.escape((req.query.query as string).trim());
+  }
+
   if (cachedMerchandise && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       merchandise: cachedMerchandise,
@@ -50,7 +54,7 @@ merchandiseRouter.get('', async (req, res) => {
   }
 
   try {
-    const merchandise = await Merchandise.getAll(page);
+    const merchandise = await Merchandise.getAll(page, query);
 
     res.status(200).json({
       merchandise: merchandise,

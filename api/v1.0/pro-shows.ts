@@ -37,7 +37,7 @@ const uploadMiddleware = getUploadMiddleware();
  *  }
  */
 proShowsRouter.get('', async (req, res) => {
-  var page = 1, dayIds = [], venueIds = [];
+  var page = 1, query = '', dayIds = [], venueIds = [];
 
   const cachedProShows = cache.get(req.originalUrl);
 
@@ -47,6 +47,10 @@ proShowsRouter.get('', async (req, res) => {
     if (isNaN(page)) {
       return invalidValueForParameter('page', res);
     }
+  }
+
+  if ('query' in req.query) {
+    query = validator.escape((req.query.query as string).trim());
   }
 
   if ('day_id' in req.query) {
@@ -101,7 +105,7 @@ proShowsRouter.get('', async (req, res) => {
   }
 
   try {
-    const proShows = await ProShows.getAll(page, dayIds, venueIds);
+    const proShows = await ProShows.getAll(page, query, dayIds, venueIds);
 
     res.status(200).json({
       pro_shows: proShows,

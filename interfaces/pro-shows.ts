@@ -14,9 +14,10 @@ export default class ProShows {
     this.userId = userId;
   }
 
-  static async getAll(page = 1, dayIds: number[] = [], venueIds: number[] = []) {
+  static async getAll(page = 1, searchQuery = '', dayIds: number[] = [], venueIds: number[] = []) {
     const offset = (page - 1) * LIMIT;
 
+    searchQuery = `%${searchQuery}%`;
     dayIds.push(0);
     venueIds.push(0);
 
@@ -36,13 +37,14 @@ export default class ProShows {
       "`cost` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
-      "WHERE `day_id` = `days`.`id` " +
+      "WHERE `pro_shows`.`title` LIKE ? " +
+      "AND `day_id` = `days`.`id` " +
       "AND `room_id` = `rooms`.`id` " +
       "AND `venue_id` = `venues`.`id` " +
       "AND (1 = ? OR `day_id` IN (?)) " +
       "AND (1 = ? OR `venue_id` IN (?)) " +
       "ORDER BY `days`.`date` " +
-      "LIMIT ? OFFSET ?", [dayIds.length, dayIds, venueIds.length, venueIds, LIMIT, offset]);
+      "LIMIT ? OFFSET ?", [searchQuery, dayIds.length, dayIds, venueIds.length, venueIds, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<any> {

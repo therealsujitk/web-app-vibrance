@@ -14,8 +14,10 @@ export default class Merchandise {
     this.userId = userId;
   }
 
-  static async getAll(page = 1) {
+  static async getAll(page = 1, searchQuery = '') {
     const offset = (page - 1) * LIMIT;
+
+    searchQuery = `%${searchQuery}%`;
 
     return await query("SELECT " + 
       "`merchandise`.`id` AS `id`, " + 
@@ -25,7 +27,9 @@ export default class Merchandise {
       "FROM `merchandise` " + 
       "LEFT JOIN `images` " + 
       "ON `images`.`id` = `image_id` " + 
-      "ORDER BY `title` LIMIT ? OFFSET ?", [LIMIT, offset]);
+      "WHERE " +
+      "`title` LIKE ? " + 
+      "ORDER BY `title` LIMIT ? OFFSET ?", [searchQuery, LIMIT, offset]);
   }
 
   async #get(id: number) : Promise<MerchandiseModel> {
