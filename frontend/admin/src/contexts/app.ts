@@ -11,6 +11,7 @@ export interface AppContextInterface {
   displayAlert: (type: AlertColor, message: Error|string, action?: { name: string, onClick: () => void }) => void,
   displayError: (message: Error|string, action?: { name: string, onClick: () => void }) => void,
   displayWarning: (message: string) => void,
+  displaySuccess: (message: string) => void
 }
 
 export const AppContext = createContext<AppContextInterface>(undefined!);
