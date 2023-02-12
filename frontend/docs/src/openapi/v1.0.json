@@ -889,6 +889,10 @@
                       "items": {
                         "$ref": "#/components/schemas/day"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -1308,6 +1312,10 @@
                       "example": {
                         "$ref": "#/components/schemas/category/properties/type/enum"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -1714,6 +1722,10 @@
                       "items": {
                         "$ref": "#/components/schemas/venue"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -2092,6 +2104,10 @@
                       "items": {
                         "$ref": "#/components/schemas/room"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -2455,6 +2471,14 @@
             }
           },
           {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for events.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "day_id",
             "in": "query",
             "description": "Filter by one or more days.",
@@ -2509,6 +2533,10 @@
                       "items": {
                         "$ref": "#/components/schemas/event"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -2899,6 +2927,14 @@
             }
           },
           {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for pro shows.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "day_id",
             "in": "query",
             "description": "Filter by one or more days.",
@@ -2939,6 +2975,10 @@
                       "items": {
                         "$ref": "#/components/schemas/pro_show"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -3338,6 +3378,10 @@
                       "items": {
                         "$ref": "#/components/schemas/image"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -3602,6 +3646,14 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "The search query for merchandise.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3616,6 +3668,10 @@
                       "items": {
                         "$ref": "#/components/schemas/merchandise"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -4011,6 +4067,20 @@
                       "items": {
                         "$ref": "#/components/schemas/sponsor"
                       }
+                    },
+                    "types": {
+                      "type": "array",
+                      "description": "The list of all available types.",
+                      "items": {
+                        "$ref": "#/components/schemas/sponsor/properties/type"
+                      },
+                      "example": {
+                        "$ref": "#/components/schemas/sponsor/properties/type/enum"
+                      }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -4406,6 +4476,10 @@
                       "items": {
                         "$ref": "#/components/schemas/member"
                       }
+                    },
+                    "next_page": {
+                      "type": "number",
+                      "example": 2
                     }
                   }
                 }
@@ -5181,6 +5255,65 @@
           }
         }
       }
+    },
+    "/settings/clear-cache": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Flush cached data for api responses",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5363,6 +5496,13 @@
                   "$ref": "#/components/schemas/day/properties/title/example"
                 }
               },
+              "date": {
+                "type": "string",
+                "readOnly": true,
+                "example": {
+                  "$ref": "#/components/schemas/day/properties/date/example"
+                }
+              },
               "category": {
                 "type": "string",
                 "readOnly": true,
@@ -5526,6 +5666,17 @@
           "title": {
             "type": "string",
             "example": "Google LLC"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TITLE",
+              "FOOD_PARTNER",
+              "MEDIA_PARTNER",
+              "BANKING_PARTNER",
+              "MERCHANDISE_PARTNER",
+              "OTHER"
+            ]
           },
           "description": {
             "type": "string",
