@@ -32,6 +32,10 @@ export default class Team {
       "LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
+  static async getTeams() {
+    return await query("SELECT `team_name` FROM `team` GROUP BY `team_name`");
+  }
+
   async #get(id: number) {
     const member = (await query("SELECT `name`, `team_name`, `role`, `image`, `phone`, `email` FROM `team` LEFT JOIN `images` ON `image_id` = `images`.`id` WHERE `team`.`id` = ?", [id]))[0];
 

@@ -54,7 +54,7 @@ export default class Events {
       "(1 = ? OR `day_id` IN (?)) AND " +
       "(1 = ? OR `category_id` IN (?)) AND " +
       "(1 = ? OR `venue_id` IN (?)) " +
-      "ORDER BY `events`.`title` " +
+      "ORDER BY `days`.`date`, `events`.`start_time`, `events`.`title` " +
       "LIMIT ? OFFSET ?", [searchQuery, dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
   }
 

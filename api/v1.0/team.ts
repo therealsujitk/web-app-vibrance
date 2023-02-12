@@ -48,20 +48,25 @@ teamRouter.get('', async (req, res) => {
 
   if (cachedTeam && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
-      team: cachedTeam,
+      ...cachedTeam,
       next_page: page + 1
     });
   }
 
   try {
     const team = await Team.getAll(page);
+    const teamNames = (await Team.getTeams()).map((t: any) => t.team_name);
 
     res.status(200).json({
       team: team,
+      team_names: teamNames,
       next_page: page + 1
     });
 
-    cache.set(req.originalUrl, team);
+    cache.set(req.originalUrl, {
+      team: team,
+      team_names: teamNames
+    });
   } catch (_) {
     if (!res.headersSent) {
       internalServerError(res);

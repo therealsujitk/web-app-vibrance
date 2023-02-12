@@ -26,6 +26,7 @@ export default class Sponsors {
       "FROM `sponsors` " + 
       "LEFT JOIN `images` " + 
       "ON `image_id` = `images`.`id` " + 
+      "ORDER BY `type`, `title` " +
       "LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
