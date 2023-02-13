@@ -1,6 +1,6 @@
 import { Users } from '../../interfaces';
 import express from 'express';
-import os from 'os';
+import os from 'node-os-utils';
 import { query } from '../../config/db';
 import { version } from '../../package.json';
 import { internalServerError } from '../utils/errors';
@@ -34,6 +34,36 @@ const dashboardRouter = express.Router();
  */
 dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
   try {
+    const getCpuUsage = async () => {
+      return new Promise((resolve) => {
+        os.cpu.usage().then((result) => resolve(result));
+      })
+    }
+
+    const getTotalMemory = async () => {
+      return new Promise((resolve) => {
+        os.mem.info().then((result) => resolve(result.totalMemMb));
+      })
+    }
+    
+    const getFreeMemory = async () => {
+      return new Promise((resolve) => {
+        os.mem.info().then((result) => resolve(result.freeMemMb));
+      })
+    }
+
+    const getTotalDisk = async () => {
+      return new Promise((resolve) => {
+        os.drive.info('/').then((result) => resolve(result.totalGb * 1024));
+      })
+    }
+    
+    const getFreeDisk = async () => {
+      return new Promise((resolve) => {
+        os.drive.info('/').then((result) => resolve(result.freeGb * 1024));
+      })
+    }
+
     const response = {
       software_info: [
         {
@@ -50,8 +80,11 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
         },
       ],
       server_stats: {
-        totalMemory: os.totalmem(),
-        freeMemory: os.freemem(),
+        totalMemory: await getTotalMemory(),
+        freeMemory: await getFreeMemory(),
+        totalDisk: await getTotalDisk(),
+        freeDisk: await getFreeDisk(),
+        cpuUsage: await getCpuUsage(),
       }
     };
 

@@ -1,9 +1,9 @@
-import { Error, Settings } from "@mui/icons-material";
-import { Box, CircularProgress, Divider, Grid, IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import { ClearAll, CloudDownload, Error, Settings, SettingsOutlined } from "@mui/icons-material";
+import { Box, Button, CircularProgress, Grid, IconButton, Menu, MenuItem, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { format, parse } from "date-fns";
 import Cookies from "js-cookie";
 import React from "react";
-import { MediaQuery, Theme } from "../../../components";
+import { Theme } from "../../../components";
 import { AppContext, AppContextInterface } from "../../../contexts/app";
 import Network from "../../../utils/network";
 import Drawer from "../../drawer/drawer";
@@ -19,6 +19,11 @@ interface DashboardPanelState {
    * @default true
    */
   isLoading: boolean;
+
+  /**
+   * 
+   */
+  settingsMenuAnchor: HTMLElement|null;
 
   /**
    * 
@@ -63,13 +68,16 @@ interface DashboardPanelState {
 
 export default class DashboardPanel extends React.Component<{}, DashboardPanelState> {
   apiKey: string;
+  
   onError?: AppContextInterface['displayError'];
+  onSuccess?: AppContextInterface['displaySuccess'];
 
   constructor(props: {}) {
     super(props);
 
     this.state = {
       isLoading: true,
+      settingsMenuAnchor: null,
       isAnalyticsLoading: true,
       analyticsData: [],
       selectedAnalyticsIndex: 0
@@ -84,9 +92,10 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
 
   render() {
     const panelInfo = Drawer.items.dashboard;
+    const isSettingsMenuOpen = Boolean(this.state.settingsMenuAnchor);
 
     const SoftwareInfo = () => (
-      <Stack direction="row" spacing={3} sx={{ justifyContent: 'center' }}>
+      <Stack direction="row" spacing={3}>
         {this.state.softwareInfo!.map((s) => (
           <InfoItem key={s.name} package={s.name} version={s.version} />
         ))}
@@ -96,47 +105,55 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
     const ServerStats = () => {
       var usedMemory = this.state.serverStats!.totalMemory - this.state.serverStats!.freeMemory;
       var totalMemory = this.state.serverStats!.totalMemory;
-      var unit = 'B';
+      var memoryUnit = 'MB';
 
       if (totalMemory / 1024 > 0) {
         usedMemory /= 1024;
         totalMemory /= 1024;
-        unit = 'KB';
+        memoryUnit = 'GB';
       }
 
-      if (totalMemory / 1024 > 0) {
-        usedMemory /= 1024;
-        totalMemory /= 1024;
-        unit = 'MB';
-      }
+      var usedDisk = this.state.serverStats!.totalDisk - this.state.serverStats!.freeDisk;
+      var totalDisk = this.state.serverStats!.totalDisk;
+      var diskUnit = 'MB';
 
-      if (totalMemory / 1024 > 0) {
-        usedMemory /= 1024;
-        totalMemory /= 1024;
-        unit = 'GB';
+      if (totalDisk / 1024 > 0) {
+        usedDisk /= 1024;
+        totalDisk /= 1024;
+        diskUnit = 'GB';
       }
 
       return (
-        <Stack direction="row" spacing={4} sx={{ justifyContent: 'center' }}>
-          <MetricItem
-            name="Memory Usage" 
-            value={usedMemory}
-            total={totalMemory}
-            unit={unit}
-          />
-          <MetricItem 
-            name="CPU Usage" 
-            value={62}
-            total={100}
-          />
-        </Stack>
+        <div style={{ width: '100%', overflow: 'auto' }}>
+          <Stack direction="row" spacing={4} sx={{ margin: 'auto', width: 'fit-content' }}>
+            <MetricItem
+              name="Disk Usage" 
+              value={usedDisk}
+              total={totalDisk}
+              unit={diskUnit}
+            />
+            <MetricItem
+              name="Memory Usage" 
+              value={usedMemory}
+              total={totalMemory}
+              unit={memoryUnit}
+            />
+            <MetricItem
+              name="CPU Usage" 
+              value={this.state.serverStats!.cpuUsage}
+              total={100}
+            />
+          </Stack>
+        </div>
       );
     };
 
     return (
       <Box>
         <AppContext.Consumer>
-          {({displayError}) => <>{this.onError = displayError}</>}
+          {({displayError, displaySuccess}) => <>{
+            (this.onError = displayError) && (this.onSuccess = displaySuccess)
+          }</>}
         </AppContext.Consumer>
         <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} />
         {this.state.isLoading
@@ -154,25 +171,48 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
                   <Grid item xs={12} sm>
                     <SoftwareInfo />
                   </Grid>
-                  <MediaQuery query={(theme) => theme.breakpoints.up('sm')}>
-                    {(result) => (
-                      <Divider 
-                        sx={{ 
-                          m: 2, 
-                          mb: result ? 0 : 2, 
-                          mr: result ? 2 : 0, 
-                          flexShrink: 'unset',
-                          width: result ? '1px': '100%' 
-                        }} 
-                        orientation={result ? "vertical" : "horizontal"} 
-                        flexItem 
-                      />
-                    )}
-                  </MediaQuery> 
-                  <Grid item xs={12} sm>
-                    <ServerStats />
+                  <Grid item xs={12} sm sx={{ textAlign: 'right' }}>
+                    <Button
+                      startIcon={<SettingsOutlined sx={{ color: 'black' }} />}
+                      variant="contained"
+                      onClick={(event) => this.openSettingsMenu(event)}
+                    >
+                      Settings
+                    </Button>
+                    <Menu 
+                      open={isSettingsMenuOpen}
+                      anchorEl={this.state.settingsMenuAnchor}
+                      onClose={() => this.closeSettingsMenu()}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                      sx={{ zIndex: 99999 }}
+                    >
+                      <MenuItem onClick={() => { 
+                        this.clearCache(this.onSuccess!, this.onError!);
+                        this.closeSettingsMenu();
+                      }}>
+                        <span style={{ height: 24, marginRight: 12 }}><ClearAll /></span>
+                        Clear Cache
+                      </MenuItem>
+                      <MenuItem onClick={() => {
+                        this.backupDatabase(this.onError!);
+                        this.closeSettingsMenu();
+                      }}>
+                        <span style={{ height: 24, marginRight: 12 }}><CloudDownload /></span>
+                        Download Backup
+                      </MenuItem>
+                    </Menu>
                   </Grid>
                 </Grid>
+              </Paper>
+              <Paper sx={{ p: 3 }}>
+                <ServerStats />
               </Paper>
               <Paper sx={{ p: 3 }}>
                 <>
@@ -253,6 +293,14 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
     );
   }
 
+  openSettingsMenu = (e: React.MouseEvent<HTMLElement>) => {
+    this.setState({ settingsMenuAnchor: e.currentTarget });
+  }
+
+  closeSettingsMenu = () => {
+    this.setState({ settingsMenuAnchor: null });
+  }
+
   getDashboard = async (onError: AppContextInterface['displayError']) => {
     try {
       const response = await new Network(this.apiKey).doGet('/api/latest/dashboard');
@@ -289,5 +337,33 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
       selectedAnalyticsIndex: 0,
       isAnalyticsLoading: false,
     });
+  }
+
+  clearCache = async (onSuccess: AppContextInterface['displaySuccess'], onError: AppContextInterface['displayError']) => {
+    try {
+      await new Network(this.apiKey).doPost('/api/latest/settings/clear-cache');
+      onSuccess('Cache has been flushed.')
+    } catch (err: any) {
+      onError(err);
+    }
+  }
+
+  backupDatabase = async (onError: AppContextInterface['displayError']) => {
+    fetch('/api/latest/settings/backup', {
+      method: 'POST',
+      headers: {
+        'X-Api-Key': this.apiKey
+      }
+    })
+      .then(async (res) => {
+        const blob = await res.blob();
+        const fileName = res.headers.get('Content-Disposition')?.split('filename=')[1].split(';')[0];
+        const file = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = file;
+        a.download = fileName ?? 'vibrance.sql';
+        a.click();
+      })
+      .catch((err: any) => onError(err));
   }
 }

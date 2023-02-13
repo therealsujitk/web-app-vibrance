@@ -1,5 +1,6 @@
 import express from 'express';
 import validator from 'validator';
+import { dump } from '../../config/db';
 import { Settings, Users } from '../../interfaces';
 import { Setting, SettingKey } from '../../models/setting';
 import { internalServerError } from '../utils/errors';
@@ -83,6 +84,15 @@ settingsRouter.post('/clear-cache', Users.checkAuth, async (req, res) => {
     cache.flushAll();
     res.status(200).json({});
   } catch (_) {
+    internalServerError(res);
+  }
+});
+
+settingsRouter.post('/backup', Users.checkAuth, async (req, res) => {
+  try {
+    const result = await dump();
+    res.status(200).download(result.location, result.fileName);
+  } catch (e) {console.log(e);
     internalServerError(res);
   }
 });

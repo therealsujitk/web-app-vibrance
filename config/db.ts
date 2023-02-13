@@ -2,7 +2,10 @@
     The Database Connection - Please don't change
     anything in this file
  */
+import fs from 'fs';
 import mysql from 'mysql';
+import mysqldump from 'mysqldump';
+import path from 'path';
 import { MYSQL_HOST } from '../config';
 import { MYSQL_USER } from '../config';
 import { MYSQL_PASSWORD } from '../config';
@@ -101,4 +104,22 @@ const query = async (query: string, options: any[] = []) : Promise<any> => {
   return promise;
 }
 
-export { transaction, query };
+const dump = async(location = __dirname + '/../public/exports') => {
+  fs.mkdirSync(location, { recursive: true });
+  const fileName = `vibrance_${new Date().getTime()}.sql`;
+  location = path.resolve(`${location}/${fileName}`);
+
+  await mysqldump({
+    connection: {
+      host: MYSQL_HOST!,
+      user: MYSQL_USER!,
+      password: MYSQL_PASSWORD!,
+      database: MYSQL_DATABASE!
+    },
+    dumpToFile: location
+  });
+
+  return { fileName, location };
+}
+
+export { transaction, query, dump };
