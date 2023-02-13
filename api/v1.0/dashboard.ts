@@ -80,11 +80,11 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
         },
       ],
       server_stats: {
-        totalMemory: await getTotalMemory(),
-        freeMemory: await getFreeMemory(),
-        totalDisk: await getTotalDisk(),
-        freeDisk: await getFreeDisk(),
-        cpuUsage: await getCpuUsage(),
+        total_memory: await getTotalMemory(),
+        free_memory: await getFreeMemory(),
+        total_disk: await getTotalDisk(),
+        free_disk: await getFreeDisk(),
+        cpu_usage: await getCpuUsage(),
       }
     };
 

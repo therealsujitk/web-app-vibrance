@@ -4477,6 +4477,12 @@
                         "$ref": "#/components/schemas/member"
                       }
                     },
+                    "team_names": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/member/properties/team_name"
+                      }
+                    },
                     "next_page": {
                       "type": "number",
                       "example": 2
@@ -4900,6 +4906,15 @@
                         },
                         "free_memory": {
                           "type": "integer"
+                        },
+                        "total_disk": {
+                          "type": "integer"
+                        },
+                        "free_disk": {
+                          "type": "integer"
+                        },
+                        "cpu_usage": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -5262,6 +5277,65 @@
           "Admin"
         ],
         "summary": "Flush cached data for api responses",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/backup": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Download a backup of the database",
         "parameters": [
           {
             "name": "X-Api-Key",

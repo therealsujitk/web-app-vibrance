@@ -103,8 +103,8 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
     );
 
     const ServerStats = () => {
-      var usedMemory = this.state.serverStats!.totalMemory - this.state.serverStats!.freeMemory;
-      var totalMemory = this.state.serverStats!.totalMemory;
+      var usedMemory = this.state.serverStats!.total_memory - this.state.serverStats!.free_memory;
+      var totalMemory = this.state.serverStats!.total_memory;
       var memoryUnit = 'MB';
 
       if (totalMemory / 1024 > 0) {
@@ -113,8 +113,8 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
         memoryUnit = 'GB';
       }
 
-      var usedDisk = this.state.serverStats!.totalDisk - this.state.serverStats!.freeDisk;
-      var totalDisk = this.state.serverStats!.totalDisk;
+      var usedDisk = this.state.serverStats!.total_disk - this.state.serverStats!.free_disk;
+      var totalDisk = this.state.serverStats!.total_disk;
       var diskUnit = 'MB';
 
       if (totalDisk / 1024 > 0) {
@@ -140,7 +140,7 @@ export default class DashboardPanel extends React.Component<{}, DashboardPanelSt
             />
             <MetricItem
               name="CPU Usage" 
-              value={this.state.serverStats!.cpuUsage}
+              value={this.state.serverStats!.cpu_usage}
               total={100}
             />
           </Stack>
