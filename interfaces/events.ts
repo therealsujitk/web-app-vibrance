@@ -41,7 +41,11 @@ export default class Events {
       "`team_size_max`, " +
       "`events`.`start_time` AS `start_time`, " +
       "`events`.`end_time` AS `end_time`, " +
-      "`events`.`cost` AS `cost` " +
+      "`events`.`cost` AS `cost`, " +
+      "`faculty_coordinator_name`, " +
+      "`faculty_coordinator_mobile`, " +
+      "`student_coordinator_name`, " +
+      "`student_coordinator_mobile` " +
       "FROM (`events`, `days`, `categories`, `venues`, `rooms`) " +
       "LEFT JOIN `images` ON `events`.`image_id` = `images`.`id` " +
       "LEFT JOIN `images` AS `c_images` ON `categories`.`image_id` = `c_images`.`id` " +
@@ -92,7 +96,11 @@ export default class Events {
       "`team_size_max`, " +
       "`events`.`start_time` AS `start_time`, " +
       "`events`.`end_time` AS `end_time`, " +
-      "`events`.`cost` AS `cost` " +
+      "`events`.`cost` AS `cost`, " +
+      "`faculty_coordinator_name`, " +
+      "`faculty_coordinator_mobile`, " +
+      "`student_coordinator_name`, " +
+      "`student_coordinator_mobile` " +
       "FROM (`events`, `days`, `categories`, `venues`, `rooms`) " +
       "LEFT JOIN `images` ON `events`.`image_id` = `images`.`id` " +
       "LEFT JOIN `images` AS `c_images` ON `categories`.`image_id` = `c_images`.`id` " +
@@ -125,7 +133,7 @@ export default class Events {
     const queries = [
       ...!existing && event.image ? [Images.createInsertQuery(event.image)] : [],
       {
-        query: "INSERT INTO `events` (`day_id`, `category_id`, `room_id`, `title`, `description`, `image_id`, `team_size_min`, `team_size_max`, `start_time`, `end_time`, `cost`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        query: "INSERT INTO `events` (`day_id`, `category_id`, `room_id`, `title`, `description`, `image_id`, `team_size_min`, `team_size_max`, `start_time`, `end_time`, `cost`, `faculty_coordinator_name`, `faculty_coordinator_mobile`, `student_coordinator_name`, `student_coordinator_mobile`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           event.day_id,
           event.category_id,
@@ -137,7 +145,11 @@ export default class Events {
           event.team_size_max,
           getTimeFromUTC(event.start_time),
           getTimeFromUTC(event.end_time),
-          event.cost
+          event.cost,
+          event.faculty_coordinator_name,
+          event.faculty_coordinator_mobile,
+          event.student_coordinator_name,
+          event.student_coordinator_mobile
         ]
       },
       {
@@ -187,6 +199,10 @@ export default class Events {
     event.start_time = event.start_time ?? old.start_time;
     event.end_time = event.end_time ?? old.end_time;
     event.cost = event.cost ?? old.cost;
+    event.faculty_coordinator_name = event.faculty_coordinator_name ?? old.faculty_coordinator_name;
+    event.faculty_coordinator_mobile = event.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
+    event.student_coordinator_name = event.student_coordinator_name ?? old.student_coordinator_name;
+    event.student_coordinator_mobile = event.student_coordinator_mobile ?? old.student_coordinator_mobile;
     const existing = await Images.get(event.image);
 
     if (isEqual<Event>(oldReduced, event as Event)) {
@@ -202,7 +218,7 @@ export default class Events {
     const queries = [
       ...!existing && event.image ? [Images.createInsertQuery(event.image)] : [],
       {
-        query: "UPDATE `events` SET `day_id` = ?, `category_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `team_size_min` = ?, `team_size_max` = ?, `start_time` = ?, `end_time` = ?, `cost` = ? WHERE `id` = ?",
+        query: "UPDATE `events` SET `day_id` = ?, `category_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `team_size_min` = ?, `team_size_max` = ?, `start_time` = ?, `end_time` = ?, `cost` = ?, `faculty_coordinator_name` = ?, `faculty_coordinator_mobile` = ?, `student_coordinator_name` = ?, `student_coordinator_mobile` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           event.day_id,
           event.category_id,
@@ -215,6 +231,10 @@ export default class Events {
           getTimeFromUTC(event.start_time!),
           getTimeFromUTC(event.end_time!),
           event.cost,
+          event.faculty_coordinator_name,
+          event.faculty_coordinator_mobile,
+          event.student_coordinator_name,
+          event.student_coordinator_mobile,
           id
         ]
       },

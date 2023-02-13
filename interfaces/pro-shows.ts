@@ -34,7 +34,11 @@ export default class ProShows {
       "CONCAT('" + IMAGE_URL + "', `images`.`image`) AS `image`, " +
       "`start_time`, " +
       "`end_time`, " +
-      "`cost` " +
+      "`cost`, " +
+      "`faculty_coordinator_name`, " +
+      "`faculty_coordinator_mobile`, " +
+      "`student_coordinator_name`, " +
+      "`student_coordinator_mobile` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `pro_shows`.`title` LIKE ? " +
@@ -75,7 +79,11 @@ export default class ProShows {
       "`images`.`image` AS `image`, " +
       "`start_time`, " +
       "`end_time`, " +
-      "`cost` " +
+      "`cost`, " +
+      "`faculty_coordinator_name`, " +
+      "`faculty_coordinator_mobile`, " +
+      "`student_coordinator_name`, " +
+      "`student_coordinator_mobile` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `day_id` = `days`.`id` " +
@@ -102,7 +110,7 @@ export default class ProShows {
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`, `start_time`, `end_time`, `cost`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`, `start_time`, `end_time`, `cost`, `faculty_coordinator_name`, `faculty_coordinator_mobile`, `student_coordinator_name`, `student_coordinator_mobile`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
@@ -111,7 +119,11 @@ export default class ProShows {
           existing?.id ?? (proShow.image ? results[0].insertId : undefined),
           getTimeFromUTC(proShow.start_time),
           getTimeFromUTC(proShow.end_time),
-          proShow.cost
+          proShow.cost,
+          proShow.faculty_coordinator_name,
+          proShow.faculty_coordinator_mobile,
+          proShow.student_coordinator_name,
+          proShow.student_coordinator_mobile
         ]
       },
       {
@@ -154,6 +166,11 @@ export default class ProShows {
     proShow.title = proShow.title ?? old.title;
     proShow.description = proShow.description ?? old.description;
     proShow.image = proShow.image ?? old.image;
+    proShow.cost = proShow.cost ?? old.cost;
+    proShow.faculty_coordinator_name = proShow.faculty_coordinator_name ?? old.faculty_coordinator_name;
+    proShow.faculty_coordinator_mobile = proShow.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
+    proShow.student_coordinator_name = proShow.student_coordinator_name ?? old.student_coordinator_name;
+    proShow.student_coordinator_mobile = proShow.student_coordinator_mobile ?? old.student_coordinator_mobile;
     const existing = await Images.get(proShow.image);
 
     if (isEqual<ProShow>(oldReduced, proShow as ProShow)) {
@@ -168,7 +185,7 @@ export default class ProShows {
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `start_time` = ?, `end_time` = ?, `cost` = ? WHERE `id` = ?",
+        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `start_time` = ?, `end_time` = ?, `cost` = ?, `faculty_coordinator_name` = ?, `faculty_coordinator_mobile` = ?, `student_coordinator_name` = ?, `student_coordinator_mobile` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
@@ -178,6 +195,10 @@ export default class ProShows {
           getTimeFromUTC(proShow.start_time!),
           getTimeFromUTC(proShow.end_time!),
           proShow.cost,
+          proShow.faculty_coordinator_name,
+          proShow.faculty_coordinator_mobile,
+          proShow.student_coordinator_name,
+          proShow.student_coordinator_mobile,
           id
         ]
       },

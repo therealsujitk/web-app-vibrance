@@ -303,6 +303,30 @@ eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
     }
   }
 
+  if ('faculty_coordinator_name' in req.body) {
+    event.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
+  }
+
+  if ('faculty_coordinator_mobile' in req.body) {
+    event.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(event.faculty_coordinator_mobile!) && !validator.isMobilePhone(event.faculty_coordinator_mobile!)) {
+      return invalidValueForParameter('faculty_coordinator_mobile', res);
+    }
+  }
+
+  if ('student_coordinator_name' in req.body) {
+    event.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
+  }
+
+  if ('student_coordinator_mobile' in req.body) {
+    event.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(event.student_coordinator_mobile!) && !validator.isMobilePhone(event.student_coordinator_mobile!)) {
+      return invalidValueForParameter('student_coordinator_mobile', res);
+    }
+  }
+
   try {
     res.status(200).json({
       event: await new Events(user.id).add(event)
@@ -462,6 +486,30 @@ eventsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS)
 
     if (isNaN(event.cost)) {
       return invalidValueForParameter('cost', res);
+    }
+  }
+
+  if ('faculty_coordinator_name' in req.body) {
+    event.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
+  }
+
+  if ('faculty_coordinator_mobile' in req.body) {
+    event.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(event.faculty_coordinator_mobile!) && !validator.isMobilePhone(event.faculty_coordinator_mobile!)) {
+      return invalidValueForParameter('faculty_coordinator_mobile', res);
+    }
+  }
+
+  if ('student_coordinator_name' in req.body) {
+    event.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
+  }
+
+  if ('student_coordinator_mobile' in req.body) {
+    event.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(event.student_coordinator_mobile!) && !validator.isMobilePhone(event.student_coordinator_mobile!)) {
+      return invalidValueForParameter('student_coordinator_mobile', res);
     }
   }
 

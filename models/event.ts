@@ -9,5 +9,9 @@ export interface Event {
   team_size_max: number,
   start_time: Date,
   end_time: Date,
-  cost: number
+  cost: number,
+  faculty_coordinator_name?: string,
+  faculty_coordinator_mobile?: string,
+  student_coordinator_name?: string,
+  student_coordinator_mobile?: string,
 }

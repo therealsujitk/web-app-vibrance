@@ -59,7 +59,11 @@ exports.up = function(db) {
     team_size_max: { type: type.INTEGER, notNull: true },
     cost: { type: type.REAL, notNull: true, defaultValue: 0 },
     start_time: { type: type.TIME, notNull: true },
-    end_time: { type: type.TIME, notNull: true }
+    end_time: { type: type.TIME, notNull: true },
+    faculty_coordinator_name: type.STRING,
+    faculty_coordinator_mobile: type.STRING,
+    student_coordinator_name: type.STRING,
+    student_coordinator_mobile: type.STRING,
   });
 };
 

@@ -227,6 +227,30 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
     }
   }
 
+  if ('faculty_coordinator_name' in req.body) {
+    proShow.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
+  }
+
+  if ('faculty_coordinator_mobile' in req.body) {
+    proShow.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(proShow.faculty_coordinator_mobile!) && !validator.isMobilePhone(proShow.faculty_coordinator_mobile!)) {
+      return invalidValueForParameter('faculty_coordinator_mobile', res);
+    }
+  }
+
+  if ('student_coordinator_name' in req.body) {
+    proShow.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
+  }
+
+  if ('student_coordinator_mobile' in req.body) {
+    proShow.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(proShow.student_coordinator_mobile!) && !validator.isMobilePhone(proShow.student_coordinator_mobile!)) {
+      return invalidValueForParameter('student_coordinator_mobile', res);
+    }
+  }
+
   try {
     res.status(200).json({
       pro_show: await new ProShows(user.id).add(proShow)
@@ -346,6 +370,30 @@ proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENT
 
     if (isNaN(proShow.cost)) {
       return invalidValueForParameter('cost', res);
+    }
+  }
+
+  if ('faculty_coordinator_name' in req.body) {
+    proShow.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
+  }
+
+  if ('faculty_coordinator_mobile' in req.body) {
+    proShow.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(proShow.faculty_coordinator_mobile!) && !validator.isMobilePhone(proShow.faculty_coordinator_mobile!)) {
+      return invalidValueForParameter('faculty_coordinator_mobile', res);
+    }
+  }
+
+  if ('student_coordinator_name' in req.body) {
+    proShow.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
+  }
+
+  if ('student_coordinator_mobile' in req.body) {
+    proShow.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
+
+    if (!validator.isEmpty(proShow.student_coordinator_mobile!) && !validator.isMobilePhone(proShow.student_coordinator_mobile!)) {
+      return invalidValueForParameter('student_coordinator_mobile', res);
     }
   }
 

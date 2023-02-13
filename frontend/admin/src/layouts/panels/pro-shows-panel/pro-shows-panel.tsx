@@ -1,4 +1,4 @@
-import { CurrencyRupee, Schedule } from '@mui/icons-material';
+import { CurrencyRupee, Face, Schedule } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -110,6 +110,26 @@ interface ProShow {
    * 
    */
   cost: number;
+
+  /**
+   * 
+   */
+  facultyCoordinatorName?: string;
+
+  /**
+   * 
+   */
+  facultyCoordinatorMobile?: string;
+
+  /**
+   * 
+   */
+  studentCoordinatorName?: string;
+
+  /**
+   * 
+   */
+  studentCoordinatorMobile?: string;
 }
 
 export default class ProShowsPanel extends React.Component<{}, ProShowsPanelState> {
@@ -253,7 +273,11 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           room: proShows[i].room ? validator.unescape(proShows[i].room) : null,
           startTime: new Date('2020-01-01 ' + proShows[i].start_time),
           endTime: new Date('2020-01-01 ' + proShows[i].end_time),
-          cost: proShows[i].cost
+          cost: proShows[i].cost,
+          facultyCoordinatorName: proShows[i].faculty_coordinator_name,
+          facultyCoordinatorMobile: proShows[i].faculty_coordinator_mobile,
+          studentCoordinatorName: proShows[i].student_coordinator_name,
+          studentCoordinatorMobile: proShows[i].student_coordinator_mobile,
         };
 
         this.state.proShows.set(proShow.id, proShow);
@@ -343,6 +367,16 @@ class ProShowCard extends React.Component<ProShowCardProps, ProShowCardState> {
                 icon={<CurrencyRupee />} 
                 sx={{ pl: 0.5 }}
               />
+              {this.props.facultyCoordinatorName && <Chip 
+                label={this.props.facultyCoordinatorName + (this.props.facultyCoordinatorMobile ? ` - ${this.props.facultyCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
+              {this.props.studentCoordinatorName && <Chip 
+                label={this.props.studentCoordinatorName + (this.props.studentCoordinatorMobile ? ` - ${this.props.studentCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
             </Stack>
           </CardContent>
           <CardActions disableSpacing>
@@ -475,6 +509,10 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
     const startTime = this.props.proShow ? format(this.props.proShow.startTime, 'HH:mm') : '';
     const endTime = this.props.proShow ? format(this.props.proShow.endTime, 'HH:mm') : '';
     const cost = this.props.proShow?.cost ?? '';
+    const facultyCoordinatorName = this.props.proShow?.facultyCoordinatorName ?? '';
+    const facultyCoordinatorMobile = this.props.proShow?.facultyCoordinatorMobile ?? '';
+    const studentCoordinatorName = this.props.proShow?.studentCoordinatorName ?? '';
+    const studentCoordinatorMobile = this.props.proShow?.studentCoordinatorMobile ?? '';
 
     if (!this.props.opened) {
       this.daySearchQuery = '';
@@ -493,10 +531,10 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
             <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
               <Stack spacing={1} sx={{ flexGrow: 1, width: '40%' }}>
                 <ImageInput name="image" style={{ height: 'unset', flexGrow: 1 }} defaultValue={image} />
-              </Stack>
-              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '60%' }}>
                 <TextField name="title" placeholder="Title" defaultValue={title} />
                 <TextArea name="description" placeholder="Add a description..." style={{ minWidth: '100%' }} defaultValue={description} />
+              </Stack>
+              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '60%' }}>
                 <Autocomplete
                   options={this.state.dayOptions!}
                   getOptionLabel={(day) => day.title}
@@ -552,18 +590,22 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
                   <TextField name="end_time" placeholder="End Time" type="time" defaultValue={endTime} sx={{ flexGrow: 1 }} />
                 </Stack>
                 <TextField 
-                    name="cost" 
-                    placeholder="Cost" 
-                    type="number" 
-                    defaultValue={cost} 
-                    InputProps={{ 
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CurrencyRupee sx={{ fontSize: 20 }} />
-                        </InputAdornment>
-                      )
-                    }}
-                  />
+                  name="cost" 
+                  placeholder="Cost" 
+                  type="number" 
+                  defaultValue={cost} 
+                  InputProps={{ 
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CurrencyRupee sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TextField name="faculty_coordinator_name" placeholder="Faculty Coordinator Name" defaultValue={facultyCoordinatorName} />
+                <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={facultyCoordinatorMobile} />
+                <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={studentCoordinatorName} />
+                <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={studentCoordinatorMobile} />
               </Stack>
             </Stack>
             <AppContext.Consumer>
@@ -691,6 +733,10 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
         startTime: new Date('2020-01-01 ' + response.pro_show.start_time),
         endTime: new Date('2020-01-01 ' + response.pro_show.end_time),
         cost: response.pro_show.cost,
+        facultyCoordinatorName: response.pro_show.faculty_coordinator_name,
+        facultyCoordinatorMobile: response.pro_show.faculty_coordinator_mobile,
+        studentCoordinatorName: response.pro_show.student_coordinator_name,
+        studentCoordinatorMobile: response.pro_show.student_coordinator_mobile,
       });
       this.props.onClose();
     } catch (err: any) {

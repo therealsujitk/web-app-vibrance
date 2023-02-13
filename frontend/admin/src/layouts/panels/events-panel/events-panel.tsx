@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { CurrencyRupee, Schedule } from '@mui/icons-material';
+import { CurrencyRupee, Face, Schedule } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -131,6 +131,26 @@ interface Event {
    * 
    */
   cost: number;
+
+  /**
+   * 
+   */
+  facultyCoordinatorName?: string;
+
+  /**
+   * 
+   */
+  facultyCoordinatorMobile?: string;
+
+  /**
+   * 
+   */
+  studentCoordinatorName?: string;
+
+  /**
+   * 
+   */
+  studentCoordinatorMobile?: string;
 }
 
 export default class EventsPanel extends React.Component<{}, EventsPanelState> {
@@ -278,7 +298,11 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
           teamSizeMax: events[i].team_size_max,
           startTime: new Date('2020-01-01 ' + events[i].start_time),
           endTime: new Date('2020-01-01 ' + events[i].end_time),
-          cost: events[i].cost
+          cost: events[i].cost,
+          facultyCoordinatorName: events[i].faculty_coordinator_name,
+          facultyCoordinatorMobile: events[i].faculty_coordinator_mobile,
+          studentCoordinatorName: events[i].student_coordinator_name,
+          studentCoordinatorMobile: events[i].student_coordinator_mobile,
         };
 
         this.state.events.set(event.id, event);
@@ -377,6 +401,16 @@ class EventCard extends React.Component<EventCardProps, EventCardState> {
                 icon={<CurrencyRupee />} 
                 sx={{ pl: 0.5 }}
               />
+              {this.props.facultyCoordinatorName && <Chip 
+                label={this.props.facultyCoordinatorName + (this.props.facultyCoordinatorMobile ? ` - ${this.props.facultyCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
+              {this.props.studentCoordinatorName && <Chip 
+                label={this.props.studentCoordinatorName + (this.props.studentCoordinatorMobile ? ` - ${this.props.studentCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
             </Stack>
           </CardContent>
           <CardActions disableSpacing>
@@ -531,6 +565,10 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
     const startTime = this.props.event ? format(this.props.event.startTime, 'HH:mm') : '';
     const endTime = this.props.event ? format(this.props.event.endTime, 'HH:mm') : '';
     const cost = this.props.event?.cost ?? '';
+    const facultyCoordinatorName = this.props.event?.facultyCoordinatorName ?? '';
+    const facultyCoordinatorMobile = this.props.event?.facultyCoordinatorMobile ?? '';
+    const studentCoordinatorName = this.props.event?.studentCoordinatorName ?? '';
+    const studentCoordinatorMobile = this.props.event?.studentCoordinatorMobile ?? '';
 
     if (!this.props.opened) {
       this.daySearchQuery = '';
@@ -637,18 +675,22 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
                   <TextField name="end_time" placeholder="End Time" type="time" defaultValue={endTime} sx={{ flexGrow: 1 }} />
                 </Stack>
                 <TextField 
-                    name="cost" 
-                    placeholder="Cost" 
-                    type="number" 
-                    defaultValue={cost} 
-                    InputProps={{ 
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CurrencyRupee sx={{ fontSize: 20 }} />
-                        </InputAdornment>
-                      )
-                    }}
-                  />
+                  name="cost" 
+                  placeholder="Cost" 
+                  type="number" 
+                  defaultValue={cost} 
+                  InputProps={{ 
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CurrencyRupee sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TextField name="faculty_coordinator_name" placeholder="Faculty Coordinator Name" defaultValue={facultyCoordinatorName} />
+                <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={facultyCoordinatorMobile} />
+                <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={studentCoordinatorName} />
+                <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={studentCoordinatorMobile} />
               </Stack>
             </Stack>
             <AppContext.Consumer>
@@ -802,6 +844,10 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
         startTime: new Date('2020-01-01 ' + response.event.start_time),
         endTime: new Date('2020-01-01 ' + response.event.end_time),
         cost: response.event.cost,
+        facultyCoordinatorName: response.event.faculty_coordinator_name,
+        facultyCoordinatorMobile: response.event.faculty_coordinator_mobile,
+        studentCoordinatorName: response.event.student_coordinator_name,
+        studentCoordinatorMobile: response.event.student_coordinator_mobile,
       });
       this.props.onClose();
     } catch (err: any) {
