@@ -318,7 +318,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.category ? 'Edit' : 'Add'} Category</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <AppContext.Consumer>
               {({ displayError }) => (
@@ -332,7 +332,7 @@ class AddEditDialog extends React.Component<CategoryDialogProps, CategoryDialogS
                     <MenuItem value="0" disabled>Select Type</MenuItem>
                     {this.props.types!.map((type) => <MenuItem value={type.toLowerCase()}>{type}</MenuItem>)}
                   </Select>
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Category</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Category</Button>
                 </Stack>
             )}
             </AppContext.Consumer>

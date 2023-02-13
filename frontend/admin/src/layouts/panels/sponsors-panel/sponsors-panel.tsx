@@ -340,7 +340,7 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.sponsor ? 'Edit' : 'Add'} Sponsor</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <AppContext.Consumer>
               {({ displayError }) => (
@@ -355,7 +355,7 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
                     {this.props.types!.map((type) => <MenuItem value={type.toLowerCase()}>{getSponsorType(type)}</MenuItem>)}
                   </Select>
                   <TextArea name="description" placeholder="Add a description..." defaultValue={description} />
-                      <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Sponsor</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Sponsor</Button>
                 </Stack>
               )}
             </AppContext.Consumer>

@@ -288,12 +288,12 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
         <DialogTitle onClose={this.props.onClose}>Add Images</DialogTitle>
           <AppContext.Consumer>
             {({ displayError, displayWarning }) => (
-              <form ref={this.formRef}>
+              <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
                 <DialogContent sx={{ pt: 0 }}>
                   <MultiImageInput name="image" disabled={this.state.isLoading} onError={displayError} onWarning={displayWarning} />
                 </DialogContent>
                 <DialogActions>
-                      <Button variant="contained" sx={{ mr: 2, mb: 2 }} isLoading={this.state.isLoading} onClick={() => this.add(displayError)}>Upload</Button>
+                  <Button type="submit" variant="contained" sx={{ mr: 2, mb: 2 }} isLoading={this.state.isLoading} onClick={() => this.add(displayError)}>Upload</Button>
                 </DialogActions>
               </form>
             )}

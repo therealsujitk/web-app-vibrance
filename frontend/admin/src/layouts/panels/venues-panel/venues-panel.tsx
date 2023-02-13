@@ -355,7 +355,7 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
           {roomId || (venueId && !this.props.roomAction) ? 'Edit' : 'Add'} {this.props.roomAction ? 'Room' : 'Venue'}
         </DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="venue_id" value={venueId} type="hidden" />
             <input name="id" value={this.props.roomAction ? roomId : venueId} type="hidden" />
               <Stack spacing={1} mt={0.5}>
@@ -363,7 +363,7 @@ class AddEditDialog extends React.Component<VenueDialogProps, DialogState> {
                 <TextField placeholder="Title" name="title" defaultValue={this.props.roomAction ? room : venue} disabled={this.state.isLoading} />
                 <AppContext.Consumer>
                   {({ displayError }) => (
-                    <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                    <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save {this.props.roomAction ? 'Room' : 'Venue'}</Button>
                   )}
                 </AppContext.Consumer>
               </Stack>
@@ -442,13 +442,13 @@ class DeleteDialog extends React.Component<VenueDialogProps, DialogState> {
       <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
         <DialogTitle onClose={this.props.onClose}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={this.props.roomAction ? roomId : venueId} type="hidden" />
             <Stack spacing={2} mt={0.5}>
               <Typography>Are you sure you want to delete {this.props.roomAction && <><b>{room}</b> under </>}<b>{venue}</b>?</Typography>
               <AppContext.Consumer>
                 {({ displayError }) => (
-                  <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete {this.props.roomAction ? 'Room' : 'Venue'}</Button>
                 )}
               </AppContext.Consumer>
             </Stack>

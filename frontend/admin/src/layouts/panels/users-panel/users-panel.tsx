@@ -361,7 +361,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.user ? 'Edit' : 'Add'} User</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <Stack spacing={1} mt={0.5}>
               <TextField name="username" placeholder="Username" defaultValue={username} disabled={this.state.isLoading} />
@@ -398,7 +398,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
               />}
               <AppContext.Consumer>
                 {({ displayError }) => (
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save User</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save User</Button>
                 )}
               </AppContext.Consumer>
             </Stack>

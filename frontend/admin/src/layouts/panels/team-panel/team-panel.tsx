@@ -349,7 +349,7 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.member ? 'Edit' : 'Add'} Member</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <AppContext.Consumer>
               {({ displayError }) => (
@@ -360,7 +360,7 @@ class AddEditDialog extends React.Component<MemberDialogProps, MemberDialogState
                   <TextField name="role" placeholder="Role" defaultValue={role} disabled={this.state.isLoading} />
                   <TextField name="phone" placeholder="Mobile Number" defaultValue={phone} disabled={this.state.isLoading} />
                   <TextField name="email" placeholder="Email ID" type="email" defaultValue={email} disabled={this.state.isLoading} />
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Member</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Member</Button>
                 </Stack>
               )}
             </AppContext.Consumer>

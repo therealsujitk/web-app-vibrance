@@ -526,7 +526,7 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
       <Dialog onClose={this.props.onClose} open={this.props.opened || false} maxWidth="sm" fullWidth>
         <DialogTitle onClose={this.props.onClose}>{this.props.proShow ? 'Edit' : 'Add'} Pro Show</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
               <Stack spacing={1} sx={{ flexGrow: 1, width: '40%' }}>
@@ -611,7 +611,7 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
             <AppContext.Consumer>
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Pro Show</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Pro Show</Button>
                 </Stack>
               )}
             </AppContext.Consumer>

@@ -279,7 +279,7 @@ class EditProfileDialog extends React.Component<EditProfileDialogProps, EditProf
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>Edit Profile</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <Stack spacing={1} mt={0.5}>
               <TextField name="username" placeholder="Username" defaultValue={username} disabled={this.state.isLoading} />
               {this.state.isPasswordEditable && <>
@@ -296,7 +296,7 @@ class EditProfileDialog extends React.Component<EditProfileDialogProps, EditProf
               />
               <AppContext.Consumer>
                 {({ displayError }) => (
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Profile</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Profile</Button>
                 )}
               </AppContext.Consumer>
             </Stack>

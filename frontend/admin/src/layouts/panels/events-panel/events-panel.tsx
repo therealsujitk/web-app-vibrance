@@ -585,7 +585,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
       <Dialog onClose={this.props.onClose} open={this.props.opened || false} maxWidth="sm" fullWidth>
         <DialogTitle onClose={this.props.onClose}>{this.props.event ? 'Edit' : 'Add'} Event</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
               <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '50%' }}>
@@ -696,7 +696,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
             <AppContext.Consumer>
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Event</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Event</Button>
                 </Stack>
               )}
             </AppContext.Consumer>

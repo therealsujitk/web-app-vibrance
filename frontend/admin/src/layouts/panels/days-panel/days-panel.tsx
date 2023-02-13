@@ -291,14 +291,14 @@ class AddEditDialog extends React.Component<DayDialogProps, DayDialogState> {
       <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
         <DialogTitle onClose={this.props.onClose}>{this.props.day ? 'Edit' : 'Add'} Day</DialogTitle>
         <DialogContent>
-          <form ref={this.formRef}>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
             <input name="id" value={id} type="hidden" />
             <Stack spacing={1} mt={0.5}>
               <TextField placeholder="Title" name="title" defaultValue={title} disabled={this.state.isLoading} />
               <TextField placeholder="Date" type="date" name="date" defaultValue={date} disabled={this.state.isLoading} />
               <AppContext.Consumer>
                 {({ displayError }) => (
-                  <Button isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEditDay(displayError)}>Save Day</Button>
+                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEditDay(displayError)}>Save Day</Button>
                 )}
               </AppContext.Consumer>
             </Stack>
