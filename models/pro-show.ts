@@ -11,4 +11,5 @@ export interface ProShow {
   faculty_coordinator_mobile?: string,
   student_coordinator_name?: string,
   student_coordinator_mobile?: string,
+  event_id: number,
 }

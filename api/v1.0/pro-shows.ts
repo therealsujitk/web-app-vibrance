@@ -170,10 +170,15 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
     return missingRequiredParameter('end_time', res);
   }
 
+  if (!('event_id' in req.body)) {
+    return missingRequiredParameter('event_id', res);
+  }
+
   const dayId = validator.toInt(req.body.day_id);
   const roomId = validator.toInt(req.body.room_id);
   const startTime = req.body.start_time.trim();
   const endTime = req.body.end_time.trim();
+  const eventId = validator.toInt(req.body.event_id);
 
   if (isNaN(dayId)) {
     return invalidValueForParameter('day_id', res);
@@ -191,12 +196,17 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
     return invalidValueForParameter('end_time', res);
   }
 
+  if (isNaN(eventId)) {
+    return invalidValueForParameter('event_id', res);
+  }
+
   const proShow: ProShow = {
     day_id: dayId,
     room_id: roomId,
     start_time: getUTCFromString('2020-01-01 ' + startTime),
     end_time: getUTCFromString('2020-01-01 ' + endTime),
-    cost: 0
+    cost: 0,
+    event_id: eventId
   };
 
   if ('title' in req.body) {
@@ -394,6 +404,14 @@ proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENT
 
     if (!validator.isEmpty(proShow.student_coordinator_mobile!) && !validator.isMobilePhone(proShow.student_coordinator_mobile!)) {
       return invalidValueForParameter('student_coordinator_mobile', res);
+    }
+  }
+
+  if ('event_id' in req.body) {
+    proShow.event_id = validator.toInt(req.body.event_id);
+
+    if (isNaN(proShow.event_id)) {
+      return invalidValueForParameter('event_id', res);
     }
   }
 

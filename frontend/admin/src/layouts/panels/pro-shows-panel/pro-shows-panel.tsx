@@ -130,6 +130,11 @@ interface ProShow {
    * 
    */
   studentCoordinatorMobile?: string;
+
+  /**
+   * 
+   */
+  eventId: number;
 }
 
 export default class ProShowsPanel extends React.Component<{}, ProShowsPanelState> {
@@ -278,6 +283,7 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
           facultyCoordinatorMobile: proShows[i].faculty_coordinator_mobile,
           studentCoordinatorName: proShows[i].student_coordinator_name,
           studentCoordinatorMobile: proShows[i].student_coordinator_mobile,
+          eventId: proShows[i].event_id
         };
 
         this.state.proShows.set(proShow.id, proShow);
@@ -513,6 +519,7 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
     const facultyCoordinatorMobile = this.props.proShow?.facultyCoordinatorMobile ?? '';
     const studentCoordinatorName = this.props.proShow?.studentCoordinatorName ?? '';
     const studentCoordinatorMobile = this.props.proShow?.studentCoordinatorMobile ?? '';
+    const eventId = this.props.proShow?.eventId ?? '';
 
     if (!this.props.opened) {
       this.daySearchQuery = '';
@@ -606,6 +613,7 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
                 <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={facultyCoordinatorMobile} />
                 <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={studentCoordinatorName} />
                 <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={studentCoordinatorMobile} />
+                <TextField name="event_id" type="number" placeholder="Event ID" defaultValue={eventId} />
               </Stack>
             </Stack>
             <AppContext.Consumer>
@@ -737,6 +745,7 @@ class AddEditDialog extends React.Component<ProShowDialogProps, ProShowDialogSta
         facultyCoordinatorMobile: response.pro_show.faculty_coordinator_mobile,
         studentCoordinatorName: response.pro_show.student_coordinator_name,
         studentCoordinatorMobile: response.pro_show.student_coordinator_mobile,
+        eventId: response.pro_show.event_id
       });
       this.props.onClose();
     } catch (err: any) {

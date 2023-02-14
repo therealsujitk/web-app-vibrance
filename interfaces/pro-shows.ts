@@ -38,7 +38,8 @@ export default class ProShows {
       "`faculty_coordinator_name`, " +
       "`faculty_coordinator_mobile`, " +
       "`student_coordinator_name`, " +
-      "`student_coordinator_mobile` " +
+      "`student_coordinator_mobile`, " +
+      "`pro_shows`.`event_id` AS `event_id` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `pro_shows`.`title` LIKE ? " +
@@ -83,7 +84,8 @@ export default class ProShows {
       "`faculty_coordinator_name`, " +
       "`faculty_coordinator_mobile`, " +
       "`student_coordinator_name`, " +
-      "`student_coordinator_mobile` " +
+      "`student_coordinator_mobile`, " +
+      "`pro_shows`.`event_id` AS `event_id` " +
       "FROM (`pro_shows`, `days`, `rooms`, `venues`) " +
       "LEFT JOIN `images` ON `image_id` = `images`.`id` " +
       "WHERE `day_id` = `days`.`id` " +
@@ -101,7 +103,8 @@ export default class ProShows {
       image: ob.image,
       start_time: ob.start_time,
       end_time: ob.end_time,
-      cost: ob.cost
+      cost: ob.cost,
+      event_id: ob.event_id
     };
   }
 
@@ -110,7 +113,7 @@ export default class ProShows {
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`, `start_time`, `end_time`, `cost`, `faculty_coordinator_name`, `faculty_coordinator_mobile`, `student_coordinator_name`, `student_coordinator_mobile`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        query: "INSERT INTO `pro_shows` (`day_id`, `room_id`, `title`, `description`, `image_id`, `start_time`, `end_time`, `cost`, `faculty_coordinator_name`, `faculty_coordinator_mobile`, `student_coordinator_name`, `student_coordinator_mobile`, `event_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
@@ -123,7 +126,8 @@ export default class ProShows {
           proShow.faculty_coordinator_name,
           proShow.faculty_coordinator_mobile,
           proShow.student_coordinator_name,
-          proShow.student_coordinator_mobile
+          proShow.student_coordinator_mobile,
+          proShow.event_id
         ]
       },
       {
@@ -171,6 +175,7 @@ export default class ProShows {
     proShow.faculty_coordinator_mobile = proShow.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
     proShow.student_coordinator_name = proShow.student_coordinator_name ?? old.student_coordinator_name;
     proShow.student_coordinator_mobile = proShow.student_coordinator_mobile ?? old.student_coordinator_mobile;
+    proShow.event_id = proShow.event_id ?? old.event_id;
     const existing = await Images.get(proShow.image);
 
     if (isEqual<ProShow>(oldReduced, proShow as ProShow)) {
@@ -185,7 +190,7 @@ export default class ProShows {
     const queries = [
       ...!existing && proShow.image ? [Images.createInsertQuery(proShow.image)] : [],
       {
-        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `start_time` = ?, `end_time` = ?, `cost` = ?, `faculty_coordinator_name` = ?, `faculty_coordinator_mobile` = ?, `student_coordinator_name` = ?, `student_coordinator_mobile` = ? WHERE `id` = ?",
+        query: "UPDATE `pro_shows` SET `day_id` = ?, `room_id` = ?, `title` = ?, `description` = ?, `image_id` = ?, `start_time` = ?, `end_time` = ?, `cost` = ?, `faculty_coordinator_name` = ?, `faculty_coordinator_mobile` = ?, `student_coordinator_name` = ?, `student_coordinator_mobile` = ?, `event_id` = ? WHERE `id` = ?",
         options: (results: any[]) => [
           proShow.day_id,
           proShow.room_id,
@@ -199,6 +204,7 @@ export default class ProShows {
           proShow.faculty_coordinator_mobile,
           proShow.student_coordinator_name,
           proShow.student_coordinator_mobile,
+          proShow.event_id,
           id
         ]
       },

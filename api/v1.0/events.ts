@@ -226,6 +226,10 @@ eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
     return missingRequiredParameter('end_time', res);
   }
 
+  if (!('event_id' in req.body)) {
+    return missingRequiredParameter('event_id', res);
+  }
+
   const dayId = validator.toInt(req.body.day_id);
   const categoryId = validator.toInt(req.body.category_id);
   const roomId = validator.toInt(req.body.room_id);
@@ -234,6 +238,7 @@ eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
   const teamSizeMax = validator.toInt(req.body.team_size_max.trim());
   const startTime = req.body.start_time.trim();
   const endTime = req.body.end_time.trim();
+  const eventId = validator.toInt(req.body.event_id);
 
   if (isNaN(dayId)) {
     return invalidValueForParameter('day_id', res);
@@ -266,6 +271,10 @@ eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
   if (!timeRegex.test(endTime)) {
     return invalidValueForParameter('end_time', res);
   }
+
+  if (isNaN(eventId)) {
+    return invalidValueForParameter('event_id', res);
+  }
   
   const event: Event = {
     day_id: dayId,
@@ -276,7 +285,8 @@ eventsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
     team_size_max: teamSizeMax,
     start_time: getUTCFromString('2020-01-01 ' + startTime),
     end_time: getUTCFromString('2020-01-01 ' + endTime),
-    cost: 0
+    cost: 0,
+    event_id: eventId
   }
 
   if ('description' in req.body) {
@@ -510,6 +520,14 @@ eventsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS)
 
     if (!validator.isEmpty(event.student_coordinator_mobile!) && !validator.isMobilePhone(event.student_coordinator_mobile!)) {
       return invalidValueForParameter('student_coordinator_mobile', res);
+    }
+  }
+
+  if ('event_id' in req.body) {
+    event.event_id = validator.toInt(req.body.event_id);
+
+    if (isNaN(event.event_id)) {
+      return invalidValueForParameter('event_id', res);
     }
   }
 

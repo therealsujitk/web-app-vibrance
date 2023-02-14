@@ -151,6 +151,11 @@ interface Event {
    * 
    */
   studentCoordinatorMobile?: string;
+
+  /**
+   * 
+   */
+  eventId: number;
 }
 
 export default class EventsPanel extends React.Component<{}, EventsPanelState> {
@@ -303,6 +308,7 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
           facultyCoordinatorMobile: events[i].faculty_coordinator_mobile,
           studentCoordinatorName: events[i].student_coordinator_name,
           studentCoordinatorMobile: events[i].student_coordinator_mobile,
+          eventId: events[i].event_id
         };
 
         this.state.events.set(event.id, event);
@@ -569,6 +575,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
     const facultyCoordinatorMobile = this.props.event?.facultyCoordinatorMobile ?? '';
     const studentCoordinatorName = this.props.event?.studentCoordinatorName ?? '';
     const studentCoordinatorMobile = this.props.event?.studentCoordinatorMobile ?? '';
+    const eventId = this.props.event?.eventId ?? '';
 
     if (!this.props.opened) {
       this.daySearchQuery = '';
@@ -691,6 +698,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
                 <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={facultyCoordinatorMobile} />
                 <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={studentCoordinatorName} />
                 <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={studentCoordinatorMobile} />
+                <TextField name="event_id" type="number" placeholder="Event ID" defaultValue={eventId} />
               </Stack>
             </Stack>
             <AppContext.Consumer>
@@ -848,6 +856,7 @@ class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> 
         facultyCoordinatorMobile: response.event.faculty_coordinator_mobile,
         studentCoordinatorName: response.event.student_coordinator_name,
         studentCoordinatorMobile: response.event.student_coordinator_mobile,
+        eventId: response.event.event_id
       });
       this.props.onClose();
     } catch (err: any) {
