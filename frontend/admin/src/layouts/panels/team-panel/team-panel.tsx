@@ -445,7 +445,7 @@ class DeleteDialog extends React.Component<MemberDialogProps, MemberDialogState>
       const formData = new FormData();
       formData.append("id", this.props.member!.id.toString());
 
-      await new Network(this.apiKey).doPost(`${this.apiBaseUrl}/delete`, { body: formData });
+      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
       
       this.props.onUpdate(this.props.member!);
       this.props.onClose();

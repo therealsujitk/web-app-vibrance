@@ -112,7 +112,7 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), check
   const name = validator.escape(req.body.name.trim());
 
   if (!('team_name' in req.body)) {
-    return missingRequiredParameter('team', res);
+    return missingRequiredParameter('team_name', res);
   }
 
   const teamName = validator.escape(req.body.team_name.trim());
@@ -141,10 +141,6 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), check
     role: role
   };
 
-  if ('team' in req.body) {
-    team.team_name = validator.escape(req.body.description.trim());
-  }
-
   if (req.files && 'image' in req.files) {
     try {
       team.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
@@ -160,7 +156,7 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), check
   if ('phone' in req.body) {
     team.phone = req.body.phone.trim();
 
-    if (!validator.isMobilePhone(team.phone as string)) {
+    if (!validator.isEmpty(team.phone!) && !validator.isMobilePhone(team.phone!)) {
       return invalidValueForParameter('phone', res);
     }
   }
@@ -168,7 +164,7 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), check
   if ('email' in req.body) {
     team.email = req.body.email.trim();
 
-    if (!validator.isEmail(team.email as string)) {
+    if (!validator.isEmpty(team.email!) && !validator.isEmail(team.email!)) {
       return invalidValueForParameter('email', res);
     }
   }
@@ -233,8 +229,8 @@ teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), ch
     }
   }
 
-  if ('team' in req.body) {
-    team.team_name = validator.escape(req.body.team.trim());
+  if ('team_name' in req.body) {
+    team.team_name = validator.escape(req.body.team_name.trim());
   }
 
   if ('role' in req.body) {
@@ -256,7 +252,7 @@ teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), ch
   if ('phone' in req.body) {
     team.phone = req.body.phone.trim();
 
-    if (!validator.isMobilePhone(team.phone as string)) {
+    if (!validator.isEmpty(team.phone!) && !validator.isMobilePhone(team.phone!)) {
       return invalidValueForParameter('phone', res);
     }
   }
@@ -264,7 +260,7 @@ teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), ch
   if ('email' in req.body) {
     team.email = req.body.email.trim();
 
-    if (!validator.isEmail(team.email as string)) {
+    if (!validator.isEmpty(team.email!) && !validator.isEmail(team.email!)) {
       return invalidValueForParameter('email', res);
     }
   }
