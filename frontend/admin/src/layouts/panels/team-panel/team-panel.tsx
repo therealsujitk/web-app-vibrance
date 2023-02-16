@@ -3,11 +3,11 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button as MaterialButton, Card, CardActions, CardContent, Chip, CircularProgress, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
 import validator from "validator";
-import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
+import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
@@ -145,8 +145,12 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
             src={props.image ?? undefined}
             alt={props.name}
           />
-          <Typography variant="h5">{props.name}</Typography>
-          <Typography variant="body1">{props.role}</Typography>
+          <Typography variant="h5" textAlign="center">{props.name}</Typography>
+          <Typography variant="body1" textAlign="center">{props.role}</Typography>
+          <Chip 
+            label={props.teamName} 
+            sx={{ mt: 1 }}
+          />
           <Box sx={{
             marginHorizontal: 2,
             width: '100%',
