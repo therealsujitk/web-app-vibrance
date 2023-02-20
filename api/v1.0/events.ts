@@ -5,7 +5,7 @@ import { Events, Users } from '../../interfaces';
 import { Event } from '../../models/event';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
+import { dateTimeRegex, getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
 import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
 import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
 
@@ -44,7 +44,7 @@ const uploadMiddleware = getUploadMiddleware();
  *  }
  */
 eventsRouter.get('', async (req, res) => {
-  var page = 1, query = '', dayIds = [], categoryIds = [], venueIds = [];
+  var page = 1, query = '', dayIds = [], categoryIds = [], venueIds = [], before, after;
 
   const cachedEvents = cache.get(req.originalUrl);
 
@@ -126,6 +126,22 @@ eventsRouter.get('', async (req, res) => {
     }
   }
 
+  if ('before' in req.query) {
+    before = (req.query.before as string).trim();
+
+    if (!dateTimeRegex.test(before)) {
+      return invalidValueForParameter('before', res);
+    }
+  }
+
+  if ('after' in req.query) {
+    after = (req.query.after as string).trim();
+
+    if (!dateTimeRegex.test(after)) {
+      return invalidValueForParameter('after', res);
+    }
+  }
+
   if (cachedEvents && !(await Users.checkValidApiKey(req))) {
     return res.status(200).json({
       events: cachedEvents,
@@ -134,7 +150,7 @@ eventsRouter.get('', async (req, res) => {
   }
 
   try {
-    const events = await Events.getAll(page, query, dayIds, categoryIds, venueIds);
+    const events = await Events.getAll(page, query, dayIds, categoryIds, venueIds, before, after);
 
     res.status(200).json({
       events: events,
@@ -142,7 +158,7 @@ eventsRouter.get('', async (req, res) => {
     });
 
     cache.set(req.originalUrl, events);
-  } catch (e) {
+  } catch (_) {
     if (!res.headersSent) {
       internalServerError(res);
     }

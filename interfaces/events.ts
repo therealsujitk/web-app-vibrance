@@ -14,13 +14,29 @@ export default class Events {
     this.userId = userId;
   }
 
-  static async getAll(page = 1, searchQuery = '', dayIds: number[] = [], categoryIds: number[] = [], venueIds: number[] = []) {
+  static async getAll(page = 1, searchQuery = '', dayIds: number[] = [], categoryIds: number[] = [], venueIds: number[] = [], before?: string, after?: string) {
     const offset = (page - 1) * LIMIT;
 
     searchQuery = `%${searchQuery}%`;
     dayIds.push(0);
     categoryIds.push(0);
     venueIds.push(0);
+
+    if (dayIds.length > 1) {
+      before = after = undefined;
+    }
+
+    var before_date, before_time, after_date, after_time;
+
+    if (before) {
+      before_date = before.substring(0, 10);
+      before_time = before.substring(11);
+    }
+
+    if (after) {
+      after_date = after.substring(0, 10);
+      after_time = after.substring(11);
+    }
 
     return await query("SELECT " + 
       "`events`.`id` AS `id`, " + 
@@ -58,9 +74,27 @@ export default class Events {
       "`venue_id` = `venues`.`id` AND " +
       "(1 = ? OR `day_id` IN (?)) AND " +
       "(1 = ? OR `category_id` IN (?)) AND " +
-      "(1 = ? OR `venue_id` IN (?)) " +
+      "(1 = ? OR `venue_id` IN (?)) AND " +
+      "(1 = ? OR (`days`.`date` >= ? AND `events`.`start_time` >= ?)) AND " +
+      "(1 = ? OR (`days`.`date` <= ? AND `events`.`end_time` <= ?)) " +
       "ORDER BY `days`.`date`, `events`.`start_time`, `events`.`title` " +
-      "LIMIT ? OFFSET ?", [searchQuery, dayIds.length, dayIds, categoryIds.length, categoryIds, venueIds.length, venueIds, LIMIT, offset]);
+      "LIMIT ? OFFSET ?", [
+        searchQuery, 
+        dayIds.length, 
+        dayIds, 
+        categoryIds.length, 
+        categoryIds, 
+        venueIds.length, 
+        venueIds, 
+        after ? 0 : 1,
+        after_date,
+        after_time,
+        before ? 0 : 1,
+        before_date,
+        before_time,
+        LIMIT, 
+        offset
+      ]);
   }
 
   async #get(id: number) : Promise<any> {

@@ -46,4 +46,4 @@ const timeRegexSource = '([0-1][0-9]|2[0-3]):[0-5][0-9]';
 
 export const dateRegex = new RegExp('^' + dateRegexSource + '$');
 export const timeRegex = new RegExp('^' + timeRegexSource + '$');
-export const dateTimeRegex = new RegExp('^' + dateRegexSource + ' ' + timeRegexSource + '$');
+export const dateTimeRegex = new RegExp('^' + dateRegexSource + 'T' + timeRegexSource + '$');
