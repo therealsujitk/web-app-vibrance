@@ -28,7 +28,7 @@ export default class Team {
       "FROM `team` " + 
       "LEFT JOIN `images` " + 
       "ON `image_id` = `images`.`id` " +
-      "ORDER BY `team_name` " + 
+      "ORDER BY `team_name`, `team`.`id` " + 
       "LIMIT ? OFFSET ?", [LIMIT, offset]);
   }
 
