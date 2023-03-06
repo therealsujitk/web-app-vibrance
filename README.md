@@ -4,6 +4,8 @@
 
 A web application for VIT Chennai's cultural festival with a built-in Rest API for easy access of data on other platforms and an admin panel to make life easier for the event organisers.
 
+![Preview](./preview.gif)
+
 ## Links
 
 - [Admin Panel](https://vitvibrance.onrender.com/admin)
