@@ -79,6 +79,14 @@ function getSponsorType(sponsorKey: string) {
   switch (sponsorKey) {
     case 'TITLE':
       return 'Title Sponsor';
+    case 'PLATINUM':
+      return 'Platinum Sponsor';
+    case 'GOLD':
+      return 'Gold Sponsor';
+    case 'SILVER':
+      return 'Silver Sponsor';
+    case 'BRONZE':
+      return 'Bronze Sponsor';
     case 'FOOD_PARTNER':
       return 'Food Partner';
     case 'MEDIA_PARTNER':

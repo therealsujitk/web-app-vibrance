@@ -5745,6 +5745,10 @@
             "type": "string",
             "enum": [
               "TITLE",
+              "PLATINUM",
+              "GOLD",
+              "SILVER",
+              "BRONZE",
               "FOOD_PARTNER",
               "MEDIA_PARTNER",
               "BANKING_PARTNER",
