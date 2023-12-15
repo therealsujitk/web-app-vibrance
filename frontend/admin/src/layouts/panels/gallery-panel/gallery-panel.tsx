@@ -133,7 +133,7 @@ export default class GalleryPanel extends React.Component<{}, GalleryPanelState>
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.gallery.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.gallery).map(([k, image]) => 
+              {Array.from(this.state.gallery).map(([_, image]) => 
                 <ImageCard key={image.id} {...image} />)}
               </Masonry>)
             : (<EmptyState>No gallery images have been added yet.</EmptyState>)

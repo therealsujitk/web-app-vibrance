@@ -201,7 +201,7 @@ export default class TeamPanel extends React.Component<{}, TeamPanelState> {
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.team.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.team).map(([k, member]) => 
+              {Array.from(this.state.team).map(([_, member]) => 
                 <MemberCard key={member.id} {...member} />)}
               </Masonry>)
             : (<EmptyState>No team members have been added yet.</EmptyState>)

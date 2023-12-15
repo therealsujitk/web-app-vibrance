@@ -7,7 +7,7 @@ import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedi
 import Cookies from 'js-cookie';
 import React from "react";
 import validator from "validator";
-import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
+import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextField } from '../../../components';
 import { AppContext, AppContextInterface } from '../../../contexts/app';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
@@ -162,7 +162,7 @@ export default class MerchandisePanel extends React.Component<{}, MerchandisePan
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.merchandise.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.merchandise).map(([k, merchandise]) => 
+              {Array.from(this.state.merchandise).map(([_, merchandise]) => 
                 <MerchandiseCard key={merchandise.id} {...merchandise} />)}
               </Masonry>)
             : (<EmptyState>No merchandise have been added yet.</EmptyState>)

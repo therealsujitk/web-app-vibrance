@@ -1,5 +1,5 @@
 import { ExpandLess, ExpandMore, NotInterested } from "@mui/icons-material";
-import { Avatar, Box, CircularProgress, Collapse, List, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from "@mui/material";
+import { Avatar, Box, CircularProgress, Collapse, List, ListItemAvatar, ListItemButton, ListItemText, Paper } from "@mui/material";
 import { green, orange, red } from "@mui/material/colors";
 import { format } from "date-fns";
 import Cookies from "js-cookie";
@@ -85,7 +85,7 @@ export default class AuditLogPanel extends React.Component<{}, AuditLogPanelStat
         <Paper sx={{display: 'flex', flexDirection: 'column', m: 2}}>
           { this.state.isLoading || this.state.auditLog.size != 0 
             ? <List sx={{width: '100%'}}>
-                {Array.from(this.state.auditLog).map(([k, log]) => <LogItem key={log.key} log={log} />)}
+                {Array.from(this.state.auditLog).map(([_, log]) => <LogItem key={log.key} log={log} />)}
               </List>
             : <EmptyState>User actions will show up here.</EmptyState>
           }

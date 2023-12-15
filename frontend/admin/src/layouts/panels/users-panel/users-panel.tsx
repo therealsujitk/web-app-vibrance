@@ -369,7 +369,7 @@ class AddEditDialog extends React.Component<UserDialogProps, UserDialogState> {
                 <TextField name="password" placeholder="Password" type="password" disabled={this.state.isLoading} />
               }
               <Autocomplete
-                onChange={(e, v) => this.selectedPermsions = v}
+                onChange={(_, v) => this.selectedPermsions = v}
                 options={this.props.permissions!}
                 defaultValue={this.props.user?.permissions}
                 renderOption={(props, option, { selected }) => (

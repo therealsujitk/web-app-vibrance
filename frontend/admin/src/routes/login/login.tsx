@@ -36,7 +36,7 @@ export default class Login extends React.Component<{}, LoginState> {
   }
 
   render() {
-    require('./main.css');
+    import('./main.css');
 
     return (
       <Dialog open={true}>

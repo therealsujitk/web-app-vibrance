@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, Container, DialogContent, Grid, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
 import React from "react";
 import validator from "validator";
@@ -162,7 +162,7 @@ export default class CategoriesPanel extends React.Component<{}, CategoriesPanel
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.categories.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.categories).map(([k, category]) => 
+              {Array.from(this.state.categories).map(([_, category]) => 
                 <CategoryCard key={category.id} {...category} />)}
               </Masonry>)
             : (<EmptyState>No categories have been added yet.</EmptyState>)

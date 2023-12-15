@@ -82,7 +82,7 @@ export default class App extends React.Component<{}, AppState> {
 
         this.setState({ alerts: this.state.alerts });
       },
-      displayError: (message: string|Error, action?: { name: string, onClick: () => void }) => {
+      displayError: (message: string|string[]|Error, action?: { name: string, onClick: () => void }) => {
         if (message.toString().toLowerCase().includes('api key has expired')) {
           action = {
             name: 'Sign In',
@@ -90,7 +90,11 @@ export default class App extends React.Component<{}, AppState> {
           };
         }
 
-        appContext.displayAlert('error', message, action);
+        if (Array.isArray(message)) {
+          message.forEach(m => appContext.displayAlert('error', m, action));
+        } else {
+          appContext.displayAlert('error', message, action);
+        }
       },
       displayWarning: (message: string) => {
         appContext.displayAlert('warning', message);

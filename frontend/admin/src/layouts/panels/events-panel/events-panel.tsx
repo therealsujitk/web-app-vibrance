@@ -224,7 +224,7 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.events.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-              {Array.from(this.state.events).map(([k, event]) => 
+              {Array.from(this.state.events).map(([_, event]) => 
                 <EventCard 
                   key={event.id} 
                   onEdit={this.openEditDialog} 

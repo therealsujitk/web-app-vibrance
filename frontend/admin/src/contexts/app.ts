@@ -9,7 +9,7 @@ export interface AppContextInterface {
   setSession: (username: string, permissions: string[]) => void,
   destroySession: () => void,
   displayAlert: (type: AlertColor, message: Error|string, action?: { name: string, onClick: () => void }) => void,
-  displayError: (message: Error|string, action?: { name: string, onClick: () => void }) => void,
+  displayError: (message: Error|string|string[], action?: { name: string, onClick: () => void }) => void,
   displayWarning: (message: string) => void,
   displaySuccess: (message: string) => void
 }

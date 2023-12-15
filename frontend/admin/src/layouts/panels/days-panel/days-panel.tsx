@@ -147,7 +147,7 @@ export default class DaysPanel extends React.Component<{}, DaysPanelState> {
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.days.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-                {Array.from(this.state.days).map(([k, day]) => <DayCard {...day} />)}
+                {Array.from(this.state.days).map(([_, day]) => <DayCard {...day} />)}
               </Masonry>) 
             : (<EmptyState>No days have been added yet.</EmptyState>)
           }

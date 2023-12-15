@@ -203,7 +203,7 @@ export default class ProShowsPanel extends React.Component<{}, ProShowsPanelStat
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.proShows.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-              {Array.from(this.state.proShows).map(([k, proShow]) => 
+              {Array.from(this.state.proShows).map(([_, proShow]) => 
                 <ProShowCard 
                   key={proShow.id} 
                   onEdit={this.openEditDialog} 

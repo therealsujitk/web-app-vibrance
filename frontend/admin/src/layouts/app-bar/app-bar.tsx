@@ -1,7 +1,7 @@
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons/faRightFromBracket";
 import { faUserPen } from "@fortawesome/free-solid-svg-icons/faUserPen";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AccountCircleOutlined, CheckBox } from "@mui/icons-material";
+import { AccountCircleOutlined } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { AppBar as MaterialAppBar, Button as MaterialButton, Checkbox, DialogContent, FormControlLabel, IconButton, Menu, MenuItem, Stack, Toolbar, Typography } from "@mui/material";
 import Cookies from "js-cookie";

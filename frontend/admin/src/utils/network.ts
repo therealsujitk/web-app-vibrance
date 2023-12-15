@@ -26,7 +26,7 @@ export default class Network {
           resolve(JSON.parse(this.response));
         } else {
           try {
-            reject(JSON.parse(this.response).error);
+            reject(JSON.parse(this.response).errors.map((o: any) => o.message));
           } catch (_) {
             reject("Server failed to respond");
           }
@@ -97,7 +97,7 @@ export default class Network {
       .then(async (res) => {
         const response = await res.json();
         if (res.status != 200) {
-          return reject(response.error);
+          return reject(response.errors.map((o: any) => o.message));
         }
   
         resolve(response);

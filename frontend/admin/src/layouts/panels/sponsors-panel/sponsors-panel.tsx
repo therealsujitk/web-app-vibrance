@@ -1,4 +1,3 @@
-import { SwitchAccessShortcutOutlined } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -194,7 +193,7 @@ export default class SponsorsPanel extends React.Component<{}, SponsorsPanelStat
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.sponsors.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.sponsors).map(([k, sponsor]) => 
+              {Array.from(this.state.sponsors).map(([_, sponsor]) => 
                 <SponsorCard key={sponsor.id} {...sponsor} />)}
               </Masonry>)
             : (<EmptyState>No sponsors have been added yet.</EmptyState>)

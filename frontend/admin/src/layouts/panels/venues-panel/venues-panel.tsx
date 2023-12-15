@@ -174,7 +174,7 @@ export default class VenuesPanel extends React.Component<{}, VenuesPanelState> {
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.venues.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
-              {Array.from(this.state.venues).map(([k, venue]) => 
+              {Array.from(this.state.venues).map(([_, venue]) => 
                 <VenueCard key={venue.id} {...venue} />)}
               </Masonry>)
               : (<EmptyState>No venues have been added yet.</EmptyState>)
