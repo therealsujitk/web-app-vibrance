@@ -7,3 +7,4 @@
 # misc
 /.env
 /public
+.DS_Store

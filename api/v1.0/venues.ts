@@ -1,13 +1,14 @@
 import express from 'express';
-import validator from 'validator';
 import { Venues, Users, Rooms } from '../../interfaces';
 import { Room } from '../../models/room';
 import { Permission } from '../../models/user';
 import { Venue } from '../../models/venue';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly } from '../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors } from '../utils/helpers';
+import { query } from 'express-validator';
+import { body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 
 const venuesRouter = express.Router();
 
@@ -39,45 +40,30 @@ const venuesRouter = express.Router();
  *      ]
  *  }
  */
-venuesRouter.get('', async (req, res) => {
-  var page = 1, query = '';
+venuesRouter.get(
+  '',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  query('query').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
+    const query = req.query.query as string|undefined;
 
-  const cachedVenue = cache.get(req.originalUrl);
+    try {
+      const venues = await getCacheOrFetch(req, Venues.getAll, [page, query]);
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        venues: venues,
+        next_page: page + 1
+      });
+    } catch (e) {console.log(e)
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('query' in req.query) {
-    query = validator.escape((req.query.query as string).trim());
-  }
-
-  if (cachedVenue && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      venues: cachedVenue,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const venues = await Venues.getAll(page, query);
-
-    res.status(200).json({
-      venues: venues,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, venues);
-  } catch (e) {console.log(e)
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/venues/add
@@ -93,27 +79,26 @@ venuesRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+venuesRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_non_empty_string('title'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const title = req.body.title;
 
-  if (!('title' in req.body)) {
-    return missingRequiredParameter('title', res);
-  }
-
-  const title = validator.escape(req.body.title.trim());
-
-  if (validator.isEmpty(title)) {
-    return invalidValueForParameter('title', res);
-  }
-
-  try {
-    res.status(200).json({
-      venue: await new Venues(user.id).add({title: title})
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+    try {
+      res.status(200).json({
+        venue: await new Venues(user.id).add({title: title})
+      });
+    } catch (_) {
+      internalServerError(res);
+    }
+  },
+);
 
 /**
  * [POST] /api/v1.0/venues/edit
@@ -130,27 +115,20 @@ venuesRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), c
  *      }
  *  }
  */
-venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
+venuesRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  body_non_empty_string('title').optional(),
+  handleValidationErrors,
+  async (req, res) => {
   const user = req.user!;
-  const venue: OrNull<Venue> = {};
-
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  if ('title' in req.body) {
-    venue.title = validator.escape(req.body.title.trim());
-
-    if (validator.isEmpty(venue.title)) {
-      return invalidValueForParameter('title', res);
-    }
-  }
+  const id = Number(req.body.id);
+  const venue: OrNull<Venue> = {
+    title: req.body.title,
+  };
 
   try {
     res.status(200).json({
@@ -174,30 +152,29 @@ venuesRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS)
  * @response JSON
  *  {}
  */
-venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+venuesRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Venues(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Venues(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 /**
  * [GET] /api/v1.0/venues/rooms
@@ -220,51 +197,30 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
  *      ]
  *  }
  */
- venuesRouter.get('/rooms', async (req, res) => {
-  var page = 1;
+ venuesRouter.get(
+  '/rooms',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  query_positive_integer('venue_id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
+    const venueId = Number(req.query.venue_id);
 
-  const cachedRooms = cache.get(req.originalUrl);
-  
-  if (!('venue_id' in req.body)) {
-    return missingRequiredParameter('venue_id', res);
-  }
+    try {
+      const rooms = await getCacheOrFetch(req, Rooms.getAll, [venueId, page]);
 
-  const venueId = validator.toInt(req.body.venue_id);
-
-  if (isNaN(venueId)) {
-    return invalidValueForParameter('venue_id', res);
-  }
-
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        rooms: rooms,
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if (cachedRooms && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      rooms: cachedRooms,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const rooms = await Rooms.getAll(venueId, page);
-
-    res.status(200).json({
-      rooms: rooms,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, rooms);
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/venues/rooms/add
@@ -282,45 +238,34 @@ venuesRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVEN
  *      }
  *  }
  */
-venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
-
-  if (!('venue_id' in req.body)) {
-    return missingRequiredParameter('venue_id', res);
-  }
-
-  if (!('title' in req.body)) {
-    return missingRequiredParameter('title', res);
-  }
-
-  const venueId = validator.toInt(req.body.venue_id);
-  const title = validator.escape(req.body.title.trim());
-
-  if (isNaN(venueId)) {
-    return invalidValueForParameter('venue_id', res);
-  }
-
-  if (validator.isEmpty(title)) {
-    return invalidValueForParameter('title', res);
-  }
-
-  const room: Room = {
-    venue_id: venueId,
-    title: title
-  }
-
-  try {
-    res.status(200).json({
-      room: await new Rooms(user.id).add(room)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+venuesRouter.put(
+  '/rooms/add',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('venue_id'),
+  body_non_empty_string('title'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const room: Room = {
+      venue_id: Number(req.body.venue_id),
+      title: req.body.title,
     }
-  }
-});
+
+    try {
+      res.status(200).json({
+        room: await new Rooms(user.id).add(room)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
+    }
+  },
+);
 
 /**
  * [POST] /api/v1.0/venues/rooms/edit
@@ -339,48 +284,36 @@ venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVEN
  *      }
  *  }
  */
- venuesRouter.patch('/rooms/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
-  const room: OrNull<Room> = {};
+ venuesRouter.patch(
+  '/rooms/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  body_positive_integer('venue_id').optional(),
+  body_non_empty_string('title').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
+    const room: OrNull<Room> = {
+      venue_id: req.body.venue_id ? Number(req.body.venue_id) : undefined,
+      title: req.body.title,
+    };
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  if ('venue_id' in req.body) {
-    room.venue_id = validator.toInt(req.body.venue_id);
-
-    if (isNaN(room.venue_id)) {
-      return invalidValueForParameter('venue_id', res);
+    try {
+      res.status(200).json({
+        room: await new Rooms(user.id).edit(id, room)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('title' in req.body) {
-    room.title = validator.escape(req.body.title.trim());
-
-    if (validator.isEmpty(room.title)) {
-      return invalidValueForParameter('title', res);
-    }
-  }
-
-  try {
-    res.status(200).json({
-      room: await new Rooms(user.id).edit(id, room)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/venues/rooms/delete
@@ -391,29 +324,28 @@ venuesRouter.put('/rooms/add', Users.checkAuth, checkPermissions(Permission.EVEN
  * @response JSON
  *  {}
  */
-venuesRouter.delete('/rooms/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+venuesRouter.delete(
+  '/rooms/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Rooms(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Rooms(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default venuesRouter;

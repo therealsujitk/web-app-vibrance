@@ -52,32 +52,37 @@ settingsRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => 
  *      }
  *  }
  */
-settingsRouter.patch('/edit', Users.checkAuth, checkPermissions(), async (req, res) => {
-  const user = req.user!;
-  const settings: Setting[] = [];
+settingsRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(),
+  async (req, res) => {
+    const user = req.user!;
+    const settings: Setting[] = [];
 
-  for (var key in req.body) {
-    const value = req.body[key];
-    key = key.toUpperCase();
+    for (var key in req.body) {
+      const value = req.body[key];
+      key = key.toUpperCase();
 
-    if (key in SettingKey) {
-      settings.push({
-        key: key.toLowerCase() as SettingKey,
-        value: typeof value === 'string' ? validator.escape(value.trim()) : value
-      });
+      if (key in SettingKey) {
+        settings.push({
+          key: key.toLowerCase() as SettingKey,
+          value: typeof value === 'string' ? validator.escape(value.trim()) : value
+        });
+      }
     }
-  }
 
-  try {
-    const settingsArray = await new Settings(user.id).update(settings);
-    const settingsObject = Object.fromEntries(settingsArray!.map((s: { key: string, value: string }) => [s.key, s.value]));
-    res.status(200).json({
-      settings: settingsObject
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+    try {
+      const settingsArray = await new Settings(user.id).update(settings);
+      const settingsObject = Object.fromEntries(settingsArray!.map((s: { key: string, value: string }) => [s.key, s.value]));
+      res.status(200).json({
+        settings: settingsObject
+      });
+    } catch (_) {
+      internalServerError(res);
+    }
+  },
+);
 
 settingsRouter.post('/clear-cache', Users.checkAuth, async (req, res) => {
   try {

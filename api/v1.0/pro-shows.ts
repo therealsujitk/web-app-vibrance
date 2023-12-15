@@ -1,13 +1,14 @@
 import express from 'express';
 import { UploadedFile } from 'express-fileupload';
-import validator from 'validator';
 import { ProShows, Users } from '../../interfaces';
 import { ProShow } from '../../models/pro-show';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { getUTCFromString, OrNull, timeRegex } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { getUTCFromString, OrNull } from '../../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { body, query } from 'express-validator';
+import { body_amount, body_mobile_number, body_non_empty_string, body_positive_integer, body_time, query_positive_integer, query_positive_integer_array } from '../utils/validators';
 
 const proShowsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -18,6 +19,7 @@ const uploadMiddleware = getUploadMiddleware();
  * @param page number
  * @param day_id number|number[]
  * @param venue_id number|number[]
+ * @param query string
  * 
  * @response JSON
  *  {
@@ -36,89 +38,34 @@ const uploadMiddleware = getUploadMiddleware();
  *      ]
  *  }
  */
-proShowsRouter.get('', async (req, res) => {
-  var page = 1, query = '', dayIds = [], venueIds = [];
+proShowsRouter.get(
+  '',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  query_positive_integer_array('day_id').optional(),
+  query_positive_integer_array('venue_id').optional(),
+  query('query').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
+    const query = req.query.query as string|undefined;
+    const dayIds = req.query.day_id as unknown as number[];
+    const venueIds = req.query.venue_id as unknown as number[];
 
-  const cachedProShows = cache.get(req.originalUrl);
+    try {
+      const proShows = await getCacheOrFetch(req, ProShows.getAll, [page, query, dayIds, venueIds]);
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
-    }
-  }
-
-  if ('query' in req.query) {
-    query = validator.escape((req.query.query as string).trim());
-  }
-
-  if ('day_id' in req.query) {
-    if (Array.isArray(req.query.day_id)) {
-      const day_ids = req.query.day_id;
-
-      for (var i = 0; i < day_ids.length; ++i) {
-        const dayId = validator.toInt(day_ids[i] as string);
-
-        if (isNaN(dayId)) {
-          return invalidValueForParameter('day_id', res);
-        }
-
-        dayIds.push(dayId);
-      }
-    } else {
-      dayIds.push(validator.toInt(req.query.day_id as string));
-
-      if (isNaN(dayIds[0])) {
-        return invalidValueForParameter('day_id', res);
+      res.status(200).json({
+        pro_shows: proShows,
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
       }
     }
-  }
-
-  if ('venue_id' in req.query) {
-    if (Array.isArray(req.query.venue_id)) {
-      const venue_ids = req.query.venue_id;
-
-      for (var i = 0; i < venue_ids.length; ++i) {
-        const venueId = validator.toInt(venue_ids[i] as string);
-
-        if (isNaN(venueId)) {
-          return invalidValueForParameter('venue_id', res);
-        }
-
-        venueIds.push(venueId);
-      }
-    } else {
-      venueIds.push(validator.toInt(req.query.venue_id as string));
-
-      if (isNaN(venueIds[0])) {
-        return invalidValueForParameter('venue_id', res);
-      }
-    }
-  }
-
-  if (cachedProShows && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      pro_shows: cachedProShows,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const proShows = await ProShows.getAll(page, query, dayIds, venueIds);
-
-    res.status(200).json({
-      pro_shows: proShows,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, proShows);
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/pro-shows/add
@@ -126,7 +73,8 @@ proShowsRouter.get('', async (req, res) => {
  * @header X-Api-Key <API-KEY> (required)
  * @param day_id number (required)
  * @param room_id number (required)
- * @param description string (required)
+ * @param title string
+ * @param description string
  * @param start_time HH:MM (required)
  * @param end_time HH:MM (required)
  * @param cost number
@@ -146,133 +94,72 @@ proShowsRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
+proShowsRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  uploadMiddleware,
+  body_positive_integer('day_id'),
+  body_positive_integer('room_id'),
+  body_non_empty_string('title'),
+  body_non_empty_string('description').optional(),
+  body_time('start_time'),
+  body_time('end_time'),
+  body_amount('cost'),
+  body('event_id').isInt().optional(),
+  body_non_empty_string('faculty_coordinator_name').optional(),
+  body_mobile_number('faculty_coordinator_mobile').optional(),
+  body_non_empty_string('student_coordinator_name').optional(),
+  body_mobile_number('student_coordinator_mobile').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
+    }
 
-  const user = req.user!;
-
-  if (!('day_id' in req.body)) {
-    return missingRequiredParameter('day_id', res);
-  }
-
-  if (!('room_id' in req.body)) {
-    return missingRequiredParameter('room_id', res);
-  }
-
-  if (!('start_time' in req.body)) {
-    return missingRequiredParameter('start_time', res);
-  }
-
-  if (!('end_time' in req.body)) {
-    return missingRequiredParameter('end_time', res);
-  }
-
-  if (!('event_id' in req.body)) {
-    return missingRequiredParameter('event_id', res);
-  }
-
-  const dayId = validator.toInt(req.body.day_id);
-  const roomId = validator.toInt(req.body.room_id);
-  const startTime = req.body.start_time.trim();
-  const endTime = req.body.end_time.trim();
-  const eventId = validator.toInt(req.body.event_id);
-
-  if (isNaN(dayId)) {
-    return invalidValueForParameter('day_id', res);
-  }
-
-  if (isNaN(roomId)) {
-    return invalidValueForParameter('room_id', res);
-  }
-
-  if (!timeRegex.test(startTime)) {
-    return invalidValueForParameter('start_time', res);
-  }
-
-  if (!timeRegex.test(endTime)) {
-    return invalidValueForParameter('end_time', res);
-  }
-
-  if (isNaN(eventId)) {
-    return invalidValueForParameter('event_id', res);
-  }
-
-  const proShow: ProShow = {
-    day_id: dayId,
-    room_id: roomId,
-    start_time: getUTCFromString('2020-01-01 ' + startTime),
-    end_time: getUTCFromString('2020-01-01 ' + endTime),
-    cost: 0,
-    event_id: eventId
-  };
-
-  if ('title' in req.body) {
-    proShow.title = validator.escape((req.body.title as string).trim());
-  }
-
-  if ('description' in req.body) {
-    proShow.description = validator.escape((req.body.description as string).trim());
-  }
-  
-  if (req.files && 'image' in req.files) {
-    try {
-      proShow.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    const user = req.user!;
+    const proShow: ProShow = {
+      title: req.body.title,
+      description: req.body.description,
+      day_id: Number(req.body.day_id),
+      room_id: Number(req.body.room_id),
+      start_time: getUTCFromString('2020-01-01 ' + req.body.start_time),
+      end_time: getUTCFromString('2020-01-01 ' + req.body.end_time),
+      cost: Number(req.body.cost),
+      event_id: Number(req.body.event_id ?? 0),
+      faculty_coordinator_name: req.body.faculty_coordinator_name,
+      faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
+      student_coordinator_name: req.body.student_coordinator_name,
+      student_coordinator_mobile: req.body.student_coordinator_mobile,
+    };
+    
+    if (req.files && 'image' in req.files) {
+      try {
+        proShow.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  if ('cost' in req.body) {
-    proShow.cost = validator.toFloat(req.body.cost);
-
-    if (isNaN(proShow.cost)) {
-      return invalidValueForParameter('cost', res);
+    try {
+      res.status(200).json({
+        pro_show: await new ProShows(user.id).add(proShow)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('faculty_coordinator_name' in req.body) {
-    proShow.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
-  }
-
-  if ('faculty_coordinator_mobile' in req.body) {
-    proShow.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
-
-    if (!validator.isEmpty(proShow.faculty_coordinator_mobile!) && !validator.isMobilePhone(proShow.faculty_coordinator_mobile!)) {
-      return invalidValueForParameter('faculty_coordinator_mobile', res);
-    }
-  }
-
-  if ('student_coordinator_name' in req.body) {
-    proShow.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
-  }
-
-  if ('student_coordinator_mobile' in req.body) {
-    proShow.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
-
-    if (!validator.isEmpty(proShow.student_coordinator_mobile!) && !validator.isMobilePhone(proShow.student_coordinator_mobile!)) {
-      return invalidValueForParameter('student_coordinator_mobile', res);
-    }
-  }
-
-  try {
-    res.status(200).json({
-      pro_show: await new ProShows(user.id).add(proShow)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/pro-shows/edit
@@ -299,49 +186,48 @@ proShowsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS),
  *      }
  *  }
  */
-proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, uploadMiddleware, async (req, res) => {
+proShowsRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  uploadMiddleware,
+  body_positive_integer('id'),
+  body_positive_integer('day_id').optional(),
+  body_positive_integer('room_id').optional(),
+  body_non_empty_string('title').optional(),
+  body_non_empty_string('description').optional(),
+  body_time('start_time').optional(),
+  body_time('end_time').optional(),
+  body_amount('cost').optional(),
+  body('event_id').isInt().optional(),
+  body_non_empty_string('faculty_coordinator_name').optional(),
+  body_mobile_number('faculty_coordinator_mobile').optional(),
+  body_non_empty_string('student_coordinator_name').optional(),
+  body_mobile_number('student_coordinator_mobile').optional(),
+  handleValidationErrors,
+  async (req, res) => {
   // Incase the file upload was aborted
   if (res.headersSent) {
     return;
   }
 
+  const id = Number(req.body.id);
   const user = req.user!;
-  const proShow: OrNull<ProShow> = {};
-
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  if ('day_id' in req.body) {
-    proShow.day_id = validator.toInt(req.body.day_id);
-
-    if (isNaN(proShow.day_id)) {
-      return invalidValueForParameter('day_id', res);
-    }
-  }
-
-  if ('room_id' in req.body) {
-    proShow.room_id = validator.toInt(req.body.room_id);
-
-    if (isNaN(proShow.room_id)) {
-      return invalidValueForParameter('room_id', res);
-    }
-  }
-
-
-  if ('title' in req.body) {
-    proShow.title = validator.escape((req.body.title as string).trim());
-  }
-
-  if ('description' in req.body) {
-    proShow.description = validator.escape((req.body.description as string).trim());
-  }
+  const proShow: OrNull<ProShow> = {
+    title: req.body.title,
+    description: req.body.description,
+    day_id: Number(req.body.day_id),
+    room_id: Number(req.body.room_id),
+    start_time: getUTCFromString('2020-01-01 ' + req.body.start_time),
+    end_time: getUTCFromString('2020-01-01 ' + req.body.end_time),
+    cost: Number(req.body.cost),
+    event_id: Number(req.body.event_id),
+    faculty_coordinator_name: req.body.faculty_coordinator_name,
+    faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
+    student_coordinator_name: req.body.student_coordinator_name,
+    student_coordinator_mobile: req.body.student_coordinator_mobile,
+  };
   
   if (req.files && 'image' in req.files) {
     try {
@@ -352,66 +238,6 @@ proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENT
       } else {
         return internalServerError(res);
       }
-    }
-  }
-
-  if ('start_time' in req.body) {
-    const startTime = req.body.start_time.trim();
-
-    if (!timeRegex.test(startTime)) {
-      return invalidValueForParameter('start_time', res);
-    } else {
-      proShow.start_time = getUTCFromString('2020-01-01 ' + startTime);
-    }
-  }
-
-  if ('end_time' in req.body) {
-    const endTime = req.body.end_time.trim();
-
-    if (!timeRegex.test(endTime)) {
-      return invalidValueForParameter('end_time', res);
-    } else {
-      proShow.end_time = getUTCFromString('2020-01-01 ' + endTime);
-    }
-  }
-
-  if ('cost' in req.body) {
-    proShow.cost = validator.toFloat(req.body.cost);
-
-    if (isNaN(proShow.cost)) {
-      return invalidValueForParameter('cost', res);
-    }
-  }
-
-  if ('faculty_coordinator_name' in req.body) {
-    proShow.faculty_coordinator_name = validator.escape(req.body.faculty_coordinator_name.trim());
-  }
-
-  if ('faculty_coordinator_mobile' in req.body) {
-    proShow.faculty_coordinator_mobile = req.body.faculty_coordinator_mobile.trim();
-
-    if (!validator.isEmpty(proShow.faculty_coordinator_mobile!) && !validator.isMobilePhone(proShow.faculty_coordinator_mobile!)) {
-      return invalidValueForParameter('faculty_coordinator_mobile', res);
-    }
-  }
-
-  if ('student_coordinator_name' in req.body) {
-    proShow.student_coordinator_name = validator.escape(req.body.student_coordinator_name.trim());
-  }
-
-  if ('student_coordinator_mobile' in req.body) {
-    proShow.student_coordinator_mobile = req.body.student_coordinator_mobile.trim();
-
-    if (!validator.isEmpty(proShow.student_coordinator_mobile!) && !validator.isMobilePhone(proShow.student_coordinator_mobile!)) {
-      return invalidValueForParameter('student_coordinator_mobile', res);
-    }
-  }
-
-  if ('event_id' in req.body) {
-    proShow.event_id = validator.toInt(req.body.event_id);
-
-    if (isNaN(proShow.event_id)) {
-      return invalidValueForParameter('event_id', res);
     }
   }
 
@@ -437,29 +263,28 @@ proShowsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENT
  * @response JSON
  *  {}
  */
-proShowsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+proShowsRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new ProShows(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new ProShows(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default proShowsRouter;

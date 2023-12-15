@@ -97,7 +97,11 @@ export default class Users {
 
     if (typeof apiKey == 'undefined') {
       return res.status(401).json({
-        error: "You are not authorised to access this resource."
+        errors: [
+          {
+            message: "You are not authorised to access this resource."
+          }
+        ]
       });
     }
 
@@ -106,7 +110,11 @@ export default class Users {
 
       if (typeof user == 'undefined') {
         return res.status(401).json({
-          error: "API Key has expired, sign in again."
+          errors: [
+            {
+              message: "API Key has expired, sign in again."
+            }
+          ]
         });
       }
 
@@ -128,7 +136,11 @@ export default class Users {
 
     if (typeof apiKey == 'undefined') {
       return res.status(401).json({
-        error: "You are not authenticated."
+        errors: [
+          {
+            message: "You are not authenticated."
+          }
+        ]
       });
     }
 
@@ -145,7 +157,11 @@ export default class Users {
 
     if (typeof apiKey == 'undefined') {
       return res.status(401).json({
-        error: "You are not authenticated."
+        errors: [
+          {
+            message: "You are not authenticated."
+          }
+        ]
       });
     }
 

@@ -1,12 +1,13 @@
-import express from 'express';
-import validator from 'validator';
+import express, { Request, Response } from 'express';
 import { Days, Users } from '../../interfaces';
 import { Day } from '../../models/day';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
-import { dateRegex, getUTCFromString, OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly } from '../utils/helpers';
+import { getUTCFromString, OrNull } from '../../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors } from '../utils/helpers';
+import { body_date, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
+import { query } from 'express-validator';
 
 const daysRouter = express.Router();
 
@@ -28,45 +29,30 @@ const daysRouter = express.Router();
  *      ]
  *  }
  */
-daysRouter.get('', async (req, res) => {
-  var page = 1, query = '';
+daysRouter.get(
+  '',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  query('query').optional(),
+  handleValidationErrors,
+  async (req: Request, res: Response) => {
+    const page = Number(req.query.page);
+    const query = req.query.query as string|undefined;
 
-  const cachedDays = cache.get(req.originalUrl);
+    try {
+      const days = await getCacheOrFetch(req, Days.getAll, [page, query]);
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        days: days,
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('query' in req.query) {
-    query = validator.escape((req.query.query as string).trim());
-  }
-
-  if (cachedDays && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      days: cachedDays,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const days = await Days.getAll(page, query);
-
-    res.status(200).json({
-      days: days,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, days);
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/days/add
@@ -84,46 +70,39 @@ daysRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+daysRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_non_empty_string('title'),
+  body_date('date'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const title = req.body.title;
+    const date = req.body.date;
 
-  if (!('title' in req.body)) {
-    return missingRequiredParameter('title', res);
-  }
+    const day: Day = {
+      title: title,
+      date: getUTCFromString(date),
+    };
 
-  if (!('date' in req.body)) {
-    return missingRequiredParameter('date', res);
-  }
-
-  const title = validator.escape(req.body.title.trim());
-  const date = req.body.date.trim();
-
-  if (validator.isEmpty(title)) {
-    return invalidValueForParameter('title', res);
-  }
-
-  if (!dateRegex.test(date)) {
-    return invalidValueForParameter('date', res);
-  }
-
-  const day: Day = {
-    title: title,
-    date: getUTCFromString(date)
-  };
-
-  try {
-    res.status(200).json({
-      day: await new Days(user.id).addDay(day)
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+    try {
+      res.status(200).json({
+        day: await new Days(user.id).addDay(day)
+      });
+    } catch (_) {
+      internalServerError(res);
+    }
+  },
+);
 
 /**
  * [POST] /api/v1.0/days/edit
  * 
  * @header X-Api-Key <API-KEY> (required)
+ * @param id number (required)
  * @param title string
  * @param date YYYY-MM-DD
  * 
@@ -136,84 +115,68 @@ daysRouter.put('/add', Users.checkAuth, checkPermissions(Permission.EVENTS), che
  *      }
  *  }
  */
-daysRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+daysRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  body_non_empty_string('title').optional(),
+  body_date('date').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
+    const day: OrNull<Day> = {
+      title: req.body.title,
+      date: req.body.date && getUTCFromString(req.body.date),
+    };
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (id == 0 || isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  const day: OrNull<Day> = {};
-
-  if ('title' in req.body) {
-    day.title = validator.escape(req.body.title.trim());
-
-    if (validator.isEmpty(day.title)) {
-      return invalidValueForParameter('title', res);
+    try {
+      res.status(200).json({
+        day: await new Days(user.id).editDay(id, day)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('date' in req.body) {
-    const date = req.body.date.trim();
-
-    if (!dateRegex.test(date)) {
-      return invalidValueForParameter('date', res);
-    } else {
-      day.date = getUTCFromString(date);
-    }
-  }
-
-  try {
-    res.status(200).json({
-      day: await new Days(user.id).editDay(id, day)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/days/delete
  * 
  * @header X-Api-Key <API-KEY> (required)
- * @param id number
+ * @param id number (required)
  * 
  * @response JSON
  *  {}
  */
-daysRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.EVENTS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+daysRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.EVENTS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (id == 0 || isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Days(user.id).deleteDay(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Days(user.id).deleteDay(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default daysRouter;

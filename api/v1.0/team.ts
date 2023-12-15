@@ -1,13 +1,14 @@
 import express from 'express';
 import { UploadedFile } from 'express-fileupload';
-import validator from 'validator';
 import { Team, Users } from '../../interfaces';
 import { Team as TeamModel } from '../../models/team';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { body, query } from 'express-validator';
+import { body_email, body_mobile_number, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 
 const teamRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -33,46 +34,31 @@ const uploadMiddleware = getUploadMiddleware();
  *      ]
  *  }
  */
-teamRouter.get('', async (req, res) => {
-  var page = 1;
+teamRouter.get(
+  '',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
 
-  const cachedTeam = cache.get(req.originalUrl);
+    try {
+      // TODO: Fix cache
+      const team = await getCacheOrFetch(req, Team.getAll, [page]);
+      const teamNames = (await Team.getTeams()).map((t: any) => t.team_name);
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        team: team,
+        team_names: teamNames,
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if (cachedTeam && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      ...cachedTeam,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const team = await Team.getAll(page);
-    const teamNames = (await Team.getTeams()).map((t: any) => t.team_name);
-
-    res.status(200).json({
-      team: team,
-      team_names: teamNames,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, {
-      team: team,
-      team_names: teamNames
-    });
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/team/add
@@ -97,86 +83,54 @@ teamRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
+teamRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.TEAM),
+  checkReadOnly,
+  uploadMiddleware,
+  body_non_empty_string('name'),
+  body_non_empty_string('team_name'),
+  body_non_empty_string('role'),
+  body_mobile_number('phone').optional(),
+  body_email('email').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
+    }
+    
+    const user = req.user!;
+    const team: TeamModel = {
+      name: req.body.name,
+      team_name: req.body.team_name,
+      role: req.body.role,
+      phone: req.body.phone,
+      email: req.body.email,
+    };
 
-  if (!('name' in req.body)) {
-    return missingRequiredParameter('name', res);
-  }
-
-  const name = validator.escape(req.body.name.trim());
-
-  if (!('team_name' in req.body)) {
-    return missingRequiredParameter('team_name', res);
-  }
-
-  const teamName = validator.escape(req.body.team_name.trim());
-
-  if (!('role' in req.body)) {
-    return missingRequiredParameter('role', res);
-  }
-
-  const role = validator.escape(req.body.role.trim());
-
-  if (validator.isEmpty(name)) {
-    return invalidValueForParameter('name', res);
-  }
-
-  if (validator.isEmpty(teamName)) {
-    return invalidValueForParameter('team_name', res);
-  }
-
-  if (validator.isEmpty(role)) {
-    return invalidValueForParameter('role', res);
-  }
-
-  const team: TeamModel = {
-    name: name,
-    team_name: teamName,
-    role: role
-  };
-
-  if (req.files && 'image' in req.files) {
-    try {
-      team.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        team.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  if ('phone' in req.body) {
-    team.phone = req.body.phone.trim();
-
-    if (!validator.isEmpty(team.phone!) && !validator.isMobilePhone(team.phone!)) {
-      return invalidValueForParameter('phone', res);
+    try {
+      res.status(200).json({
+        member: await new Team(user.id).add(team)
+      });
+    } catch (_) {
+      internalServerError(res);
     }
-  }
-
-  if ('email' in req.body) {
-    team.email = req.body.email.trim();
-
-    if (!validator.isEmpty(team.email!) && !validator.isEmail(team.email!)) {
-      return invalidValueForParameter('email', res);
-    }
-  }
-
-  try {
-    res.status(200).json({
-      member: await new Team(user.id).add(team)
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/team/edit
@@ -202,81 +156,60 @@ teamRouter.put('/add', Users.checkAuth, checkPermissions(Permission.TEAM), check
  *      }
  *  }
  */
-teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
-  const team: OrNull<TeamModel> = {};
-
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  if ('name' in req.body) {
-    team.name = validator.escape(req.body.name.trim());
-
-    if (validator.isEmpty(team.name)) {
-      return invalidValueForParameter('name', res);
+teamRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.TEAM),
+  checkReadOnly,
+  uploadMiddleware,
+  body_positive_integer('id'),
+  body_non_empty_string('name').optional(),
+  body_non_empty_string('team_name').optional(),
+  body_non_empty_string('role').optional(),
+  body_mobile_number('phone').optional(),
+  body_email('email').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
     }
-  }
+    
+    const user = req.user!;
+    const id = Number(req.body.id);
+    const team: OrNull<TeamModel> = {
+      name: req.body.name,
+      team_name: req.body.team_name,
+      role: req.body.role,
+      phone: req.body.phone,
+      email: req.body.email,
+    };
 
-  if ('team_name' in req.body) {
-    team.team_name = validator.escape(req.body.team_name.trim());
-  }
-
-  if ('role' in req.body) {
-    team.role = validator.escape(req.body.role.trim());
-  }
-
-  if (req.files && 'image' in req.files) {
-    try {
-      team.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        team.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  if ('phone' in req.body) {
-    team.phone = req.body.phone.trim();
-
-    if (!validator.isEmpty(team.phone!) && !validator.isMobilePhone(team.phone!)) {
-      return invalidValueForParameter('phone', res);
+    try {
+      res.status(200).json({
+        member: await new Team(user.id).edit(id, team)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('email' in req.body) {
-    team.email = req.body.email.trim();
-
-    if (!validator.isEmpty(team.email!) && !validator.isEmail(team.email!)) {
-      return invalidValueForParameter('email', res);
-    }
-  }
-
-  try {
-    res.status(200).json({
-      member: await new Team(user.id).edit(id, team)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/team/delete
@@ -287,29 +220,28 @@ teamRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.TEAM), ch
  * @response JSON
  *  {}
  */
-teamRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.TEAM), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+teamRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.TEAM),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Team(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Team(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default teamRouter;

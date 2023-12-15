@@ -13,7 +13,7 @@
       "name": "MIT",
       "url": "https://opensource.org/licenses/MIT"
     },
-    "description": "This page contains the documnetation on how to communicate with this application through API calls. The official project can be found on my [GitHub repository](https://github.com/therealsujitk/web-app-vibrance), any issues are recommended to be opened here as I'll probably respond much faster there than on email.\n\n### API Endpoints\n\nAll endpoints are of the format `/api/<VERSION>/<API_PATH>`, where `<VERSION>` should be replaced with any version you'd like to use (preferably the latest one available). A list of available versions can be found [here](https://github.com/therealsujitk/web-app-vibrance/tree/main/api).\n\n> **Note:** Technically `<VERSION>` can be replaced with `latest` as well, however I **highly** recommend not doing so.\n\nIncase an incorrect version is used you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"error\": \"Invalid API version in URI.\"\n}\n```\n\nIncase the endpoint or request method used is invalid, you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"error\": \"Invalid API endpoint or request method used.\"\n}\n```\n\n### Application Installation\n\nNo installation is required to test this API, you can use this site as the base url for your API requests. However to use your own data you'll have to install this application, instructions for which can be found in my repository. You can then sign in to the admin panel to add your own data.\n"
+    "description": "This page contains the documnetation on how to communicate with this application through API calls. The official project can be found on my [GitHub repository](https://github.com/therealsujitk/web-app-vibrance), any issues are recommended to be opened here as I'll probably respond much faster there than on email.\n\n### API Endpoints\n\nAll endpoints are of the format `/api/<VERSION>/<API_PATH>`, where `<VERSION>` should be replaced with any version you'd like to use (preferably the latest one available). A list of available versions can be found [here](https://github.com/therealsujitk/web-app-vibrance/tree/main/api).\n\n> **Note:** Technically `<VERSION>` can be replaced with `latest` as well, however I **highly** recommend not doing so.\n\nIncase an incorrect version is used you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"errors\": [\n        {\n            \"message\": \"Invalid API version in URI.\"\n        }\n    ]\n}\n```\n\nIncase the endpoint or request method used is invalid, you'll get an `application/json` response that looks like this.\n\n```json\n{\n    \"errors\": [\n        {\n            \"message:\": \"Invalid API endpoint or request method used.\"\n        }\n    ]\n}\n```\n\n### Application Installation\n\nNo installation is required to test this API, you can use this site as the base url for your API requests. However to use your own data you'll have to install this application, instructions for which can be found in my repository. You can then sign in to the admin panel to add your own data.\n"
   },
   "servers": [
     {
@@ -105,7 +105,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -119,7 +119,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -195,7 +195,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -209,7 +209,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -223,7 +223,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -293,7 +293,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -307,7 +307,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -321,7 +321,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -366,7 +366,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -411,7 +411,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -481,7 +481,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -495,7 +495,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -509,7 +509,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -595,7 +595,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -609,7 +609,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -623,7 +623,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -711,7 +711,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -725,7 +725,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -739,7 +739,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -806,7 +806,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -820,7 +820,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -834,7 +834,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -891,7 +891,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -905,7 +905,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -919,7 +919,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -997,7 +997,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1011,7 +1011,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1025,7 +1025,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1111,7 +1111,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1125,7 +1125,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1139,7 +1139,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1206,7 +1206,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1220,7 +1220,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1234,7 +1234,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1314,7 +1314,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -1328,7 +1328,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1342,7 +1342,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1381,17 +1381,7 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
@@ -1425,7 +1415,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1439,7 +1429,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1453,7 +1443,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1501,17 +1491,7 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
@@ -1544,7 +1524,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1558,7 +1538,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1572,7 +1552,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1639,7 +1619,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1653,7 +1633,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1667,7 +1647,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1724,7 +1704,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -1738,7 +1718,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1752,7 +1732,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1823,7 +1803,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1837,7 +1817,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1851,7 +1831,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -1926,7 +1906,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -1940,7 +1920,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -1954,7 +1934,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2021,7 +2001,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2035,7 +2015,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2049,7 +2029,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2106,7 +2086,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -2120,7 +2100,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2134,7 +2114,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2210,7 +2190,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2224,7 +2204,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2238,7 +2218,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2313,7 +2293,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2327,7 +2307,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2341,7 +2321,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2408,7 +2388,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2422,7 +2402,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2436,7 +2416,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2519,6 +2499,24 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Filter before this timestamp.",
+            "schema": {
+              "type": "datetime",
+              "example": "2020-02-07T18:30"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Filter after this timestamp.",
+            "schema": {
+              "type": "datetime",
+              "example": "2020-02-05T18:30"
+            }
           }
         ],
         "responses": {
@@ -2535,7 +2533,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -2549,7 +2547,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2563,7 +2561,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2600,18 +2598,43 @@
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": null
+                      "description": {
+                        "type": "string"
                       }
                     }
                   },
                   {
                     "properties": {
                       "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_mobile": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_mobile": {
+                        "type": "string"
                       }
                     }
                   }
@@ -2624,7 +2647,7 @@
                   "start_time",
                   "end_time",
                   "team_size_min",
-                  "team_size_max"
+                  "cost"
                 ]
               }
             }
@@ -2651,7 +2674,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2665,7 +2688,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2679,7 +2702,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2725,18 +2748,43 @@
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": null
+                      "description": {
+                        "type": "string"
                       }
                     }
                   },
                   {
                     "properties": {
                       "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_mobile": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_mobile": {
+                        "type": "string"
                       }
                     }
                   }
@@ -2769,7 +2817,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2783,7 +2831,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2797,7 +2845,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2864,7 +2912,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -2878,7 +2926,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -2892,7 +2940,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -2977,7 +3025,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -2991,7 +3039,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3005,7 +3053,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3042,18 +3090,43 @@
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": null
+                      "description": {
+                        "type": "string"
                       }
                     }
                   },
                   {
                     "properties": {
                       "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_mobile": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_mobile": {
+                        "type": "string"
                       }
                     }
                   }
@@ -3063,7 +3136,8 @@
                   "day_id",
                   "room_id",
                   "start_time",
-                  "end_time"
+                  "end_time",
+                  "cost"
                 ]
               }
             }
@@ -3090,7 +3164,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3104,7 +3178,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3118,7 +3192,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3164,18 +3238,43 @@
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": null
+                      "description": {
+                        "type": "string"
                       }
                     }
                   },
                   {
                     "properties": {
                       "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "faculty_coordinator_mobile": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "student_coordinator_mobile": {
+                        "type": "string"
                       }
                     }
                   }
@@ -3208,7 +3307,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3222,7 +3321,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3236,7 +3335,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3303,7 +3402,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3317,7 +3416,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3331,7 +3430,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3380,7 +3479,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -3394,7 +3493,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3408,7 +3507,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3419,7 +3518,7 @@
         }
       }
     },
-    "/gallery/add": {
+    "/gallery/upload": {
       "put": {
         "tags": [
           "Gallery"
@@ -3490,7 +3589,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3504,7 +3603,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3518,7 +3617,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3585,7 +3684,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3599,7 +3698,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3613,7 +3712,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3670,7 +3769,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -3684,7 +3783,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3698,7 +3797,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3736,17 +3835,7 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
@@ -3779,7 +3868,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3793,7 +3882,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3807,7 +3896,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3854,17 +3943,7 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
@@ -3897,7 +3976,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -3911,7 +3990,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -3925,7 +4004,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -3992,7 +4071,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4006,7 +4085,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4020,7 +4099,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4079,7 +4158,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -4093,7 +4172,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4107,7 +4186,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4145,23 +4224,14 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
                 ],
                 "required": [
-                  "title"
+                  "title",
+                  "type"
                 ]
               }
             }
@@ -4188,7 +4258,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4202,7 +4272,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4216,7 +4286,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4263,17 +4333,7 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
-                      }
-                    }
-                  },
-                  {
-                    "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                        "type": "file"
                       }
                     }
                   }
@@ -4306,7 +4366,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4320,7 +4380,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4334,7 +4394,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4401,7 +4461,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4415,7 +4475,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4429,7 +4489,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4484,7 +4544,7 @@
                       }
                     },
                     "next_page": {
-                      "type": "number",
+                      "type": "integer",
                       "example": 2
                     }
                   }
@@ -4498,7 +4558,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4512,7 +4572,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4550,17 +4610,21 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
+                        "type": "file"
                       }
                     }
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                      "phone": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "email": {
+                        "type": "string"
                       }
                     }
                   }
@@ -4595,7 +4659,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4609,7 +4673,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4623,7 +4687,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4670,17 +4734,21 @@
                   {
                     "properties": {
                       "image": {
-                        "type": null
+                        "type": "file"
                       }
                     }
                   },
                   {
                     "properties": {
-                      "image": {
-                        "type": [
-                          "file",
-                          null
-                        ]
+                      "phone": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "email": {
+                        "type": "string"
                       }
                     }
                   }
@@ -4713,7 +4781,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4727,7 +4795,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4741,7 +4809,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4808,7 +4876,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -4822,7 +4890,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4836,7 +4904,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4929,7 +4997,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -4943,7 +5011,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -4977,6 +5045,20 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "description": "Filter by one or more actors.",
+            "schema": {
+              "type": [
+                "integer",
+                "array"
+              ],
+              "items": {
+                "type": "integer"
+              }
+            }
           }
         ],
         "responses": {
@@ -4989,74 +5071,12 @@
                     "audit_log": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "example": 1
-                          },
-                          "actor": {
-                            "$ref": "#/components/schemas/user/properties/username"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "SETTINGS_EDIT",
-                              "USER_ADD",
-                              "USER_EDIT",
-                              "USER_DELETE",
-                              "DAY_ADD",
-                              "DAY_EDIT",
-                              "DAY_DELETE",
-                              "CATEGORY_ADD",
-                              "CATEGORY_EDIT",
-                              "CATEGORY_DELETE",
-                              "VENUE_ADD",
-                              "VENUE_EDIT",
-                              "VENUE_DELETE",
-                              "ROOM_ADD",
-                              "ROOM_EDIT",
-                              "ROOM_DELETE",
-                              "EVENT_ADD",
-                              "EVENT_EDIT",
-                              "EVENT_DELETE",
-                              "PRO_SHOW_ADD",
-                              "PRO_SHOW_EDIT",
-                              "PRO_SHOW_DELETE",
-                              "GALLERY_ADD",
-                              "GALLERY_DELETE",
-                              "MERCHANDISE_ADD",
-                              "MERCHANDISE_EDIT",
-                              "MERCHANDISE_DELETE",
-                              "SPONSOR_ADD",
-                              "SPONSOR_EDIT",
-                              "SPONSOR_DELETE",
-                              "TEAM_ADD",
-                              "TEAM_EDIT",
-                              "TEAM_DELETE"
-                            ],
-                            "example": "DAY_ADD"
-                          },
-                          "old": {
-                            "type": [
-                              "string",
-                              null
-                            ],
-                            "example": null
-                          },
-                          "new": {
-                            "type": [
-                              "string",
-                              null
-                            ],
-                            "example": "{\"title\":\"Day 1\",\"date\":\"2020-02-06T05:30:00.000Z\"}"
-                          },
-                          "timestamp": {
-                            "type": "datetime",
-                            "example": "2022-12-05T07:52:23.000Z"
-                          }
-                        }
+                        "$ref": "#/components/schemas/user_action"
                       }
+                    },
+                    "next_page": {
+                      "type": "integer",
+                      "example": 2
                     }
                   }
                 }
@@ -5069,7 +5089,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -5083,7 +5103,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -5097,7 +5117,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -5148,7 +5168,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -5162,7 +5182,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -5232,7 +5252,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/client_error"
                     }
                   }
@@ -5246,7 +5266,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -5260,7 +5280,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -5305,7 +5325,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -5319,7 +5339,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -5364,7 +5384,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/unauthorised_access"
                     }
                   }
@@ -5378,7 +5398,7 @@
               "application/json": {
                 "schema": {
                   "properties": {
-                    "error": {
+                    "errors": {
                       "$ref": "#/components/schemas/errors/properties/internal_server_error"
                     }
                   }
@@ -5550,19 +5570,6 @@
                 "type": "integer",
                 "example": 1
               },
-              "title": {
-                "type": [
-                  "string"
-                ],
-                "example": "House of Developers"
-              },
-              "description": {
-                "type": [
-                  "string",
-                  null
-                ],
-                "example": null
-              },
               "day": {
                 "type": "string",
                 "readOnly": true,
@@ -5592,11 +5599,25 @@
                 }
               },
               "room": {
-                "type": "string",
+                "type": [
+                  "string",
+                  null
+                ],
                 "readOnly": true,
                 "example": {
                   "$ref": "#/components/schemas/room/properties/title/example"
                 }
+              },
+              "title": {
+                "type": "string",
+                "example": "House of Developers"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
               },
               "image": {
                 "$ref": "#/components/schemas/image/properties/image"
@@ -5611,14 +5632,6 @@
                   "$ref": "#/components/schemas/image/properties/image/example"
                 }
               },
-              "start_time": {
-                "type": "time",
-                "example": "08:00:00"
-              },
-              "end_time": {
-                "type": "time",
-                "example": "18:00:00"
-              },
               "team_size_min": {
                 "type": "integer",
                 "example": 2
@@ -5627,9 +5640,49 @@
                 "type": "integer",
                 "example": 5
               },
+              "start_time": {
+                "type": "time",
+                "example": "08:00:00"
+              },
+              "end_time": {
+                "type": "time",
+                "example": "18:00:00"
+              },
               "cost": {
-                "type": "number",
-                "example": 100
+                "type": "double",
+                "example": 50.00
+              },
+              "faculty_coordinator_name": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
+              },
+              "faculty_coordinator_mobile": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
+              },
+              "student_coordinator_name": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
+              },
+              "student_coordinator_mobile": {
+                "type": [
+                  "string",
+                  null
+                ],
+                "example": null
+              },
+              "event_id": {
+                "type": "integer",
+                "example": 0
               }
             }
           }
@@ -5656,20 +5709,6 @@
             "type": "integer",
             "example": 1
           },
-          "title": {
-            "type": [
-              "string",
-              null
-            ],
-            "example": null
-          },
-          "description": {
-            "type": [
-              "string",
-              null
-            ],
-            "example": null
-          },
           "day": {
             "type": "string",
             "readOnly": true,
@@ -5691,20 +5730,63 @@
               "$ref": "#/components/schemas/room/properties/title/example"
             }
           },
+          "title": {
+            "type": "string",
+            "example": "Day 1 Pro Show"
+          },
+          "description": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
           "image": {
             "$ref": "#/components/schemas/image/properties/image"
           },
           "start_time": {
             "type": "time",
-            "example": "20:00:00"
+            "example": "16:00:00"
           },
           "end_time": {
             "type": "time",
-            "example": "13:59:00"
+            "example": "23:59:00"
           },
           "cost": {
-            "type": "number",
-            "example": 500
+            "type": "double",
+            "example": 5000.00
+          },
+          "faculty_coordinator_name": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "faculty_coordinator_mobile": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "student_coordinator_name": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "student_coordinator_mobile": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "event_id": {
+            "type": "integer",
+            "example": 0
           }
         }
       },
@@ -5724,8 +5806,8 @@
             "$ref": "#/components/schemas/image/properties/image"
           },
           "cost": {
-            "type": "number",
-            "example": 100
+            "type": "double",
+            "example": 100.00
           }
         }
       },
@@ -5804,31 +5886,117 @@
           }
         }
       },
+      "user_action": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "actor": {
+            "$ref": "#/components/schemas/user/properties/username"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "SETTINGS_EDIT",
+              "USER_ADD",
+              "USER_EDIT",
+              "USER_DELETE",
+              "DAY_ADD",
+              "DAY_EDIT",
+              "DAY_DELETE",
+              "CATEGORY_ADD",
+              "CATEGORY_EDIT",
+              "CATEGORY_DELETE",
+              "VENUE_ADD",
+              "VENUE_EDIT",
+              "VENUE_DELETE",
+              "ROOM_ADD",
+              "ROOM_EDIT",
+              "ROOM_DELETE",
+              "EVENT_ADD",
+              "EVENT_EDIT",
+              "EVENT_DELETE",
+              "PRO_SHOW_ADD",
+              "PRO_SHOW_EDIT",
+              "PRO_SHOW_DELETE",
+              "GALLERY_ADD",
+              "GALLERY_DELETE",
+              "MERCHANDISE_ADD",
+              "MERCHANDISE_EDIT",
+              "MERCHANDISE_DELETE",
+              "SPONSOR_ADD",
+              "SPONSOR_EDIT",
+              "SPONSOR_DELETE",
+              "TEAM_ADD",
+              "TEAM_EDIT",
+              "TEAM_DELETE"
+            ],
+            "example": "DAY_ADD"
+          },
+          "old": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": null
+          },
+          "new": {
+            "type": [
+              "string",
+              null
+            ],
+            "example": "{\"title\":\"Day 1\",\"date\":\"2020-02-06T05:30:00.000Z\"}"
+          },
+          "timestamp": {
+            "type": "datetime",
+            "example": "2022-12-05T07:52:23.000Z"
+          }
+        }
+      },
       "errors": {
         "type": "object",
         "properties": {
           "internal_server_error": {
-            "type": "string",
-            "enum": [
-              "An internal server error occurred."
-            ]
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "enum": [
+                    "An internal server error occurred."
+                  ]
+                }
+              }
+            }
           },
           "client_error": {
-            "type": "string",
-            "enum": [
-              "Missing required parameter 'parameter_name'.",
-              "Invalid value for parameter 'parameter_name'.",
-              "'data' cannot be deleted as it is being referenced.",
-              "Invalid MIME type, expected 'expected_mime_types' but got 'received_mime_type'",
-              "File size exceeded the 'file_size' MB limit."
-            ]
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "unauthorised_access": {
-            "type": "string",
-            "enum": [
-              "You are not authorised to access this resource.",
-              "API Key has expired, sign in again."
-            ]
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "enum": [
+                    "You are not authorised to access this resource.",
+                    "API Key has expired, sign in again."
+                  ]
+                }
+              }
+            }
           }
         }
       }

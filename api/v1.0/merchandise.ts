@@ -1,13 +1,14 @@
 import express from 'express';
 import { UploadedFile } from 'express-fileupload';
-import validator from 'validator';
 import { Merchandise, Users } from '../../interfaces';
 import { Merchandise as MerchandiseModel } from '../../models/merchandise';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { body, query } from 'express-validator';
+import { body_amount, body_non_empty_string, body_positive_integer } from '../utils/validators';
 
 const merchandiseRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -16,6 +17,7 @@ const uploadMiddleware = getUploadMiddleware();
  * [GET] /api/v1.0/merchandise
  * 
  * @param page number
+ * @param query string
  * 
  * @reponse JSON
  *  {
@@ -29,45 +31,30 @@ const uploadMiddleware = getUploadMiddleware();
  *      ]
  *  }
  */
-merchandiseRouter.get('', async (req, res) => {
-  var page = 1, query = '';
+merchandiseRouter.get(
+  '',
+  body_positive_integer('page').optional(),
+  query('page').default(1),
+  query('query').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
+    const query = req.query.query as string|undefined;
 
-  const cachedMerchandise = cache.get(req.originalUrl);
+    try {
+      const merchandise = await getCacheOrFetch(req, Merchandise.getAll, [page, query]);
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        merchandise: merchandise,
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if ('query' in req.query) {
-    query = validator.escape((req.query.query as string).trim());
-  }
-
-  if (cachedMerchandise && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      merchandise: cachedMerchandise,
-      next_page: page + 1
-    });
-  }
-
-  try {
-    const merchandise = await Merchandise.getAll(page, query);
-
-    res.status(200).json({
-      merchandise: merchandise,
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, merchandise);
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/merchandise/add
@@ -87,58 +74,48 @@ merchandiseRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
+merchandiseRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.MERCHANDISE),
+  checkReadOnly,
+  uploadMiddleware,
+  body_non_empty_string('title'),
+  body_amount('cost'),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
+    }
+    
+    const user = req.user!;
+    const merchandise: MerchandiseModel = {
+      title: req.body.title,
+      cost: Number(req.body.cost)
+    };
 
-  if (!('title' in req.body)) {
-    return missingRequiredParameter('title', res);
-  }
-
-  if (!('cost' in req.body)) {
-    return missingRequiredParameter('cost', res);
-  }
-
-  const title = validator.escape(req.body.title.trim());
-  const cost = validator.toFloat(req.body.cost);
-
-  if (validator.isEmpty(title)) {
-    return invalidValueForParameter('title', res);
-  }
-
-  if (isNaN(cost)) {
-    return invalidValueForParameter('cost', res);
-  }
-
-  const merchandise: MerchandiseModel = {
-    title: title,
-    cost: cost
-  };
-
-  if (req.files && 'image' in req.files) {
-    try {
-      merchandise.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        merchandise.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  try {
-    res.status(200).json({
-      merchandise: await new Merchandise(user.id).add(merchandise)
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+    try {
+      res.status(200).json({
+        merchandise: await new Merchandise(user.id).add(merchandise)
+      });
+    } catch (_) {
+      internalServerError(res);
+    }
+  },
+);
 
 /**
  * [POST] /api/v1.0/merchandise/edit
@@ -159,65 +136,54 @@ merchandiseRouter.put('/add', Users.checkAuth, checkPermissions(Permission.MERCH
  *      }
  *  }
  */
-merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
-  const merchandise: OrNull<MerchandiseModel> = {};
-
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  if ('title' in req.body) {
-    merchandise.title = validator.escape(req.body.title.trim());
-
-    if (validator.isEmpty(merchandise.title)) {
-      return invalidValueForParameter('title', res);
+merchandiseRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.MERCHANDISE),
+  checkReadOnly,
+  uploadMiddleware,
+  body_positive_integer('id'),
+  body_non_empty_string('title').optional(),
+  body_amount('cost').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
     }
-  }
+    
+    const user = req.user!;
+    const id = Number(req.body.id);
+    const merchandise: OrNull<MerchandiseModel> = {
+      title: req.body.title,
+      cost: Number(req.body.cost),
+    };
 
-  if (req.files && 'image' in req.files) {
-    try {
-      merchandise.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        merchandise.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  if ('cost' in req.body) {
-    merchandise.cost = validator.toFloat(req.body.cost);
-
-    if (isNaN(merchandise.cost)) {
-      return invalidValueForParameter('cost', res);
+    try {
+      res.status(200).json({
+        merchandise: await new Merchandise(user.id).edit(id, merchandise)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  try {
-    res.status(200).json({
-      merchandise: await new Merchandise(user.id).edit(id, merchandise)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/merchandise/delete
@@ -228,29 +194,28 @@ merchandiseRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.ME
  * @reponse JSON
  *  {}
  */
-merchandiseRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.MERCHANDISE), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+merchandiseRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.MERCHANDISE),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Merchandise(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Merchandise(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default merchandiseRouter;

@@ -1,10 +1,11 @@
 import express from 'express';
-import validator from 'validator';
 import { Users } from '../../interfaces';
 import { getPermissionsFromCode, User } from '../../models/user';
 import { ClientError, InvalidCredentials } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { body } from 'express-validator';
+import { handleValidationErrors } from '../utils/helpers';
 
 const sessionRouter = express.Router();
 
@@ -54,59 +55,55 @@ sessionRouter.get('', Users.checkAuth, async (req, res) => {
  *      }
  *  }
  */
-sessionRouter.patch('/edit', Users.checkAuth, async (req, res) => {
-  const user = req.user!;
-  const editedUser: OrNull<User> = {};
+sessionRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  body('username').isString().trim().isAlphanumeric().notEmpty().optional(),
+  body('old_password').isString().notEmpty().optional(),
+  body('password').isString().isStrongPassword().optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const editedUser: OrNull<User> = {
+      username: req.body.username,
+      password: req.body.password,
+    };
 
-  if ('username' in req.body) {
-    editedUser.username = req.body.username.trim();
+    if (editedUser.password) {
+      const old_password = req.body.old_password ?? '';
 
-    if (!validator.isAlphanumeric(editedUser.username as string)) {
-      return invalidValueForParameter('username', res);
-    }
-  }
-
-  if ('password' in req.body) {
-    if (!('old_password' in req.body)) {
-      return missingRequiredParameter('old_password', res);
-    }
-
-    const old_password = req.body.old_password;
-    editedUser.password = req.body.password;
-
-    try {
-      await Users.login(user.username, old_password, false);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return res.status(400).json({
-          error: "Incorrect old password."
-        });
-      } else {
-        return internalServerError(res);
+      try {
+        await Users.login(user.username, old_password, false);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return res.status(400).json({
+            errors: [
+              {
+                message: "Incorrect old password.",
+              }
+            ]
+          });
+        } else {
+          return internalServerError(res);
+        }
       }
     }
 
-    if (!validator.isStrongPassword(editedUser.password as string)) {
-      return res.status(400).json({
-        error: "Given password is not strong enough."
+    try {
+      const { id, ...updatedUser } = await new Users(user.id).edit(user.id, editedUser);
+      
+      res.status(200).json({
+        user: updatedUser
       });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-
-  const { id, ...updatedUser } = await new Users(user.id).edit(user.id, editedUser);
-
-  try {
-    res.status(200).json({
-      user: updatedUser
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 
 /**
@@ -120,32 +117,34 @@ sessionRouter.patch('/edit', Users.checkAuth, async (req, res) => {
  *      "apiKey": "h3RWfOQJvEAam4TWL61i_jgZ0hU"
  *  }
  */
-sessionRouter.post('/login', async (req, res) => {
-  if (!('username' in req.body)) {
-    return missingRequiredParameter('username', res);
-  }
+sessionRouter.post(
+  '/login',
+  body('username').isString(),
+  body('password').isString(),
+  handleValidationErrors,
+  async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-  if (!('password' in req.body)) {
-    return missingRequiredParameter('password', res);
-  }
-
-  const username = req.body.username;
-  const password = req.body.password;
-
-  try {
-    res.status(200).json({
-      session: await Users.login(username, password)
-    });
-  } catch (err) {
-    if (err instanceof InvalidCredentials) {
-      res.status(400).json({
-        error: "Invalid username / password"
+    try {
+      res.status(200).json({
+        session: await Users.login(username, password)
       });
-    } else {
-      internalServerError(res);
+    } catch (err) {
+      if (err instanceof InvalidCredentials) {
+        res.status(400).json({
+          errors: [
+            {
+              message: "Invalid username / password"
+            }
+          ]
+        });
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 /**
  * POST requests to logout of a session or all sessions

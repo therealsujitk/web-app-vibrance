@@ -6,11 +6,36 @@ import { query } from "../../config/db";
 import { Permission } from "../../models/user";
 import { IMAGE_PATH } from "../../utils/constants";
 import { internalServerError, InvalidMIMEType } from "./errors";
+import { validationResult } from "express-validator";
+import { Users } from "../../interfaces";
 
 const cacheObject = new NodeCache({
   stdTTL: 24 * 60 * 60,
   checkperiod: 12 * 60 * 60
 });
+
+export async function getCacheOrFetch(req: Request, fallback: (...args: any[]) => any, args: any[] = []) {
+  const cache = cacheObject.get(req.originalUrl);
+
+  // If the data is cached, and the user is not an administrator
+  if (cache && !(await Users.checkValidApiKey(req))) {
+    return cache;
+  }
+
+  const result = await fallback(...args);
+  cacheObject.set(req.originalUrl, result);
+  return result;
+}
+
+export function handleValidationErrors(req: Request, res: Response, next: NextFunction) {
+  const errors = validationResult(req);
+
+  if (errors.isEmpty()) {
+    return next();
+  }
+
+  res.status(400).json({ errors: errors.array().map(e => ({message: e.msg})) });
+}
 
 export function checkPermissions(permissions = 0) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +44,9 @@ export function checkPermissions(permissions = 0) {
     }
 
     res.status(401).json({
-      error: "You are not authorised to access this resource."
+      errors: {
+        message: "You are not authorised to access this resource."
+      }
     });
   }
 }
@@ -42,7 +69,11 @@ export function getUploadMiddleware(files = 1, fileSize = 5) {
     responseOnLimit: 'File size exceeded the ' + fileSize + ' MB limit.',
     limitHandler: function (req, res, next) {
       res.status(400).json({
-        error: this.responseOnLimit
+        errors: [
+          {
+            message: this.responseOnLimit
+          }
+        ]
       })
     },
     useTempFiles: true,
@@ -85,7 +116,11 @@ export async function checkReadOnly(req: Request, res: Response, next: NextFunct
 
     if (readOnly === "1") {
       return res.status(409).json({
-        error: 'Read only mode is enabled, contact an administrator to disable it.'
+        errors: [
+          {
+            message: 'Read only mode is enabled, contact an administrator to disable it.'
+          }
+        ]
       });
     }
 

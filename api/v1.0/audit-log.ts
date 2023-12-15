@@ -1,8 +1,9 @@
 import express from 'express';
-import validator from 'validator';
 import { AuditLog, Users } from '../../interfaces';
-import { internalServerError, invalidValueForParameter } from '../utils/errors';
-import { checkPermissions } from '../utils/helpers';
+import { internalServerError } from '../utils/errors';
+import { checkPermissions, handleValidationErrors } from '../utils/helpers';
+import { query } from 'express-validator';
+import { query_positive_integer, query_positive_integer_array } from '../utils/validators';
 
 const auditLogRouter = express.Router();
 
@@ -11,7 +12,7 @@ const auditLogRouter = express.Router();
  * 
  * @header X-Api-Key <API-KEY> (required)
  * @param page number
- * @param actor_ids number[]
+ * @param actor_id number[]
  * 
  * @response JSON
  *  {
@@ -28,25 +29,27 @@ const auditLogRouter = express.Router();
  *      ]
  *  }
  */
-auditLogRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
-  var page = 1;
+auditLogRouter.get(
+  '',
+  Users.checkAuth,
+  checkPermissions(),
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  query_positive_integer_array('actor_id').optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    const page = Number(req.query.page);
+    const actorIds = req.query.actor_id as unknown as number[];
 
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+    try {
+      res.status(200).json({
+        audit_log: await AuditLog.getAll(page, actorIds),
+        next_page: page + 1
+      });
+    } catch (_) {
+      internalServerError(res);
     }
-  }
-
-  try {
-    res.status(200).json({
-      audit_log: await AuditLog.getAll(page),
-      next_page: page + 1
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+  },
+);
 
 export default auditLogRouter;

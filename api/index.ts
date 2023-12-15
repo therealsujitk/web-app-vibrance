@@ -9,7 +9,11 @@ apiRouter.use('/latest', version_1_0);
 
 apiRouter.all('/*', (req, res) => {
   res.status(404).json({
-    error: 'Invalid API version in URI.'
+    errors: [
+      {
+        message: 'Invalid API version in URI.'
+      }
+    ]
   });
 });
 

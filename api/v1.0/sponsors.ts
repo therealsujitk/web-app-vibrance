@@ -1,13 +1,14 @@
 import express from 'express';
 import { UploadedFile } from 'express-fileupload';
-import validator from 'validator';
 import { Sponsors, Users } from '../../interfaces';
 import { Sponsor, SponsorType } from '../../models/sponsor';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError, invalidValueForParameter, missingRequiredParameter } from '../utils/errors';
-import { cache, checkPermissions, checkReadOnly, getUploadMiddleware, handleFileUpload, MIME_TYPE } from '../utils/helpers';
+import { badRequestError, internalServerError } from '../utils/errors';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { body, query } from 'express-validator';
+import { body_enum, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 
 const sponsorsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -29,48 +30,35 @@ const uploadMiddleware = getUploadMiddleware();
  *      ]
  *  }
  */
-sponsorsRouter.get('', async (req, res) => {
-  var page = 1;
+sponsorsRouter.get(
+  '',
+  query_positive_integer('page').optional(),
+  query('page').default(1),
+  handleValidationErrors,
+  async (req, res) => {
+    var page = Number(req.query.page);
+    
+    try {
+      const sponsors = await getCacheOrFetch(req, Sponsors.getAll, [page]);
 
-  const cachedSponsors = cache.get(req.originalUrl);
-
-  if ('page' in req.query) {
-    page = validator.toInt(req.query.page as string);
-
-    if (isNaN(page)) {
-      return invalidValueForParameter('page', res);
+      res.status(200).json({
+        sponsors: sponsors,
+        types: Object.keys(SponsorType),
+        next_page: page + 1
+      });
+    } catch (_) {
+      if (!res.headersSent) {
+        internalServerError(res);
+      }
     }
-  }
-
-  if (cachedSponsors && !(await Users.checkValidApiKey(req))) {
-    return res.status(200).json({
-      sponsors: cachedSponsors,
-      types: Object.keys(SponsorType),
-      next_page: page + 1
-    });
-  }
-  
-  try {
-    const sponsors = await Sponsors.getAll(page);
-
-    res.status(200).json({
-      sponsors: sponsors,
-      types: Object.keys(SponsorType),
-      next_page: page + 1
-    });
-
-    cache.set(req.originalUrl, sponsors);
-  } catch (_) {
-    if (!res.headersSent) {
-      internalServerError(res);
-    }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/sponsors/add
  * 
  * @param title string (required)
+ * @param type SponsorType (required)
  * @param description string
  * @param image File
  * 
@@ -84,64 +72,57 @@ sponsorsRouter.get('', async (req, res) => {
  *      }
  *  }
  */
-sponsorsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.SPONSORS), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
+sponsorsRouter.put(
+  '/add',
+  Users.checkAuth,
+  checkPermissions(Permission.SPONSORS),
+  checkReadOnly,
+  uploadMiddleware,
+  body_non_empty_string('title'),
+  body_non_empty_string('description').optional(),
+  body_enum('type', SponsorType),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
+    }
 
-  if (!('title' in req.body)) {
-    return missingRequiredParameter('title', res);
-  }
+    const user = req.user!;
+    const sponsor: Sponsor = {
+      title: req.body.title,
+      type: req.body.type,
+      description: req.body.description,
+    };
 
-  if (!('type' in req.body)) {
-    return missingRequiredParameter('type', res);
-  }
-
-  const title = validator.escape(req.body.title.trim());
-  const type = (req.body.type as string).toUpperCase() as SponsorType;
-
-  if (validator.isEmpty(title)) {
-    return invalidValueForParameter('title', res);
-  }
-
-  const sponsor: Sponsor = {
-    title: title,
-    type: type
-  };
-
-  if ('description' in req.body) {
-    sponsor.description = validator.escape(req.body.description);
-  }
-
-  if (req.files && 'image' in req.files) {
-    try {
-      sponsor.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        sponsor.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  try {
-    res.status(200).json({
-      sponsor: await new Sponsors(user.id).add(sponsor)
-    });
-  } catch (_) {
-    internalServerError(res);
-  }
-});
+    try {
+      res.status(200).json({
+        sponsor: await new Sponsors(user.id).add(sponsor)
+      });
+    } catch (_) {
+      internalServerError(res);
+    }
+  },
+);
 
 /**
  * [POST] /api/v1.0/sponsors/edit
  * 
  * @param id number (required)
  * @param title string
+ * @param type SponsorType
  * @param description string
  * @param image File
  * 
@@ -155,65 +136,56 @@ sponsorsRouter.put('/add', Users.checkAuth, checkPermissions(Permission.SPONSORS
  *      }
  *  }
  */
-sponsorsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.SPONSORS), checkReadOnly, uploadMiddleware, async (req, res) => {
-  // Incase the file upload was aborted
-  if (res.headersSent) {
-    return;
-  }
-  
-  const user = req.user!;
-  const sponsor: OrNull<Sponsor> = {};
-
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if ('title' in req.body) {
-    sponsor.title = validator.escape(req.body.title.trim());
-
-    if (validator.isEmpty(sponsor.title)) {
-      return invalidValueForParameter('title', res);
+sponsorsRouter.patch(
+  '/edit',
+  Users.checkAuth,
+  checkPermissions(Permission.SPONSORS),
+  checkReadOnly,
+  uploadMiddleware,
+  body_positive_integer('id'),
+  body_non_empty_string('title').optional(),
+  body_non_empty_string('description').optional(),
+  body_enum('type', SponsorType).optional(),
+  handleValidationErrors,
+  async (req, res) => {
+    // Incase the file upload was aborted
+    if (res.headersSent) {
+      return;
     }
-  }
+    
+    const user = req.user!;
+    const id = Number(req.body.id);
+    const sponsor: OrNull<Sponsor> = {
+      title: req.body.title,
+      type: req.body.type,
+      description: req.body.description,
+    };
 
-  if ('type' in req.body) {
-    sponsor.type = (req.body.type as string).toUpperCase() as SponsorType;
-
-    if (!(sponsor.type in SponsorType)) {
-      return invalidValueForParameter('type', res);
-    }
-  }
-
-  if ('description' in req.body) {
-    sponsor.description = validator.escape(req.body.description);
-  }
-
-  if (req.files && 'image' in req.files) {
-    try {
-      sponsor.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
-    } catch (err) {
-      if (err instanceof ClientError) {
-        return badRequestError(err, res);
-      } else {
-        return internalServerError(res);
+    if (req.files && 'image' in req.files) {
+      try {
+        sponsor.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+      } catch (err) {
+        if (err instanceof ClientError) {
+          return badRequestError(err, res);
+        } else {
+          return internalServerError(res);
+        }
       }
     }
-  }
 
-  try {
-    res.status(200).json({
-      sponsor: await new Sponsors(user.id).edit(id, sponsor)
-    });
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      res.status(200).json({
+        sponsor: await new Sponsors(user.id).edit(id, sponsor)
+      });
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 /**
  * [POST] /api/v1.0/sponsors/delete
@@ -223,29 +195,28 @@ sponsorsRouter.patch('/edit', Users.checkAuth, checkPermissions(Permission.SPONS
  * @response JSON
  *  {}
  */
-sponsorsRouter.delete('/delete', Users.checkAuth, checkPermissions(Permission.SPONSORS), checkReadOnly, async (req, res) => {
-  const user = req.user!;
+sponsorsRouter.delete(
+  '/delete',
+  Users.checkAuth,
+  checkPermissions(Permission.SPONSORS),
+  checkReadOnly,
+  body_positive_integer('id'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const id = Number(req.body.id);
 
-  if (!('id' in req.body)) {
-    return missingRequiredParameter('id', res);
-  }
-
-  const id = validator.toInt(req.body.id);
-
-  if (isNaN(id)) {
-    return invalidValueForParameter('id', res);
-  }
-
-  try {
-    await new Sponsors(user.id).delete(id);
-    res.status(200).json({});
-  } catch (err) {
-    if (err instanceof ClientError) {
-      badRequestError(err, res);
-    } else {
-      internalServerError(res);
+    try {
+      await new Sponsors(user.id).delete(id);
+      res.status(200).json({});
+    } catch (err) {
+      if (err instanceof ClientError) {
+        badRequestError(err, res);
+      } else {
+        internalServerError(res);
+      }
     }
-  }
-});
+  },
+);
 
 export default sponsorsRouter;

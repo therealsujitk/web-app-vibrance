@@ -33,7 +33,11 @@ version_1_0.use('/team', teamRouter);
 
 version_1_0.all('/*', (req, res) => {
   res.status(404).json({
-    error: 'Invalid API endpoint or request method used.'
+    errors: [
+      {
+        message: 'Invalid API endpoint or request method used.'
+      }
+    ]
   });
 });
 

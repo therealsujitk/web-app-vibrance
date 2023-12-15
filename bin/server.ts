@@ -1,12 +1,13 @@
 import app from '../app';
+import http from 'http';
 import { PORT } from '../config';
 
-const http = require('http').createServer(app);
+const httpServer = http.createServer(app);
 const port = PORT || 3000;
 
 /*
   Starting the listener
  */
-http.listen(port, () => {
+httpServer.listen(port, () => {
   console.log('listening on *:' + port);
 });

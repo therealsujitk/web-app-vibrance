@@ -9,24 +9,30 @@ export class InvalidMIMEType extends ClientError {
 
 export function badRequestError(err: Error, res: Response) {
   res.status(400).json({
-    error: err.message
+    errors: [
+      {
+        message: err.message
+      }
+    ]
   });
 }
 
 export function internalServerError(res: Response) {
   res.status(500).json({
-    error: 'An internal server error occurred.'
+    errors: [
+      {
+        message: 'An internal server error occurred.'
+      }
+    ]
   });
 }
 
 export function missingRequiredParameter(param: string, res: Response) {
   res.status(400).json({
-    error: `Missing required parameter '${param}'.`
-  });
-}
-
-export function invalidValueForParameter(param: string, res: Response) {
-  res.status(400).json({
-    error: `Invalid value for the parameter '${param}'.`
+    errors: [
+      {
+        message: `Missing required parameter '${param}'.`
+      }
+    ]
   });
 }

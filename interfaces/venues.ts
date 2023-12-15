@@ -137,7 +137,7 @@ export default class Venues {
       const code = getMysqlErrorCode(err);
 
       if ((code as string).startsWith('ER_ROW_IS_REFERENCED')) {
-        throw new ClientError("Venue is being used by one or more rooms.");
+        throw new ClientError("Venue contains one or more rooms or is being used by one or more events.");
       } else {
         throw err;
       }
