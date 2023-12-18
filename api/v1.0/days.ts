@@ -5,7 +5,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { getUTCFromString, OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors, toNumber } from '../utils/helpers';
 import { body_date, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 import { query } from 'express-validator';
 
@@ -36,7 +36,7 @@ daysRouter.get(
   query('query').optional(),
   handleValidationErrors,
   async (req: Request, res: Response) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
     const query = req.query.query as string|undefined;
 
     try {
@@ -126,7 +126,7 @@ daysRouter.patch(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const day: OrNull<Day> = {
       title: req.body.title,
       date: req.body.date && getUTCFromString(req.body.date),
@@ -164,7 +164,7 @@ daysRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Days(user.id).deleteDay(id);

@@ -1,3 +1,4 @@
+import Analytics from "./analytics";
 import AuditLog from "./audit-log";
 import Categories from "./categories";
 import Days from "./days";
@@ -13,6 +14,7 @@ import Users from "./users";
 import Venues from "./venues";
 
 export {
+    Analytics,
     AuditLog,
     Categories,
     Days,

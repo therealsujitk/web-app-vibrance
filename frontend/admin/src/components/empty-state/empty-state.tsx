@@ -9,7 +9,7 @@ export default class EmptyState extends React.Component<EmptyStateProps, {}> {
 
   render() {
     return (
-      <div style={{paddingLeft: 50, paddingRight: 50, paddingTop: 100}}>
+      <div style={{paddingLeft: 50, paddingRight: 50, paddingTop: 100, paddingBottom: 100}}>
         <Typography variant="h5" color="text.secondary" style={{ textAlign: 'center' }}>
           {this.props.children ?? 'There\'s nothing here.'}
         </Typography>

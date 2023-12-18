@@ -1,6 +1,5 @@
 import { Box, CircularProgress, circularProgressClasses, Typography } from "@mui/material";
 
-
 export default function MetricItem(props: {name: string, value: number, total: number, unit?: string}) {
   const normalise = (value: number, total: number) => (value * 75) / (total);
 

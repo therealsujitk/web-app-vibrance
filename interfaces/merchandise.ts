@@ -75,8 +75,12 @@ export default class Merchandise {
   async edit(id : number, merchandise: OrNull<MerchandiseModel>) {
     const old = await this.#get(id);
     merchandise.title = merchandise.title ?? old.title;
-    merchandise.image = merchandise.image ?? old.image;
     merchandise.cost = merchandise.cost ?? old.cost;
+
+    if (merchandise.image !== null) {
+      merchandise.image = merchandise.image ?? old.image;
+    }
+
     const existing = await Images.get(merchandise.image);
 
     if (isEqual<MerchandiseModel>(old, merchandise as MerchandiseModel)) {

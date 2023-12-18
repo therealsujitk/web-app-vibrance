@@ -1,8 +1,9 @@
 import { Box } from "@mui/material";
 import { Chart as ChartJS, ChartDataset, LegendItem, ChartData, CategoryScale, LinearScale, PointElement, LineElement, Legend } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { formatDuration, formatNumber } from "../../../utils/helpers";
 
-export default function AnalyticsLineChart(props: {data: ChartData<"line", number[], string>, style?: {[x: string]: any}}) {
+export default function AnalyticsLineChart(props: {data: ChartData<"line", number[], string>, style?: {[x: string]: any}, type: 'number'|'duration'}) {
   ChartJS.register([
     CategoryScale,
     LinearScale,
@@ -51,6 +52,15 @@ export default function AnalyticsLineChart(props: {data: ChartData<"line", numbe
                 });
               },
               usePointStyle: true,
+            },
+          },
+        },
+        scales: {
+          y: {
+            ticks: {
+              callback: function(val, _) {
+                return props.type === 'duration' ? formatDuration(val as number) : formatNumber(val as number);
+              },
             }
           }
         }

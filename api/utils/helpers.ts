@@ -34,7 +34,7 @@ export function handleValidationErrors(req: Request, res: Response, next: NextFu
     return next();
   }
 
-  res.status(400).json({ errors: errors.array().map(e => ({message: e.msg})) });
+  res.status(400).json({ errors: errors.array().filter(e => e.msg !== 'Invalid value').map(e => ({message: e.msg})) });
 }
 
 export function checkPermissions(permissions = 0) {
@@ -128,6 +128,11 @@ export async function checkReadOnly(req: Request, res: Response, next: NextFunct
   } catch (_) {
     return internalServerError(res);
   }
+}
+
+export function toNumber(s: any) {
+  const number = Number(s);
+  return isNaN(number) ? undefined : number;
 }
 
 export const cache = cacheObject;

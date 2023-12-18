@@ -6,7 +6,7 @@ import { Venue } from '../../models/venue';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, handleValidationErrors, toNumber } from '../utils/helpers';
 import { query } from 'express-validator';
 import { body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 
@@ -47,7 +47,7 @@ venuesRouter.get(
   query('query').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
     const query = req.query.query as string|undefined;
 
     try {
@@ -57,7 +57,7 @@ venuesRouter.get(
         venues: venues,
         next_page: page + 1
       });
-    } catch (e) {console.log(e)
+    } catch (e) {
       if (!res.headersSent) {
         internalServerError(res);
       }
@@ -125,7 +125,7 @@ venuesRouter.patch(
   handleValidationErrors,
   async (req, res) => {
   const user = req.user!;
-  const id = Number(req.body.id);
+  const id = toNumber(req.body.id)!;
   const venue: OrNull<Venue> = {
     title: req.body.title,
   };
@@ -161,7 +161,7 @@ venuesRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Venues(user.id).delete(id);
@@ -204,8 +204,8 @@ venuesRouter.delete(
   query_positive_integer('venue_id'),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
-    const venueId = Number(req.query.venue_id);
+    const page = toNumber(req.query.page)!;
+    const venueId = toNumber(req.query.venue_id);
 
     try {
       const rooms = await getCacheOrFetch(req, Rooms.getAll, [venueId, page]);
@@ -249,7 +249,7 @@ venuesRouter.put(
   async (req, res) => {
     const user = req.user!;
     const room: Room = {
-      venue_id: Number(req.body.venue_id),
+      venue_id: toNumber(req.body.venue_id)!,
       title: req.body.title,
     }
 
@@ -295,9 +295,9 @@ venuesRouter.put(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const room: OrNull<Room> = {
-      venue_id: req.body.venue_id ? Number(req.body.venue_id) : undefined,
+      venue_id: req.body.venue_id ? toNumber(req.body.venue_id) : undefined,
       title: req.body.title,
     };
 
@@ -333,7 +333,7 @@ venuesRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Rooms(user.id).delete(id);

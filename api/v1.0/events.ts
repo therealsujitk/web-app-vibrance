@@ -6,9 +6,9 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { getUTCFromString, OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
 import { body, query } from 'express-validator';
-import { body_amount, body_mobile_number, body_non_empty_string, body_positive_integer, body_time, query_date_time, query_positive_integer, query_positive_integer_array } from '../utils/validators';
+import { body_amount, body_mobile_number_or_null, body_non_empty_string, body_positive_integer, body_string_or_null, body_time, query_date_time, query_positive_integer, query_positive_integer_array } from '../utils/validators';
 
 const eventsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -59,7 +59,7 @@ eventsRouter.get(
   query_date_time('after').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
     const query = req.query.query as string|undefined;
     const dayIds = req.query.day_id as unknown as number[];
     const categoryIds = req.query.category_id as unknown as number[];
@@ -129,17 +129,17 @@ eventsRouter.put(
   body_positive_integer('room_id'),
   body_positive_integer('category_id'),
   body_non_empty_string('title'),
-  body_non_empty_string('description').optional(),
+  body_string_or_null('description').optional(),
   body_positive_integer('team_size_min'),
   body_positive_integer('team_size_max').optional(),
   body_time('start_time'),
   body_time('end_time'),
   body_amount('cost'),
-  body('event_id').isInt().optional(),
-  body_non_empty_string('faculty_coordinator_name').optional(),
-  body_mobile_number('faculty_coordinator_mobile').optional(),
-  body_non_empty_string('student_coordinator_name').optional(),
-  body_mobile_number('student_coordinator_mobile').optional(),
+  body('event_id').isInt().optional().withMessage('\'event_id\' must be a valid integer'),
+  body_string_or_null('faculty_coordinator_name').optional(),
+  body_mobile_number_or_null('faculty_coordinator_mobile').optional(),
+  body_string_or_null('student_coordinator_name').optional(),
+  body_mobile_number_or_null('student_coordinator_mobile').optional(),
   handleValidationErrors,
   async (req, res) => {
     // Incase the file upload was aborted
@@ -151,15 +151,15 @@ eventsRouter.put(
     const event: Event = {
       title: req.body.title,
       description: req.body.description,
-      day_id: Number(req.body.day_id),
-      room_id: Number(req.body.room_id),
-      category_id: Number(req.body.category_id),
+      day_id: toNumber(req.body.day_id)!,
+      room_id: toNumber(req.body.room_id)!,
+      category_id: toNumber(req.body.category_id)!,
       start_time: getUTCFromString('2020-01-01 ' + req.body.start_time),
       end_time: getUTCFromString('2020-01-01 ' + req.body.end_time),
-      team_size_min: Number(req.body.team_size_min),
-      team_size_max: Number(req.body.team_size_max ?? req.body.team_size_min),
-      cost: Number(req.body.cost),
-      event_id: Number(req.body.event_id ?? 0),
+      team_size_min: toNumber(req.body.team_size_min)!,
+      team_size_max: toNumber(req.body.team_size_max ?? req.body.team_size_min)!,
+      cost: toNumber(req.body.cost)!,
+      event_id: toNumber(req.body.event_id ?? 0)!,
       faculty_coordinator_name: req.body.faculty_coordinator_name,
       faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
       student_coordinator_name: req.body.student_coordinator_name,
@@ -241,17 +241,17 @@ eventsRouter.patch(
   body_positive_integer('room_id').optional(),
   body_positive_integer('category_id').optional(),
   body_non_empty_string('title').optional(),
-  body_non_empty_string('description').optional(),
+  body_string_or_null('description').optional(),
   body_positive_integer('team_size_min').optional(),
   body_positive_integer('team_size_max').optional(),
   body_time('start_time').optional(),
   body_time('end_time').optional(),
   body_amount('cost').optional(),
-  body('event_id').isInt().optional(),
-  body_non_empty_string('faculty_coordinator_name').optional(),
-  body_mobile_number('faculty_coordinator_mobile').optional(),
-  body_non_empty_string('student_coordinator_name').optional(),
-  body_mobile_number('student_coordinator_mobile').optional(),
+  body('event_id').isInt().optional().withMessage('\'event_id\' must be a valid integer'),
+  body_string_or_null('faculty_coordinator_name').optional(),
+  body_mobile_number_or_null('faculty_coordinator_mobile').optional(),
+  body_string_or_null('student_coordinator_name').optional(),
+  body_mobile_number_or_null('student_coordinator_mobile').optional(),
   handleValidationErrors,
   async (req, res) => {
     // Incase the file upload was aborted
@@ -260,19 +260,19 @@ eventsRouter.patch(
     }
 
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const event: OrNull<Event> = {
       title: req.body.title,
       description: req.body.description,
-      day_id: Number(req.body.day_id),
-      room_id: Number(req.body.room_id),
-      category_id: Number(req.body.category_id),
+      day_id: toNumber(req.body.day_id),
+      room_id: toNumber(req.body.room_id),
+      category_id: toNumber(req.body.category_id),
       start_time: getUTCFromString('2020-01-01 ' + req.body.start_time),
       end_time: getUTCFromString('2020-01-01 ' + req.body.end_time),
-      team_size_min: Number(req.body.team_size_min),
-      team_size_max: Number(req.body.team_size_max),
-      cost: Number(req.body.cost),
-      event_id: Number(req.body.event_id ?? 0),
+      team_size_min: toNumber(req.body.team_size_min),
+      team_size_max: toNumber(req.body.team_size_max),
+      cost: toNumber(req.body.cost),
+      event_id: toNumber(req.body.event_id ?? 0),
       faculty_coordinator_name: req.body.faculty_coordinator_name,
       faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
       student_coordinator_name: req.body.student_coordinator_name,
@@ -323,7 +323,7 @@ eventsRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Events(user.id).delete(id);

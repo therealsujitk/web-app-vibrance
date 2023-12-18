@@ -168,14 +168,33 @@ export default class ProShows {
     proShow.day_id = proShow.day_id ?? old.day_id;
     proShow.room_id = proShow.room_id ?? old.room_id;
     proShow.title = proShow.title ?? old.title;
-    proShow.description = proShow.description ?? old.description;
-    proShow.image = proShow.image ?? old.image;
     proShow.cost = proShow.cost ?? old.cost;
-    proShow.faculty_coordinator_name = proShow.faculty_coordinator_name ?? old.faculty_coordinator_name;
-    proShow.faculty_coordinator_mobile = proShow.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
-    proShow.student_coordinator_name = proShow.student_coordinator_name ?? old.student_coordinator_name;
-    proShow.student_coordinator_mobile = proShow.student_coordinator_mobile ?? old.student_coordinator_mobile;
     proShow.event_id = proShow.event_id ?? old.event_id;
+
+    if (proShow.description !== null) {
+      proShow.description = proShow.description ?? old.description;
+    }
+    
+    if (proShow.image !== null) {
+      proShow.image = proShow.image ?? old.image;
+    }
+
+    if (proShow.faculty_coordinator_name !== null) {
+      proShow.faculty_coordinator_name = proShow.faculty_coordinator_name ?? old.faculty_coordinator_name;
+    }
+
+    if (proShow.faculty_coordinator_mobile !== null) {
+      proShow.faculty_coordinator_mobile = proShow.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
+    }
+
+    if (proShow.student_coordinator_name !== null) {
+      proShow.student_coordinator_name = proShow.student_coordinator_name ?? old.student_coordinator_name;
+    }
+
+    if (proShow.student_coordinator_mobile !== null) {
+      proShow.student_coordinator_mobile = proShow.student_coordinator_mobile ?? old.student_coordinator_mobile;
+    }
+
     const existing = await Images.get(proShow.image);
 
     if (isEqual<ProShow>(oldReduced, proShow as ProShow)) {

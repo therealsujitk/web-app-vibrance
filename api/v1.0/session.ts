@@ -58,9 +58,9 @@ sessionRouter.get('', Users.checkAuth, async (req, res) => {
 sessionRouter.patch(
   '/edit',
   Users.checkAuth,
-  body('username').isString().trim().isAlphanumeric().notEmpty().optional(),
+  body('username').isString().trim().isAlphanumeric().notEmpty().optional().withMessage('\'username\' must be a valid alphanumeric string'),
   body('old_password').isString().notEmpty().optional(),
-  body('password').isString().isStrongPassword().optional(),
+  body('password').isString().isStrongPassword().optional().withMessage('\'password\' is not strong enough'),
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;

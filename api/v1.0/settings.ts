@@ -1,5 +1,4 @@
 import express from 'express';
-import validator from 'validator';
 import { dump } from '../../config/db';
 import { Settings, Users } from '../../interfaces';
 import { Setting, SettingKey } from '../../models/setting';
@@ -67,7 +66,7 @@ settingsRouter.patch(
       if (key in SettingKey) {
         settings.push({
           key: key.toLowerCase() as SettingKey,
-          value: typeof value === 'string' ? validator.escape(value.trim()) : value
+          value: typeof value === 'string' ? value.trim() : value
         });
       }
     }
@@ -97,7 +96,7 @@ settingsRouter.post('/backup', Users.checkAuth, async (req, res) => {
   try {
     const result = await dump();
     res.status(200).download(result.location, result.fileName);
-  } catch (e) {console.log(e);
+  } catch (e) {
     internalServerError(res);
   }
 });

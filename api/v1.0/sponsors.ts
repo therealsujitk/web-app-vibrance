@@ -6,9 +6,9 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
-import { body, query } from 'express-validator';
-import { body_enum, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
+import { query } from 'express-validator';
+import { body_enum, body_non_empty_string, body_positive_integer, body_string_or_null, query_positive_integer } from '../utils/validators';
 
 const sponsorsRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -36,7 +36,7 @@ sponsorsRouter.get(
   query('page').default(1),
   handleValidationErrors,
   async (req, res) => {
-    var page = Number(req.query.page);
+    var page = toNumber(req.query.page)!;
     
     try {
       const sponsors = await getCacheOrFetch(req, Sponsors.getAll, [page]);
@@ -79,7 +79,7 @@ sponsorsRouter.put(
   checkReadOnly,
   uploadMiddleware,
   body_non_empty_string('title'),
-  body_non_empty_string('description').optional(),
+  body_string_or_null('description').optional(),
   body_enum('type', SponsorType),
   handleValidationErrors,
   async (req, res) => {
@@ -144,7 +144,7 @@ sponsorsRouter.patch(
   uploadMiddleware,
   body_positive_integer('id'),
   body_non_empty_string('title').optional(),
-  body_non_empty_string('description').optional(),
+  body_string_or_null('description').optional(),
   body_enum('type', SponsorType).optional(),
   handleValidationErrors,
   async (req, res) => {
@@ -154,7 +154,7 @@ sponsorsRouter.patch(
     }
     
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const sponsor: OrNull<Sponsor> = {
       title: req.body.title,
       type: req.body.type,
@@ -204,7 +204,7 @@ sponsorsRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Sponsors(user.id).delete(id);

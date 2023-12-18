@@ -6,7 +6,7 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
 import { query } from 'express-validator';
 import { body_enum, body_non_empty_string, body_positive_integer, query_enum_array, query_positive_integer } from '../utils/validators';
 
@@ -45,7 +45,7 @@ categoriesRouter.get(
   query('query').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
     const type = req.query.type as CategoryType[];
     const query = req.query.query as string|undefined;
 
@@ -152,7 +152,7 @@ categoriesRouter.patch(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const category: OrNull<Category> = {
       title: req.body.title,
       type: req.body.type as CategoryType,
@@ -202,7 +202,7 @@ categoriesRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Categories(user.id).delete(id);

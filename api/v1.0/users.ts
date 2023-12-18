@@ -1,11 +1,10 @@
 import express from 'express';
-import validator from 'validator';
 import { Users } from '../../interfaces';
 import { Permission, User } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, handleValidationErrors } from '../utils/helpers';
+import { checkPermissions, handleValidationErrors, toNumber } from '../utils/helpers';
 import { body, query } from 'express-validator';
 import { body_enum_array, body_positive_integer, query_positive_integer } from '../utils/validators';
 
@@ -45,7 +44,7 @@ usersRouter.get(
   handleValidationErrors,
   checkPermissions(),
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
 
     try {
       res.status(200).json({
@@ -84,8 +83,8 @@ usersRouter.put(
   '/add',
   Users.checkAuth,
   checkPermissions(),
-  body('username').isString().trim().toLowerCase().isAlphanumeric().notEmpty(),
-  body('password').isString().isStrongPassword(),
+  body('username').isString().trim().toLowerCase().isAlphanumeric().notEmpty().withMessage('\'username\' must be a valid alphanumeric string'),
+  body('password').isString().isStrongPassword().withMessage('\'password\' is not strong enough'),
   body_enum_array('permissions', Permission),
   handleValidationErrors,
   async (req, res) => {
@@ -137,13 +136,13 @@ usersRouter.patch(
   Users.checkAuth,
   checkPermissions(),
   body_positive_integer('id'),
-  body('username').isString().trim().toLowerCase().isAlphanumeric().notEmpty().optional(),
-  body('password').isString().notEmpty(),
+  body('username').isString().trim().toLowerCase().isAlphanumeric().notEmpty().optional().withMessage('\'username\' must be a valid alphanumeric string'),
+  body('password').isString().notEmpty().optional().withMessage('\'password\' is not strong enough'),
   body_enum_array('permissions', Permission).optional(),
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const editedUser: OrNull<User> = {
       username: req.body.username,
       password: req.body.password,
@@ -181,7 +180,7 @@ usersRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Users(user.id).delete(id);

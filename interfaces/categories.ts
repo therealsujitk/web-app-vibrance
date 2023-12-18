@@ -74,7 +74,11 @@ export default class Categories {
     const old = await this.#get(id);
     category.title = category.title ?? old.title;
     category.type = category.type ?? old.type;
-    category.image = category.image ?? old.image;
+
+    if (category.image !== null) {
+      category.image = category.image ?? old.image;
+    }
+
     const existing = await Images.get(category.image);
 
     if (isEqual<Category>(old, category as Category)) {

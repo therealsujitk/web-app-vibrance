@@ -12,7 +12,7 @@ export default class Settings {
   }
 
   static async getAll() {
-    return await query("SELECT * FROM `settings`");
+    return await query("SELECT * FROM `settings` WHERE `key` IN (?)", [Object.keys(SettingKey)]);
   }
 
   async #get(keys: SettingKey[]) : Promise<Setting[]> {

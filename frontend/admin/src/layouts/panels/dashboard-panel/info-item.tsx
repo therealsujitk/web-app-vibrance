@@ -1,6 +1,5 @@
 import { Box, Typography } from "@mui/material";
 
-
 export default function InfoItem(props : {package : string; version : string}) {
   return (
     <Box sx={{display: 'flex', flexDirection: 'column'}}>

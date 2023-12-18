@@ -4,15 +4,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
 import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
-import React from "react";
-import validator from 'validator';
+import React, { useState } from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextArea, TextField } from '../../../components';
-import { AppContext, AppContextInterface } from '../../../contexts/app';
-import Network from '../../../utils/network';
+import { AppContext } from '../../../contexts/app';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
+import { BasePanel, BasePanelState } from '../base-panel/base-panel';
 
-interface SponsorsPanelState {
+interface SponsorsPanelState extends BasePanelState {
   /**
    * The list of sponsors
    */
@@ -21,56 +20,31 @@ interface SponsorsPanelState {
   /**
    * The types of sponsors
    */
-  types: string[];
+  sponsorTypes: string[];
 
   /**
-   * The current sponsor details for the dialog
+   * The sponsor currently being edited
    */
-  currentSponsor?: Sponsor;
+  editingSponsor?: Sponsor;
 
   /**
    * If `true`, the AddEditDialog is open
    * @default false
    */
-  isAddEditDialogOpen: boolean;
+  isAddOrEditDialogOpen: boolean;
 
   /**
    * If `true`, the DeleteDialog is open
    * @default false
    */
   isDeleteDialogOpen: boolean;
-
-  /**
-   * If `true`, the panel is in a loading state
-   * @default true
-   */
-  isLoading: boolean;
 }
 
 interface Sponsor {
-  /**
-   * The unique id of the sponsor
-   */
   id: number;
-
-  /**
-   * The title of the sponsor
-   */
   title: string;
-
-  /**
-   * 
-   */
   type: string;
-
-  /**
-   * The date of the categroy
-   */
   description: string;
-
-  /**
-   * The image of the sponsor
-   */
   image: string|null;
 }
 
@@ -99,270 +73,138 @@ function getSponsorType(sponsorKey: string) {
   }
 }
 
-export default class SponsorsPanel extends React.Component<{}, SponsorsPanelState> {
-  apiKey: string;
-  apiBaseUrl: string;
+export default class SponsorPanel extends BasePanel<{}, SponsorsPanelState> {
+  apiEndpoint = '/api/latest/sponsors';
+  apiKey = Cookies.get('apiKey');
+  requireMultipart = true;
 
-  page: number;
-
-  onError?: AppContextInterface['displayError'];
-
-  constructor(props : {}) {
+  constructor(props: {}) {
     super(props);
 
     this.state = {
       sponsors: new Map(),
-      types: [],
-      currentSponsor: undefined,
-      isAddEditDialogOpen: false,
+      sponsorTypes: [],
+      editingSponsor: undefined,
+      isAddOrEditDialogOpen: false,
       isDeleteDialogOpen: false,
-      isLoading: true
+      isLoading: true,
     };
-
-    this.page = 1;
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/sponsors';
-
-    this.openAddDialog.bind(this);
-    this.openEditDialog.bind(this);
-    this.openDeleteDialog.bind(this);
-    this.toggleAddEditDialog.bind(this);
-    this.toggleDeleteDialog.bind(this);
   }
 
-  componentDidMount() {
-    this.getSponsors(this.onError!);
-    document.addEventListener('scroll', this.loadMore);
+  sponsorFromResponse = (sponsor: any): Sponsor => {
+    return {
+      id: sponsor.id,
+      title: sponsor.title,
+      type: sponsor.type,
+      description: sponsor.description,
+      image: sponsor.image,
+    };
   }
 
-  componentWillUnmount() {
-    document.removeEventListener('scroll', this.loadMore);
-  }
+  handleGetResponse(response: any): void {
+    const sponsors = this.state.sponsors;
 
-  loadMore = (event: Event) => {
-    if (this.state.isLoading) {
-      return;
+    for (let i = 0; i < response.sponsors.length; ++i) {
+      const sponsor = response.sponsors[i];
+      sponsors.set(sponsor.id, this.sponsorFromResponse(sponsor));
     }
 
-    const document = event.target as Document;
-    const scrollingElement = document.scrollingElement || document.body;
-
-    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
-      this.setState({ isLoading: true });
-      this.getSponsors(this.onError!);
-    }
+    this.setState({ 
+      sponsors: sponsors,
+      sponsorTypes: response.types,
+    });
   }
 
-  render() {
-    const panelInfo = Drawer.items.sponsors;
+  handlePutResponse(response: any): void {
+    const sponsors = this.state.sponsors;
+    const sponsor = response.sponsor;
+    sponsors.set(sponsor.id, this.sponsorFromResponse(sponsor));
+    this.setState({sponsors: sponsors});
+  }
 
-    const SponsorCard = (props: Sponsor) => (
+  handlePatchResponse(response: any): void {
+    this.handlePutResponse(response);
+  }
+
+  handleDeleteResponse(id: number): void {
+    const sponsors  = this.state.sponsors;
+    sponsors.delete(id);
+    this.setState({sponsors: sponsors});
+  }
+
+  SponsorCard = (sponsor: Sponsor) => {
+    return (
       <Card>
-        {props.image && <CardMedia
+        {sponsor.image && <CardMedia
           component="img"
           height="120"
-          image={props.image}
+          image={sponsor.image}
         />}
         <CardContent>
-          <Typography variant="h5">{props.title}</Typography>
-          <Typography variant="body1">{props.description}</Typography>
-          <Chip size="small" sx={{ mt: 1 }} label={getSponsorType(props.type)} />
+          <Typography variant="h5">{sponsor.title}</Typography>
+          <Typography variant="body1">{sponsor.description}</Typography>
+          <Chip size="small" sx={{ mt: 1 }} label={getSponsorType(sponsor.type)} />
         </CardContent>
         <CardActions disableSpacing>
           <Tooltip title="Edit">
-            <IconButton onClick={() => this.openEditDialog(props)}>
+            <IconButton onClick={() => {
+              this.setState({
+                editingSponsor: sponsor,
+                isAddOrEditDialogOpen: true,
+              });
+            }}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton onClick={() => this.openDeleteDialog(props)}>
+            <IconButton onClick={() => {
+              this.setState({
+                editingSponsor: sponsor,
+                isDeleteDialogOpen: true,
+              });
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
         </CardActions>
       </Card>
     );
+  }
+
+  AddOrEditDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isAddOrEditDialogOpen: false});
+    const sponsor = this.state.editingSponsor;
 
     return (
-      <Box>
-        <AppContext.Consumer>
-          {({displayError}) => <>{this.onError = displayError}</>}
-        </AppContext.Consumer>
-        <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Sponsor</MaterialButton>} />
-        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
-          {this.state.isLoading || this.state.sponsors.size != 0
-            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.sponsors).map(([_, sponsor]) => 
-                <SponsorCard key={sponsor.id} {...sponsor} />)}
-              </Masonry>)
-            : (<EmptyState>No sponsors have been added yet.</EmptyState>)
-          }
-          <Box textAlign="center">
-            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
-          </Box>
-        </Box>
-        <AddEditDialog
-          sponsor={this.state.currentSponsor}
-          types={this.state.types}
-          opened={this.state.isAddEditDialogOpen}
-          onClose={() => this.toggleAddEditDialog(false)}
-          onUpdate={this.saveSponsor} />
-        <DeleteDialog
-          sponsor={this.state.currentSponsor}
-          opened={this.state.isDeleteDialogOpen}
-          onClose={() => this.toggleDeleteDialog(false)}
-          onUpdate={this.deleteSponsor} />
-      </Box>
-    );
-  }
-
-  openAddDialog() {
-    this.setState({currentSponsor: undefined});
-    this.toggleAddEditDialog(true);
-  }
-
-  openEditDialog(sponsor: Sponsor) {
-    this.setState({currentSponsor: sponsor});
-    this.toggleAddEditDialog(true);
-  }
-
-  openDeleteDialog(sponsor: Sponsor) {
-    this.setState({currentSponsor: sponsor});
-    this.toggleDeleteDialog(true);
-  }
-
-  toggleAddEditDialog(isOpen: boolean) {
-    this.setState({isAddEditDialogOpen: isOpen});
-  }
-
-  toggleDeleteDialog(isOpen: boolean) {
-    this.setState({isDeleteDialogOpen: isOpen});
-  }
-
-  getSponsors = async (onError: AppContextInterface['displayError']) => {
-    try {
-      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
-      const sponsors = response.sponsors;
-
-      for (var i = 0; i < sponsors.length; ++i) {
-        if (i === 0) {
-          this.page = response.next_page;
-        }
-
-        const sponsor: Sponsor = {
-          id: sponsors[i].id,
-          title: validator.unescape(sponsors[i].title),
-          type: sponsors[i].type,
-          description: validator.unescape(sponsors[i].description || ''),
-          image: sponsors[i].image
-        };
-
-        this.state.sponsors.set(sponsor.id, sponsor);
-      }
-
-      this.setState({ 
-        sponsors: this.state.sponsors,
-        types: response.types,
-        isLoading: false
-      });
-    } catch (err: any) {
-      onError(err, { name: 'Retry', onClick: () => this.getSponsors(onError) });
-    }
-  }
-
-  saveSponsor = (sponsor: Sponsor) => {
-    this.state.sponsors.set(sponsor.id, sponsor);
-    this.setState({ sponsors: this.state.sponsors });
-  }
-
-  deleteSponsor = (sponsor: Sponsor) => {
-    this.state.sponsors.delete(sponsor.id);
-    this.setState({ sponsors: this.state.sponsors });
-  }
-}
-
-interface SponsorDialogProps {
-  /**
-   * The sponsor being edited or deleted
-   * @default undefined
-   */
-  sponsor?: Sponsor;
-
-  /**
-   * The types of sponsors
-   */
-  types?: string[];
-
-  /**
-   * `true` if the dialog is in it's opened state
-   * @default false
-   */
-  opened?: boolean;
-
-  /**
-   * On close callback function
-   */
-  onClose: () => void;
-
-  /**
-   * On update callback function
-   */
-  onUpdate: (sponsor: Sponsor) => void;
-}
-
-interface SponsorDialogState {
-  /**
-   * `true` if the dialog is in a loading state
-   * @default false
-   */
-  isLoading: boolean;
-}
-
-class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  formRef: React.RefObject<HTMLFormElement>;
-
-  constructor(props: SponsorDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/sponsors';
-
-    this.formRef = React.createRef();
-  }
-  
-  render() {
-    const id = this.props.sponsor?.id;
-    const title = this.props.sponsor ? this.props.sponsor.title : '';
-    const description = this.props.sponsor ? this.props.sponsor.description : '';
-    
-    return(
-      <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
-        <DialogTitle onClose={this.props.onClose}>{this.props.sponsor ? 'Edit' : 'Add'} Sponsor</DialogTitle>
+      <Dialog onClose={onClose} open={this.state.isAddOrEditDialogOpen}>
+        <DialogTitle onClose={onClose}>{sponsor ? 'Edit' : 'Add'} Sponsor</DialogTitle>
         <DialogContent>
           <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
-            <input name="id" value={id} type="hidden" />
+            <input name="id" value={sponsor?.id} type="hidden" />
             <AppContext.Consumer>
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
-                  <ImageInput name="image" defaultValue={this.props.sponsor?.image ?? undefined} onError={displayError} />
-                  <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
+                  <ImageInput name="image" defaultValue={sponsor?.image ?? undefined} onError={displayError} disabled={isLoading} />
+                  <TextField name="title" placeholder="Title" defaultValue={sponsor?.title} disabled={isLoading} />
                   <Select
                     name="type"
-                    defaultValue={this.props.sponsor?.type.toLowerCase() ?? 0}
-                    disabled={this.state.isLoading}>
+                    defaultValue={sponsor?.type.toLowerCase() ?? 0}
+                    disabled={isLoading}>
                     <MenuItem value="0" disabled>Select Type</MenuItem>
-                    {this.props.types!.map((type) => <MenuItem value={type.toLowerCase()}>{getSponsorType(type)}</MenuItem>)}
+                    {this.state.sponsorTypes!.map((type) => <MenuItem value={type.toLowerCase()}>{getSponsorType(type)}</MenuItem>)}
                   </Select>
-                  <TextArea name="description" placeholder="Add a description..." defaultValue={description} />
-                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Sponsor</Button>
+                  <TextArea name="description" placeholder="Add a description..." defaultValue={sponsor?.description} disabled={isLoading} />
+                  <Button 
+                    type="submit" 
+                    isLoading={isLoading} 
+                    variant="contained" 
+                    sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} 
+                    onClick={() => {
+                      setLoading(true);
+                      this.addOrEditItem().then(_ => onClose()).finally(() => setLoading(false));
+                    }}
+                  >Save Sponsor</Button>
                 </Stack>
               )}
             </AppContext.Consumer>
@@ -372,87 +214,54 @@ class AddEditDialog extends React.Component<SponsorDialogProps, SponsorDialogSta
     );
   }
 
-  addEdit = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData(this.formRef.current!);
-      var response;
-
-      if (formData.get('id')) {
-        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
-      } else {
-        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
-      }
-      
-      this.props.onUpdate({
-        id: response.sponsor.id,
-        title: validator.unescape(response.sponsor.title),
-        type: response.sponsor.type,
-        description: validator.unescape(response.sponsor.description || ''),
-        image: response.sponsor.image
-      });
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
-  }
-}
-
-class DeleteDialog extends React.Component<SponsorDialogProps, SponsorDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  constructor(props: SponsorDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/sponsors';
-  }
-  
-  render() {
-    const id = this.props.sponsor?.id;
-    const title = this.props.sponsor ? this.props.sponsor.title : '';
+  DeleteDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isDeleteDialogOpen: false});
+    const sponsor = this.state.editingSponsor;
 
     return (
-      <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
-        <DialogTitle onClose={this.props.onClose}>Delete sponsor</DialogTitle>
+      <Dialog onClose={onClose} open={this.state.isDeleteDialogOpen}>
+        <DialogTitle onClose={onClose}>Delete sponsor</DialogTitle>
         <DialogContent>
-          <input value={id} type="hidden" disabled />
+          <input value={sponsor?.id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
-            <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Sponsor</Button>
-              )}
-            </AppContext.Consumer>
+            <Typography>Are you sure you want to delete <b>{sponsor?.title}</b>?</Typography>
+            <Button 
+              isLoading={isLoading} 
+              variant="contained" 
+              onClick={() => {
+                setLoading(true);
+                this.deleteItem(sponsor!.id).then(_ => onClose()).finally(() => setLoading(false));
+              }}
+            >Delete Sponsor</Button>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
-
-  delete = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData();
-      formData.append("id", this.props.sponsor!.id.toString());
-
-      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
-      
-      this.props.onUpdate(this.props.sponsor!);
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
+  
+  render(): React.ReactNode {
+    return (
+      <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
+        <PanelHeader {...Drawer.items.sponsors} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.setState({editingSponsor: undefined, isAddOrEditDialogOpen: true})}>Add Sponsor</MaterialButton>} />
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.sponsors.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.sponsors).map(([_, sponsor]) => 
+                <this.SponsorCard key={sponsor.id} {...sponsor} />)}
+              </Masonry>)
+            : (<EmptyState>No sponsors have been added yet.</EmptyState>)
+          }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
+        </Box>
+        <this.AddOrEditDialog />
+        <this.DeleteDialog />
+      </Box>
+    );
   }
 }

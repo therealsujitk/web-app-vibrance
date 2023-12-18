@@ -6,10 +6,8 @@ export default defineConfig({
   base: '/admin',
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        secure: false
-      }
+      '/api': 'http://localhost:8080',
+      '/uploads': 'http://localhost:8080',
     }
   },
   plugins: [react()],

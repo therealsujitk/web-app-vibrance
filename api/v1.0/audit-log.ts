@@ -1,7 +1,7 @@
 import express from 'express';
 import { AuditLog, Users } from '../../interfaces';
 import { internalServerError } from '../utils/errors';
-import { checkPermissions, handleValidationErrors } from '../utils/helpers';
+import { checkPermissions, handleValidationErrors, toNumber } from '../utils/helpers';
 import { query } from 'express-validator';
 import { query_positive_integer, query_positive_integer_array } from '../utils/validators';
 
@@ -38,7 +38,7 @@ auditLogRouter.get(
   query_positive_integer_array('actor_id').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
     const actorIds = req.query.actor_id as unknown as number[];
 
     try {

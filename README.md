@@ -8,14 +8,13 @@ A web application for VIT Chennai's cultural festival with a built-in Rest API f
 
 ## Links
 
-- [Admin Panel](https://vitvibrance.onrender.com/admin)
-- [API Documentation](https://vitvibrance.onrender.com/docs)
-- [GitHub Repository](https://github.com/therealsujitk/web-app-vibrance)
+- [Admin Panel](https://vitvibrance.adaptable.app/admin)
+- [API Documentation](https://vitvibrance.adaptable.app/docs)
 - [Donate](https://therealsuji.tk/donate)
 
 ## Requirements
 
-- Node.js 12+
+- Node.js 18+
 - MySQL 5.6+ or MariaDB 10.0.5+
 
 ## Installation & Setup
@@ -65,7 +64,7 @@ $ yarn build
 
 > **Note:** All of the commands above are executed only in the project's root directory, ensure not to run them in sub-directories.
 
-> **Note:** The migration/build step automatically creates a default user with the username 'admin' and password 'password' for you to sign in to the admin panel.
+> **Note:** The migration/build step automatically creates a default user with the username '**admin**' and password '**password**' for you to sign in to the admin panel.
 
 ## Usage
 

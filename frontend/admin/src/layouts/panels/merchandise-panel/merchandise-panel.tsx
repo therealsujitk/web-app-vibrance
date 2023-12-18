@@ -5,321 +5,160 @@ import EditIcon from '@mui/icons-material/Edit';
 import { Masonry } from '@mui/lab';
 import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, CircularProgress, DialogContent, IconButton, InputAdornment, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
-import React from "react";
-import validator from "validator";
+import { useState } from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextField } from '../../../components';
-import { AppContext, AppContextInterface } from '../../../contexts/app';
-import Network from '../../../utils/network';
+import { AppContext } from '../../../contexts/app';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
+import { BasePanel, BasePanelState } from '../base-panel/base-panel';
 
-interface MerchandisePanelState {
+interface MerchandisePanelState extends BasePanelState {
   /**
    * The list of merchandise
    */
   merchandise: Map<number, Merchandise>;
 
   /**
-   * The current merchandise details for the dialog
+   * The murchandise currently being edited
    */
-  currentMerchandise?: Merchandise;
+  editingMerchandise?: Merchandise;
 
   /**
    * If `true`, the AddEditDialog is open
    * @default false
    */
-  isAddEditDialogOpen: boolean;
+  isAddOrEditDialogOpen: boolean;
 
   /**
    * If `true`, the DeleteDialog is open
    * @default false
    */
   isDeleteDialogOpen: boolean;
-
-  /**
-   * If `true`, the panel is in a loading state
-   * @default true
-   */
-  isLoading: boolean;
 }
 
 interface Merchandise {
-  /**
-   * The unique id of the merchandise
-   */
   id: number;
-
-  /**
-   * The title of the merchandise
-   */
   title: string;
-
-  /**
-   * The date of the categroy
-   */
   cost: number;
-
-  /**
-   * The image of the merchandise
-   */
   image: string|null;
 }
 
-export default class MerchandisePanel extends React.Component<{}, MerchandisePanelState> {
-  apiKey: string;
-  apiBaseUrl: string;
+export default class MerchandisePanel extends BasePanel<{}, MerchandisePanelState> {
+  apiEndpoint = '/api/latest/merchandise';
+  apiKey = Cookies.get('apiKey');
+  requireMultipart = true;
 
-  page: number;
-
-  onError?: AppContextInterface['displayError'];
-
-  constructor(props : {}) {
+  constructor(props: {}) {
     super(props);
 
     this.state = {
       merchandise: new Map(),
-      currentMerchandise: undefined,
-      isAddEditDialogOpen: false,
+      editingMerchandise: undefined,
+      isAddOrEditDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
-
-    this.page = 1;
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/merchandise';
-
-    this.openAddDialog.bind(this);
-    this.openEditDialog.bind(this);
-    this.openDeleteDialog.bind(this);
-    this.toggleAddEditDialog.bind(this);
-    this.toggleDeleteDialog.bind(this);
   }
 
-  componentDidMount() {
-    this.getMerchandise(this.onError!);
-    document.addEventListener('scroll', this.loadMore);
+  merchandiseFromResponse = (merchandise: any) : Merchandise => {
+    return {
+      id: merchandise.id,
+      title: merchandise.title,
+      cost: merchandise.cost,
+      image: merchandise.image,
+    };
   }
 
-  componentWillUnmount() {
-    document.removeEventListener('scroll', this.loadMore);
-  }
+  handleGetResponse(response: any): void {
+    const merchandise = this.state.merchandise;
 
-  loadMore = (event: Event) => {
-    if (this.state.isLoading) {
-      return;
+    for (let i = 0; i < response.merchandise.length; ++i) {
+      const merch = response.merchandise[i];
+      merchandise.set(merch.id, this.merchandiseFromResponse(merch));
     }
 
-    const document = event.target as Document;
-    const scrollingElement = document.scrollingElement || document.body;
-
-    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
-      this.setState({ isLoading: true });
-      this.getMerchandise(this.onError!);
-    }
+    this.setState({ merchandise: merchandise });
+  }
+  handlePutResponse(response: any): void {
+    const merchandise = this.state.merchandise;
+    const merch = response.merchandise;
+    merchandise.set(merch.id, this.merchandiseFromResponse(merch));
+    this.setState({merchandise: merchandise});
+  }
+  handlePatchResponse(response: any): void {
+    this.handlePutResponse(response);
+  }
+  handleDeleteResponse(id: number): void {
+    const merchandise = this.state.merchandise;
+    merchandise.delete(id);
+    this.setState({merchandise: merchandise});
   }
 
-  render() {
-    const panelInfo = Drawer.items.merchandise;
-
-    const MerchandiseCard = (props: Merchandise) => (
+  MerchandiseCard = (merchandise: Merchandise) => {
+    return (
       <Card>
-        {props.image && <CardMedia
+        {merchandise.image && <CardMedia
           component="img"
           height="120"
-          image={props.image}
+          image={merchandise.image}
         />}
         <CardContent>
-          <Typography variant="h5">{props.title}</Typography>
+          <Typography variant="h5">{merchandise.title}</Typography>
           <Typography variant="body1" sx={{display: 'flex', alignItems: 'center'}}>
-            {props.cost != 0
-              ? <><CurrencyRupee sx={{ fontSize: 20 }} />&nbsp;{props.cost.toFixed(2)}</>
+            {merchandise.cost != 0
+              ? <><CurrencyRupee sx={{ fontSize: 20 }} />&nbsp;{merchandise.cost.toFixed(2)}</>
               : 'Free'
             }
           </Typography>
         </CardContent>
         <CardActions disableSpacing>
           <Tooltip title="Edit">
-            <IconButton onClick={() => this.openEditDialog(props)}>
+            <IconButton onClick={() => {
+              this.setState({
+                editingMerchandise: merchandise,
+                isAddOrEditDialogOpen: true,
+              });
+            }}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton onClick={() => this.openDeleteDialog(props)}>
+            <IconButton onClick={() => {
+              this.setState({
+                editingMerchandise: merchandise,
+                isDeleteDialogOpen: true,
+              });
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
         </CardActions>
       </Card>
     );
+  }
+
+  AddOrEditDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isAddOrEditDialogOpen: false});
+    const merchandise = this.state.editingMerchandise;
 
     return (
-      <Box>
-        <AppContext.Consumer>
-          {({displayError}) => <>{this.onError = displayError}</>}
-        </AppContext.Consumer>
-        <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Merchandise</MaterialButton>} />
-        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
-          {this.state.isLoading || this.state.merchandise.size != 0
-            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.merchandise).map(([_, merchandise]) => 
-                <MerchandiseCard key={merchandise.id} {...merchandise} />)}
-              </Masonry>)
-            : (<EmptyState>No merchandise have been added yet.</EmptyState>)
-          }
-          <Box textAlign="center">
-            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
-          </Box>
-        </Box>
-        <AddEditDialog
-          merchandise={this.state.currentMerchandise}
-          opened={this.state.isAddEditDialogOpen}
-          onClose={() => this.toggleAddEditDialog(false)}
-          onUpdate={this.saveMerchandise} />
-        <DeleteDialog
-          merchandise={this.state.currentMerchandise}
-          opened={this.state.isDeleteDialogOpen}
-          onClose={() => this.toggleDeleteDialog(false)}
-          onUpdate={this.deleteMerchandise} />
-      </Box>
-    );
-  }
-
-  openAddDialog() {
-    this.setState({currentMerchandise: undefined});
-    this.toggleAddEditDialog(true);
-  }
-
-  openEditDialog(merchandise: Merchandise) {
-    this.setState({currentMerchandise: merchandise});
-    this.toggleAddEditDialog(true);
-  }
-
-  openDeleteDialog(merchandise: Merchandise) {
-    this.setState({currentMerchandise: merchandise});
-    this.toggleDeleteDialog(true);
-  }
-
-  toggleAddEditDialog(isOpen: boolean) {
-    this.setState({isAddEditDialogOpen: isOpen});
-  }
-
-  toggleDeleteDialog(isOpen: boolean) {
-    this.setState({isDeleteDialogOpen: isOpen});
-  }
-
-  getMerchandise = async (onError: AppContextInterface['displayError']) => {
-    try {
-      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
-      const merchandise = response.merchandise;
-
-      for (var i = 0; i < merchandise.length; ++i) {
-        if (i === 0) {
-          this.page = response.next_page;
-        }
-        
-        const merch: Merchandise = {
-          id: merchandise[i].id,
-          title: validator.unescape(merchandise[i].title),
-          cost: merchandise[i].cost,
-          image: merchandise[i].image
-        };
-
-        this.state.merchandise.set(merch.id, merch);
-      }
-
-      this.setState({ 
-        merchandise: this.state.merchandise,
-        isLoading: false
-      });
-    } catch (err: any) {
-      onError(err, { name: 'Retry', onClick: () => this.getMerchandise(onError) })
-    }
-  }
-
-  saveMerchandise = (merchandise: Merchandise) => {
-    this.state.merchandise.set(merchandise.id, merchandise);
-    this.setState({ merchandise: this.state.merchandise });
-  }
-
-  deleteMerchandise = (merchandise: Merchandise) => {
-    this.state.merchandise.delete(merchandise.id);
-    this.setState({ merchandise: this.state.merchandise });
-  }
-}
-
-interface MerchandiseDialogProps {
-  /**
-   * The merchandise being edited or deleted
-   * @default undefined
-   */
-  merchandise?: Merchandise;
-
-  /**
-   * `true` if the dialog is in it's opened state
-   * @default false
-   */
-  opened?: boolean;
-
-  /**
-   * On close callback function
-   */
-  onClose: () => void;
-
-  /**
-   * On update callback function
-   */
-  onUpdate: (merchandise: Merchandise) => void;
-}
-
-interface MerchandiseDialogState {
-  /**
-   * `true` if the dialog is in a loading state
-   * @default false
-   */
-  isLoading: boolean;
-}
-
-class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  formRef: React.RefObject<HTMLFormElement>;
-
-  constructor(props: MerchandiseDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/merchandise';
-
-    this.formRef = React.createRef();
-  }
-  
-  render() {
-    const id = this.props.merchandise?.id;
-    const title = this.props.merchandise ? this.props.merchandise.title : '';
-    const cost = this.props.merchandise ? this.props.merchandise.cost : '';
-    
-    return(
-      <Dialog onClose={this.props.onClose} open={this.props.opened  || false}>
-        <DialogTitle onClose={this.props.onClose}>{this.props.merchandise ? 'Edit' : 'Add'} Merchandise</DialogTitle>
+      <Dialog onClose={onClose} open={this.state.isAddOrEditDialogOpen}>
+        <DialogTitle onClose={onClose}>{merchandise ? 'Edit' : 'Add'} Merchandise</DialogTitle>
         <DialogContent>
           <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
-            <input name="id" value={id} type="hidden" />
+            <input name="id" value={merchandise?.id} type="hidden" />
             <AppContext.Consumer>
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
-                  <ImageInput name="image" defaultValue={this.props.merchandise?.image ?? undefined} onError={displayError} />
-                  <TextField name="title" placeholder="Title" defaultValue={title} disabled={this.state.isLoading} />
+                  <ImageInput name="image" defaultValue={merchandise?.image ?? undefined} onError={displayError} disabled={isLoading} />
+                  <TextField name="title" placeholder="Title" defaultValue={merchandise?.title} disabled={isLoading} />
                   <TextField 
                     name="cost" 
                     placeholder="Cost" 
                     type="number" 
-                    defaultValue={cost} 
+                    defaultValue={merchandise?.cost} 
+                    disabled={isLoading}
                     InputProps={{ 
                       startAdornment: (
                         <InputAdornment position="start">
@@ -328,7 +167,16 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
                       )
                     }}
                   />
-                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Merchandise</Button>
+                  <Button 
+                    type="submit" 
+                    isLoading={isLoading} 
+                    variant="contained" 
+                    sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} 
+                    onClick={() => {
+                      setLoading(true);
+                      this.addOrEditItem().then(_ => onClose()).finally(() => setLoading(false));
+                    }}
+                  >Save Merchandise</Button>
                 </Stack>
               )}
             </AppContext.Consumer>
@@ -338,86 +186,54 @@ class AddEditDialog extends React.Component<MerchandiseDialogProps, MerchandiseD
     );
   }
 
-  addEdit = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData(this.formRef.current!);
-      var response;
-
-      if (formData.get('id')) {
-        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
-      } else {
-        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
-      }
-      
-      this.props.onUpdate({
-        id: response.merchandise.id,
-        title: validator.unescape(response.merchandise.title),
-        cost: response.merchandise.cost,
-        image: response.merchandise.image
-      });
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
-  }
-}
-
-class DeleteDialog extends React.Component<MerchandiseDialogProps, MerchandiseDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  constructor(props: MerchandiseDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/merchandise';
-  }
-  
-  render() {
-    const id = this.props.merchandise?.id;
-    const title = this.props.merchandise ? this.props.merchandise.title : '';
+  DeleteDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isDeleteDialogOpen: false});
+    const merchandise = this.state.editingMerchandise;
 
     return (
-      <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
-        <DialogTitle onClose={this.props.onClose}>Delete Merchandise</DialogTitle>
+      <Dialog onClose={onClose} open={this.state.isDeleteDialogOpen}>
+        <DialogTitle onClose={onClose}>Delete Merchandise</DialogTitle>
         <DialogContent>
-          <input value={id} type="hidden" disabled />
+          <input value={merchandise?.id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
-            <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Merchandise</Button>
-              )}
-            </AppContext.Consumer>
+            <Typography>Are you sure you want to delete <b>{merchandise?.title}</b>?</Typography>
+            <Button 
+              isLoading={isLoading} 
+              variant="contained" 
+              onClick={() => {
+                setLoading(true);
+                this.deleteItem(merchandise!.id).then(_ => onClose()).finally(() => setLoading(false));
+              }}
+            >Delete Merchandise</Button>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
-
-  delete = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData();
-      formData.append("id", this.props.merchandise!.id.toString());
-
-      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
-      
-      this.props.onUpdate(this.props.merchandise!);
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
+  
+  render() {
+    return (
+      <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
+        <PanelHeader {...Drawer.items.merchandise} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.setState({editingMerchandise: undefined, isAddOrEditDialogOpen: true})}>Add Merchandise</MaterialButton>} />
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.merchandise.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
+              {Array.from(this.state.merchandise).map(([_, merchandise]) => 
+                <this.MerchandiseCard key={merchandise.id} {...merchandise} />)}
+              </Masonry>)
+            : (<EmptyState>No merchandise have been added yet.</EmptyState>)
+          }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
+        </Box>
+        <this.AddOrEditDialog />
+        <this.DeleteDialog />
+      </Box>
+    );
   }
 }

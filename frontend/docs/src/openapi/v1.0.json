@@ -3475,7 +3475,19 @@
                     "gallery": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/image"
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/image"
+                          },
+                          {
+                            "properties": {
+                              "image": {
+                                "type": "string",
+                                "example": "https://vitvibrance.com/public/uploads/images/a8f2291dc5e5d67d9947707235b099b2.jpg"
+                              }
+                            }
+                          }
+                        ]
                       }
                     },
                     "next_page": {
@@ -5724,7 +5736,10 @@
             }
           },
           "room": {
-            "type": "string",
+            "type": [
+              "string",
+              null
+            ],
             "readOnly": true,
             "example": {
               "$ref": "#/components/schemas/room/properties/title/example"

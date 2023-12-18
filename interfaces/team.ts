@@ -80,9 +80,19 @@ export default class Team {
     team.name = team.name ?? old.name;
     team.team_name = team.team_name ?? old.team_name;
     team.role = team.role ?? old.role;
-    team.image = team.image ?? old.image;
-    team.phone = team.phone ?? old.phone;
-    team.email = team.email ?? old.email;
+
+    if (team.image !== null) {
+      team.image = team.image ?? old.image;
+    }
+
+    if (team.phone !== null) {
+      team.phone = team.phone ?? old.phone;
+    }
+
+    if (team.email !== null) {
+      team.email = team.email ?? old.email;
+    }
+
     const existing = await Images.get(team.image);
 
     if (isEqual<Team>(old, team as Team)) {

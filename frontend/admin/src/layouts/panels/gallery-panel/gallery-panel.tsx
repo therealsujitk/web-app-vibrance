@@ -3,297 +3,147 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Masonry } from '@mui/lab';
 import { Box, Button as MaterialButton, Card, CardActions, CardMedia, CircularProgress, DialogActions, DialogContent, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Cookies from 'js-cookie';
-import React from "react";
+import { useState } from "react";
 import { Button, Dialog, DialogTitle, EmptyState, Image as ImageView, MultiImageInput } from '../../../components';
-import { AppContext, AppContextInterface } from '../../../contexts/app';
-import Network from '../../../utils/network';
+import { AppContext } from '../../../contexts/app';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
+import { BasePanel, BasePanelState } from '../base-panel/base-panel';
 
-interface GalleryPanelState {
+interface GalleryPanelState extends BasePanelState {
   /**
    * The list of gallery
    */
   gallery: Map<number, Image>;
 
   /**
-   * The current image details for the dialog
+   * The image currently being deleted
    */
-  currentImage?: Image;
+  deletingImage?: Image;
 
   /**
    * If `true`, the AddEditDialog is open
    * @default false
    */
-  isAddEditDialogOpen: boolean;
+  isUploadDialogOpen: boolean;
 
   /**
    * If `true`, the DeleteDialog is open
    * @default false
    */
   isDeleteDialogOpen: boolean;
-
-  /**
-   * If `true`, the panel is in a loading state
-   * @default true
-   */
-  isLoading: boolean;
 }
 
 interface Image {
-  /**
-   * The unique id of the image
-   */
   id: number;
-
-  /**
-   * The image
-   */
-  image: string;
+  src: string;
 }
 
-export default class GalleryPanel extends React.Component<{}, GalleryPanelState> {
-  apiKey: string;
-  apiBaseUrl: string;
+export default class GalleryPanel extends BasePanel<{}, GalleryPanelState> {
+  apiEndpoint = '/api/latest/gallery';
+  apiKey = Cookies.get('apiKey');
+  requireMultipart = true;
 
-  page: number;
-
-  onError?: AppContextInterface['displayError'];
-
-  constructor(props : {}) {
+  constructor(props: {}) {
     super(props);
 
     this.state = {
       gallery: new Map(),
-      currentImage: undefined,
-      isAddEditDialogOpen: false,
+      deletingImage: undefined,
+      isUploadDialogOpen: false,
       isDeleteDialogOpen: false,
       isLoading: true
     };
+  };
 
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/gallery';
+  putEndpoint = () => this.apiEndpoint + '/upload';
 
-    this.page = 1;
-
-    this.openAddDialog.bind(this);
-    this.openEditDialog.bind(this);
-    this.openDeleteDialog.bind(this);
-    this.toggleAddEditDialog.bind(this);
-    this.toggleDeleteDialog.bind(this);
+  imageFromResponse = (image: any) => {
+    return {
+      id: image.id,
+      src: image.image,
+    };
   }
 
-  componentDidMount() {
-    this.getGallery(this.onError!);
-    document.addEventListener('scroll', this.loadMore);
-  }
+  handleGetResponse(response: any): void {
+    const gallery = this.state.gallery;
 
-  componentWillUnmount() {
-    document.removeEventListener('scroll', this.loadMore);
-  }
-  
-  loadMore = (event: Event) => {
-    if (this.state.isLoading) {
-      return;
+    for (let i = 0; i < response.gallery.length; ++i) {
+      const image = response.gallery[i];
+      gallery.set(image.id, this.imageFromResponse(image));
     }
 
-    const document = event.target as Document;
-    const scrollingElement = document.scrollingElement || document.body;
-
-    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
-      this.setState({ isLoading: true });
-      this.getGallery(this.onError!);
-    }
+    this.setState({ gallery: gallery });
   }
 
-  render() {
-    const panelInfo = Drawer.items.gallery;
+  handlePutResponse(response: any): void {
+    const gallery = this.state.gallery;
 
-    const ImageCard = (props: Image) => (
+    for (let i = 0; i < response.images.length; ++i) {
+      const image = response.images[i];
+      gallery.set(image.id, this.imageFromResponse(image));
+    }
+
+    this.setState({gallery: gallery});
+  }
+
+  handlePatchResponse(_: any): void {
+    // This function isn't used in this panel
+  }
+
+  handleDeleteResponse(id: number): void {
+    const gallery = this.state.gallery;
+    gallery.delete(id);
+    this.setState({gallery: gallery})
+  }
+
+  ImageCard = (image: Image) => {
+    return (
       <Card>
         <CardMedia
           component="img"
-          image={props.image}
+          image={image.src}
         />
         <CardActions disableSpacing>
           <Tooltip title="Delete">
-            <IconButton onClick={() => this.openDeleteDialog(props)}>
+            <IconButton onClick={() => {
+              this.setState({
+                deletingImage: image,
+                isDeleteDialogOpen: true,
+              })
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
         </CardActions>
-      </Card>);
-
-    return (
-      <Box>
-        <AppContext.Consumer>
-          {({displayError}) => <>{this.onError = displayError}</>}
-        </AppContext.Consumer>
-        <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Images</MaterialButton>} />
-        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
-          {this.state.isLoading || this.state.gallery.size != 0
-            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
-              {Array.from(this.state.gallery).map(([_, image]) => 
-                <ImageCard key={image.id} {...image} />)}
-              </Masonry>)
-            : (<EmptyState>No gallery images have been added yet.</EmptyState>)
-          }
-          <Box textAlign="center">
-            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
-          </Box>
-        </Box>
-        <AddDialog
-          image={this.state.currentImage}
-          opened={this.state.isAddEditDialogOpen}
-          onClose={() => this.toggleAddEditDialog(false)}
-          onUpdate={this.saveImage} />
-        <DeleteDialog
-          image={this.state.currentImage}
-          opened={this.state.isDeleteDialogOpen}
-          onClose={() => this.toggleDeleteDialog(false)}
-          onUpdate={this.deleteImage} />
-      </Box>
+      </Card>
     );
   }
 
-  openAddDialog() {
-    this.setState({currentImage: undefined});
-    this.toggleAddEditDialog(true);
-  }
+  UploadDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isUploadDialogOpen: false});
 
-  openEditDialog(image: Image) {
-    this.setState({currentImage: image});
-    this.toggleAddEditDialog(true);
-  }
-
-  openDeleteDialog(image: Image) {
-    this.setState({currentImage: image});
-    this.toggleDeleteDialog(true);
-  }
-
-  toggleAddEditDialog(isOpen: boolean) {
-    this.setState({isAddEditDialogOpen: isOpen});
-  }
-
-  toggleDeleteDialog(isOpen: boolean) {
-    this.setState({isDeleteDialogOpen: isOpen});
-  }
-
-  getGallery = async (onError: AppContextInterface['displayError']) => {
-    try {
-      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
-      const gallery = response.gallery;
-
-      for (var i = 0; i < gallery.length; ++i) {
-        if (i === 0) {
-          this.page = response.next_page;
-        }
-
-        const image: Image = {
-          id: gallery[i].id,
-          image: gallery[i].image
-        };
-
-        this.state.gallery.set(image.id, image);
-      }
-
-      this.setState({ 
-        gallery: this.state.gallery,
-        isLoading: false
-      });
-    } catch (err: any) {
-      onError(err, { name: 'Retry', onClick: () => this.getGallery(onError) });
-    }
-  }
-
-  saveImage = (images: Image|Image[]) => {
-    if (Array.isArray(images)) {
-      for (var i = 0; i < images.length; ++i) {
-        this.state.gallery.set(images[i].id, images[i]);
-      }
-    } else {
-      this.state.gallery.set(images.id, images);
-    }
-
-    this.setState({ gallery: this.state.gallery });
-  }
-
-  deleteImage = (images: Image|Image[]) => {
-    if (Array.isArray(images)) {
-      for (var i = 0; i < images.length; ++i) {
-        this.state.gallery.delete(images[i].id);
-      }
-    } else {
-      this.state.gallery.delete(images.id);
-    }
-
-    this.setState({ gallery: this.state.gallery });
-  }
-}
-
-interface ImageDialogProps {
-  /**
-   * The image being edited or deleted
-   * @default undefined
-   */
-  image?: Image;
-
-  /**
-   * `true` if the dialog is in it's opened state
-   * @default false
-   */
-  opened?: boolean;
-
-  /**
-   * On close callback function
-   */
-  onClose: () => void;
-
-  /**
-   * On update callback function
-   */
-  onUpdate: (images: Image|Image[]) => void;
-}
-
-interface ImageDialogState {
-  /**
-   * `true` if the dialog is in a loading state
-   * @default false
-   */
-  isLoading: boolean;
-}
-
-class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  formRef: React.RefObject<HTMLFormElement>;
-
-  constructor(props: ImageDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/gallery';
-
-    this.formRef = React.createRef();
-  }
-  
-  render() {    
-    return(
-      <Dialog onClose={this.props.onClose} open={this.props.opened  || false} maxWidth="md" fullWidth>
-        <DialogTitle onClose={this.props.onClose}>Add Images</DialogTitle>
+    return (
+      <Dialog onClose={onClose} open={this.state.isUploadDialogOpen} maxWidth="md" fullWidth>
+        <DialogTitle onClose={onClose}>Add Images</DialogTitle>
           <AppContext.Consumer>
             {({ displayError, displayWarning }) => (
               <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
                 <DialogContent sx={{ pt: 0 }}>
-                  <MultiImageInput name="image" disabled={this.state.isLoading} onError={displayError} onWarning={displayWarning} />
+                  <MultiImageInput name="image" disabled={isLoading} onError={displayError} onWarning={displayWarning} />
                 </DialogContent>
                 <DialogActions>
-                  <Button type="submit" variant="contained" sx={{ mr: 2, mb: 2 }} isLoading={this.state.isLoading} onClick={() => this.add(displayError)}>Upload</Button>
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    sx={{ mr: 2, mb: 2 }} 
+                    isLoading={isLoading} 
+                    onClick={() => {
+                      setLoading(true);
+                      this.addOrEditItem().then(_ => onClose()).finally(() => setLoading(false));
+                    }}
+                  >Upload</Button>
                 </DialogActions>
               </form>
             )}
@@ -302,75 +152,55 @@ class AddDialog extends React.Component<ImageDialogProps, ImageDialogState> {
     );
   }
 
-  add = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData(this.formRef.current!);
-      const response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/upload`, { body: formData }, true);
-      
-      this.props.onUpdate(response.images);
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
-  }
-}
-
-class DeleteDialog extends React.Component<ImageDialogProps, ImageDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  constructor(props: ImageDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/gallery';
-  }
-  
-  render() {
-    const id = this.props.image?.id;
+  DeleteDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isDeleteDialogOpen: false});
+    const image = this.state.deletingImage;
 
     return (
-      <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
-        <DialogTitle onClose={this.props.onClose}>Delete image</DialogTitle>
+      <Dialog onClose={onClose} open={this.state.isDeleteDialogOpen}>
+        <DialogTitle onClose={onClose}>Delete image</DialogTitle>
         <DialogContent>
-          <input value={id} type="hidden" disabled />
+          <input value={image?.id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
-            <ImageView src={this.props.image?.image} />
+            <ImageView src={image?.src} />
             <Typography>Are you sure you want to delete this image?</Typography>
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Image</Button>
-              )}
-            </AppContext.Consumer>
+            <Button
+              isLoading={isLoading} 
+              variant="contained" 
+              onClick={() => {
+                setLoading(true);
+                this.deleteItem(image!.id).then(_ => onClose()).finally(() => setLoading(false));
+              }}
+            >Delete Image</Button>
           </Stack>
         </DialogContent>
       </Dialog>
     );
   }
-
-  delete = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData();
-      formData.append("id", this.props.image!.id.toString());
-
-      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
-      
-      this.props.onUpdate(this.props.image!);
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
+  
+  render() {
+    return (
+      <Box>
+        <AppContext.Consumer>
+          {({displayError}) => <>{this.onError = displayError}</>}
+        </AppContext.Consumer>
+        <PanelHeader {...Drawer.items.gallery} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.setState({isUploadDialogOpen: true})}>Add Images</MaterialButton>} />
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.gallery.size != 0
+            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
+              {Array.from(this.state.gallery).map(([_, image]) => 
+                <this.ImageCard key={image.id} {...image} />)}
+              </Masonry>)
+            : (<EmptyState>No gallery images have been added yet.</EmptyState>)
+          }
+          <Box textAlign="center">
+            <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
+          </Box>
+        </Box>
+        <this.UploadDialog />
+        <this.DeleteDialog />
+      </Box>
+    );
   }
 }

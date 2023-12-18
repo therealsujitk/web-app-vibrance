@@ -4,7 +4,7 @@ import { Gallery, Users } from '../../interfaces';
 import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { internalServerError, missingRequiredParameter, badRequestError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
 import { body, query } from 'express-validator';
 import { body_positive_integer, query_positive_integer } from '../utils/validators';
 
@@ -34,7 +34,7 @@ galleryRouter.get(
   query('page').default(1),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
 
     try {
       const gallery = await getCacheOrFetch(req, Gallery.getAll, [page]);
@@ -131,7 +131,7 @@ galleryRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Gallery(user.id).delete(id);

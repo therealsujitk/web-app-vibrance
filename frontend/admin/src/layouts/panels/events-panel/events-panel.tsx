@@ -7,228 +7,519 @@ import { Masonry } from '@mui/lab';
 import { Autocomplete, Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, InputAdornment, Stack, Tooltip, Typography } from "@mui/material";
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
-import React from "react";
-import validator from "validator";
+import React, { useEffect, useState } from "react";
 import { Button, Dialog, DialogTitle, EmptyState, ImageInput, TextArea, TextField } from '../../../components';
-import { AppContext, AppContextInterface } from '../../../contexts/app';
-import { DomEvent, sleep } from '../../../utils/helpers';
+import { AppContext } from '../../../contexts/app';
+import { DOMEvent } from '../../../utils/helpers';
 import Network from '../../../utils/network';
 import Drawer from "../../drawer/drawer";
 import PanelHeader from "../../panel-header/panel-header";
+import { BasePanel, BasePanelState } from '../base-panel/base-panel';
 
-interface EventsPanelState {
+interface EventsPanelState extends BasePanelState {
   /**
    * The list of events
    */
   events: Map<number, Event>;
 
   /**
-   * The current event details for the dialog
+   * The event currently being edited
    */
-  currentEvent?: Event;
+  editingtEvent?: Event;
 
   /**
    * If `true`, the AddEditDialog is open
    * @default false
    */
-  isAddEditDialogOpen: boolean;
+  isAddOrEditDialogOpen: boolean;
 
   /**
    * If `true`, the DeleteDialog is open
    * @default false
    */
   isDeleteDialogOpen: boolean;
-
-  /**
-   * If `true`, the panel is in a loading state
-   * @default true
-   */
-  isLoading: boolean;
 }
 
 interface Event {
-  /**
-   * The unique id of the event
-   */
   id: number;
-
-  /**
-   * 
-   */
   dayId: number;
-
-  /**
-   * 
-   */
   categoryId: number;
-
-  /**
-   * 
-   */
   venueId: number;
-
-  /**
-   * 
-   */
   roomId: number;
-
-  /**
-   * 
-   */
-  title: string;
-
-  /**
-   * 
-   */
-  description: string;
-
-  /**
-   * 
-   */
-  image: string|null;
-
-  /**
-   * 
-   */
   day: string;
-
-  /**
-   * 
-   */
   category: string;
-
-  /**
-   * 
-   */
   venue: string;
-
-  /**
-   * 
-   */
   room: string|null;
-
-  /**
-   * 
-   */
-  startTime: Date;
-
-  /**
-   * 
-   */
-  endTime: Date;
-
-  /**
-   * 
-   */
+  title: string;
+  description: string|null;
+  image: string|null;
   teamSizeMin: number;
-
-  /**
-   * 
-   */
   teamSizeMax: number;
-
-  /**
-   * 
-   */
+  startTime: Date;
+  endTime: Date;
   cost: number;
-
-  /**
-   * 
-   */
-  facultyCoordinatorName?: string;
-
-  /**
-   * 
-   */
-  facultyCoordinatorMobile?: string;
-
-  /**
-   * 
-   */
-  studentCoordinatorName?: string;
-
-  /**
-   * 
-   */
-  studentCoordinatorMobile?: string;
-
-  /**
-   * 
-   */
+  facultyCoordinatorName: string|null;
+  facultyCoordinatorMobile: string|null;
+  studentCoordinatorName: string|null;
+  studentCoordinatorMobile: string|null;
   eventId: number;
 }
 
-export default class EventsPanel extends React.Component<{}, EventsPanelState> {
-  apiKey: string;
-  apiBaseUrl: string;
+export default class EventsPanel extends BasePanel<{}, EventsPanelState> {
+  apiEndpoint = '/api/latest/events';
+  apiKey = Cookies.get('apiKey');
+  requireMultipart = true;
 
-  page: number;
-
-  onError?: AppContextInterface['displayError'];
-
-  constructor(props : {}) {
+  constructor(props: {}) {
     super(props);
-
+    
     this.state = {
       events: new Map(),
-      currentEvent: undefined,
-      isAddEditDialogOpen: false,
+      editingtEvent: undefined,
+      isAddOrEditDialogOpen: false,
       isDeleteDialogOpen: false,
-      isLoading: true
+      isLoading: true,
     };
-
-    this.page = 1;
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/events';
-
-    this.openAddDialog.bind(this);
-    this.openEditDialog.bind(this);
-    this.openDeleteDialog.bind(this);
-    this.toggleAddEditDialog.bind(this);
-    this.toggleDeleteDialog.bind(this);
   }
 
-  componentDidMount() {
-    this.getEvents(this.onError!);
-    document.addEventListener('scroll', this.loadMore);
+  eventFromResponse = (event: any): Event => {
+    return {
+      id: event.id,
+      dayId: event.day_id,
+      categoryId: event.category_id,
+      venueId: event.venue_id,
+      roomId: event.room_id,
+      day: event.day,
+      category: event.category,
+      venue: event.venue,
+      room: event.room,
+      title: event.title,
+      description: event.description,
+      image: event.image,
+      teamSizeMin: event.team_size_min,
+      teamSizeMax: event.team_size_max,
+      startTime: new Date('2020-01-01 ' + event.start_time),
+      endTime: new Date('2020-01-01 ' + event.end_time),
+      cost: event.cost,
+      facultyCoordinatorName: event.faculty_coordinator_name,
+      facultyCoordinatorMobile: event.faculty_coordinator_mobile,
+      studentCoordinatorName: event.student_coordinator_name,
+      studentCoordinatorMobile: event.student_coordinator_mobile,
+      eventId: event.event_id,
+    };
   }
 
-  componentWillUnmount() {
-    document.removeEventListener('scroll', this.loadMore);
-  }
+  handleGetResponse(response: any): void {
+    const events = this.state.events;
 
-  loadMore = (event: DomEvent) => {
-    if (this.state.isLoading) {
-      return;
+    for (let i = 0; i < response.events.length; ++i) {
+      const event = response.events[i];
+      events.set(event.id, this.eventFromResponse(event));
     }
 
-    const document = event.target as Document;
-    const scrollingElement = document.scrollingElement || document.body;
+    this.setState({ events: events });
+  }
 
-    if (scrollingElement.scrollTop + scrollingElement.clientHeight >= scrollingElement.scrollHeight - 300) {
-      this.setState({ isLoading: true });
-      this.getEvents(this.onError!);
+  handlePutResponse(response: any): void {
+    const events = this.state.events;
+    const event = response.event;
+    events.set(event.id, this.eventFromResponse(event));
+    this.setState({events: events});
+  }
+
+  handlePatchResponse(response: any): void {
+    this.handlePutResponse(response);
+  }
+
+  handleDeleteResponse(id: number): void {
+    const events = this.state.events;
+    events.delete(id);
+    this.setState({events: events});
+  }
+
+  EventCard = (event: Event) => {
+    const [orientation, setOrientation] = useState<'row'|'column'>('column');
+    const [isLoaded, setLoaded] = useState(false);
+    const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement, DOMEvent>) => {
+      const width = e.currentTarget.naturalWidth;
+      const height = e.currentTarget.naturalHeight;
+  
+      if (width > height) {
+        setOrientation('column');
+      } else {
+        setOrientation('row');
+      }
+
+      setLoaded(true);
     }
+
+    return (
+      <Card sx={{ display: 'flex', flexDirection: orientation }}>
+        {event.image && <img 
+          src={event.image} 
+          style={{ position: 'absolute', visibility: 'hidden', width: '10px' }} 
+          onLoad={onImageLoad} 
+        />}
+        {event.image && isLoaded && <CardMedia 
+          sx={{ 
+            minWidth: '40%',
+            maxWidth: orientation == 'row' ? '40%' : '100%',
+            height: orientation == 'row' ? '100%' : '150px'
+          }} 
+          component="img" 
+          image={event.image} 
+        />}
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <CardContent>
+            <Typography variant="h5">{event.title}</Typography>
+            <Typography variant="body1">{event.description}</Typography>
+            <Stack direction="row" sx={{ pt: 1, flexWrap: 'wrap', gap: 1, '& svg': {width: '18px'} }}>
+              <Chip 
+                label={event.category} 
+                icon={Drawer.items.categories.icon} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={event.day} 
+                icon={Drawer.items.days.icon} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={event.venue + (event.room ? ` - ${event.room}` : '')} 
+                icon={Drawer.items.venues.icon} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={format(event.startTime, 'h:mm a') + ' - ' + format(event.endTime, 'h:mm a')} 
+                icon={<Schedule />} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={event.teamSizeMin + (event.teamSizeMin !== event.teamSizeMax ? ` - ${event.teamSizeMax}` : '')} 
+                icon={<FontAwesomeIcon icon={["fas", "users"]} />} 
+                sx={{ pl: 0.5 }}
+              />
+              <Chip 
+                label={event.cost === 0 ? 'Free' : event.cost.toFixed(2)} 
+                icon={<CurrencyRupee />} 
+                sx={{ pl: 0.5 }}
+              />
+              {event.facultyCoordinatorName && <Chip 
+                label={event.facultyCoordinatorName + (event.facultyCoordinatorMobile ? ` - ${event.facultyCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
+              {event.studentCoordinatorName && <Chip 
+                label={event.studentCoordinatorName + (event.studentCoordinatorMobile ? ` - ${event.studentCoordinatorMobile}` : '')} 
+                icon={<Face />} 
+                sx={{ pl: 0.5 }}
+              />}
+            </Stack>
+          </CardContent>
+          <CardActions disableSpacing>
+            <Tooltip title="Edit">
+              <IconButton onClick={() => {
+                this.setState({
+                  editingtEvent: event,
+                  isAddOrEditDialogOpen: true,
+                });
+              }}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton onClick={() => {
+                this.setState({
+                  editingtEvent: event,
+                  isDeleteDialogOpen: true,
+                });
+              }}>
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </CardActions>
+        </Box>
+      </Card>
+    );
+  }
+
+  AddOrEditDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [isDaysLoading, setDaysLoading] = useState(false);
+    const [isCategoriesLoading, setCategoriesLoading] = useState(false);
+    const [isVenuesLoading, setVenuesLoading] = useState(false);
+    const [dayOptions, setDayOptions] = useState<any[]>([]);
+    const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
+    const [venueOptions, setVenueOptions] = useState<any[]>([]);
+    const [dayQuery, setDayQuery] = useState('');
+    const [categoryQuery, setCategoryQuery] = useState('');
+    const [venueQuery, setVenueQuery] = useState('');
+    const [selectedDayId, setDayId] = useState<number>();
+    const [selectedCategoryId, setCategoryId] = useState<number>();
+    const [selectedVenueId, setVenueId] = useState<number>();
+    const onClose = () => this.setState({isAddOrEditDialogOpen: false});
+    const event = this.state.editingtEvent;
+
+    const fetchResults = async (type: 'days'|'categories'|'venues') => {
+      try {
+        const baseUrl = '/api/latest/' + type;
+        const query = type === 'days' ? dayQuery : type === 'categories' ? categoryQuery : venueQuery;
+        const response = await new Network(this.apiKey).doGet(baseUrl, { query: { query: query } });
+        const options: any[] = [];
+
+        for (let i = 0; i < response[type].length; ++i) {
+          if (type === 'days') {
+            options.push({
+              id: response.days[i].id,
+              title: response.days[i].title,
+              date: new Date(response.days[i].date),
+            });
+          } else if (type === 'categories') {
+            options.push({
+              id: response.categories[i].id,
+              title: response.categories[i].title,
+            });
+          } else {
+            for (let j = 0; j < response.venues[i].rooms.length; ++j) {
+              const room = response.venues[i].rooms[j];
+              options.push({
+                id: room.id,
+                title: response.venues[i].title + (room.title ? ' - ' + room.title : ''),
+              });
+            }
+          }
+        }
+
+        if (type === 'days') {
+          if (query !== dayQuery) return;
+        } else if (type === 'categories') {
+          if (query !== categoryQuery) return;
+        } else {
+          if (query !== venueQuery) return;
+        }
+
+        if (type === 'days') {
+          setDayOptions(options);
+          setDaysLoading(false);
+        } else if (type === 'categories') {
+          setCategoryOptions(options);
+          setCategoriesLoading(false);
+        } else {
+          setVenueOptions(options);
+          setVenuesLoading(false);
+        }
+      } catch (err: any) {
+        this.onError?.(err);
+      }
+    }
+
+    useEffect(() => {
+      setDaysLoading(true);
+      const timeout = setTimeout(() => fetchResults('days'), 500);
+      return () => clearTimeout(timeout);
+    }, [dayQuery]);
+
+    useEffect(() => {
+      setCategoriesLoading(true);
+      const timeout = setTimeout(() => fetchResults('categories'), 500);
+      return () => clearTimeout(timeout);
+    }, [categoryQuery]);
+
+    useEffect(() => {
+      setVenuesLoading(true);
+      const timeout = setTimeout(() => fetchResults('venues'), 500);
+      return () => clearTimeout(timeout);
+    }, [venueQuery]);
+
+    useEffect(() => {
+      setDayId(event?.dayId);
+      setCategoryId(event?.categoryId);
+      setVenueId(event?.venueId);
+    }, [this.state.isAddOrEditDialogOpen]);
+
+    return (
+      <Dialog onClose={onClose} open={this.state.isAddOrEditDialogOpen} maxWidth="sm" fullWidth>
+        <DialogTitle onClose={onClose}>{event ? 'Edit' : 'Add'} Event</DialogTitle>
+        <DialogContent>
+          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
+            <input name="id" value={event?.id} type="hidden" />
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
+              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '50%' }}>
+                <ImageInput name="image" style={{ height: 'unset', flexGrow: 1 }} defaultValue={event?.image ?? undefined} />
+                <TextField name="title" placeholder="Title" defaultValue={event?.title} />
+                <TextArea name="description" placeholder="Add a description..." style={{ minWidth: '100%' }} defaultValue={event?.description ?? undefined} />
+              </Stack>
+              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '50%' }}>
+              <Autocomplete
+                  options={dayOptions}
+                  getOptionLabel={(day) => day?.title}
+                  onInputChange={(_, v) => setDayQuery(v)}
+                  onChange={(_, v) => setDayId(v?.id)}
+                  onOpen={() => fetchResults('days')}
+                  onClose={() => setDayOptions([])}
+                  filterOptions={x => x}
+                  defaultValue={event ? { id: event.dayId, title: event.day, date: new Date() } : undefined}
+                  loading={isDaysLoading}
+                  renderInput={(params) => 
+                    <>
+                      <TextField {...params} placeholder="Select a day" InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {isDaysLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }} />
+                      <input name="day_id" value={selectedDayId ?? ''} hidden />
+                    </>
+                  }
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <span>{option.title}</span>
+                      <span style={{ color: 'grey', marginLeft: 'auto', textAlign: 'right' }}>{format(option.date, 'yyyy-MM-dd')}</span>
+                    </Box>
+                  )}
+                  disabled={isLoading}
+                />
+                <Autocomplete
+                  options={categoryOptions}
+                  getOptionLabel={(category) => category?.title}
+                  onInputChange={(_, v) => setCategoryQuery(v)}
+                  onChange={(_, v) => setCategoryId(v?.id)}
+                  onOpen={() => fetchResults('categories')}
+                  onClose={() => setCategoryOptions([])}
+                  filterOptions={x => x}
+                  defaultValue={event ? { id: event.categoryId, title: event.category } : undefined}
+                  loading={isCategoriesLoading}
+                  renderInput={(params) => 
+                    <>
+                      <TextField {...params} placeholder="Select a category" InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {isCategoriesLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }} />
+                      <input name="category_id" value={selectedCategoryId ?? ''} hidden />
+                    </>
+                  }
+                  disabled={isLoading}
+                />
+                <Autocomplete
+                  options={venueOptions}
+                  getOptionLabel={(venue) => venue?.title}
+                  onInputChange={(_, v) => setVenueQuery(v)}
+                  onChange={(_, v) => setVenueId(v?.id)}
+                  onOpen={() => fetchResults('venues')}
+                  onClose={() => setVenueOptions([])}
+                  filterOptions={x => x}
+                  defaultValue={event ? { id: event.roomId, title: event.venue + (event.room ? ' - ' + event.room : '') } : undefined}
+                  loading={isVenuesLoading}
+                  renderInput={(params) => 
+                    <>
+                      <TextField {...params} placeholder="Select a venue" InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {isVenuesLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }} />
+                      <input name="room_id" value={selectedVenueId ?? ''} hidden />
+                    </>
+                  }
+                  disabled={isLoading}
+                />
+                <Stack direction="row" spacing={1}>
+                  <TextField name="team_size_min" placeholder="Min team size" type="number" defaultValue={event?.teamSizeMin} sx={{ flexGrow: 1 }} />
+                  <TextField name="team_size_max" placeholder="Max team size" type="number" defaultValue={event?.teamSizeMax} sx={{ flexGrow: 1 }} />
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <TextField name="start_time" placeholder="Start Time" type="time" defaultValue={event ? format(event.startTime, 'HH:mm') : ''} sx={{ flexGrow: 1 }} />
+                  <TextField name="end_time" placeholder="End Time" type="time" defaultValue={event ? format(event.endTime, 'HH:mm') : ''} sx={{ flexGrow: 1 }} />
+                </Stack>
+                <TextField 
+                  name="cost" 
+                  placeholder="Cost" 
+                  type="number" 
+                  defaultValue={event?.cost} 
+                  InputProps={{ 
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CurrencyRupee sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TextField name="faculty_coordinator_name" placeholder="Faculty Coordinator Name" defaultValue={event?.facultyCoordinatorName} />
+                <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={event?.facultyCoordinatorMobile} />
+                <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={event?.studentCoordinatorName} />
+                <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={event?.studentCoordinatorMobile} />
+                <TextField name="event_id" type="number" placeholder="Event ID" defaultValue={event?.eventId} />
+              </Stack>
+            </Stack>
+            <Stack spacing={1} mt={0.5}>
+                <Button 
+                  type="submit" 
+                  isLoading={isLoading} 
+                  variant="contained" 
+                  sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} 
+                  onClick={() => {
+                    console.log(selectedDayId);
+                    setLoading(true);
+                    this.addOrEditItem().then(_ => onClose()).finally(() => setLoading(false));
+                  }}
+                >Save Event</Button>
+              </Stack>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  DeleteDialog = () => {
+    const [isLoading, setLoading] = useState(false);
+    const onClose = () => this.setState({isDeleteDialogOpen: false});
+    const event = this.state.editingtEvent;
+
+    return (
+      <Dialog onClose={onClose} open={this.state.isDeleteDialogOpen}>
+        <DialogTitle onClose={onClose}>Delete Event</DialogTitle>
+        <DialogContent>
+          <input value={event?.id} type="hidden" disabled />
+          <Stack spacing={2} mt={0.5}>
+            <Typography>Are you sure you want to delete <b>{event?.title}</b>?</Typography>
+            <Button 
+              isLoading={isLoading} 
+              variant="contained" 
+              onClick={() => {
+                setLoading(true);
+                this.deleteItem(event!.id).then(_ => onClose()).finally(() => setLoading(false));
+              }}
+            >Delete Event</Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   render() {
-    const panelInfo = Drawer.items['events'];
-
     return (
       <Box>
         <AppContext.Consumer>
           {({displayError}) => <>{this.onError = displayError}</>}
         </AppContext.Consumer>
-        <PanelHeader title={panelInfo.title} icon={panelInfo.icon} description={panelInfo.description} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.openAddDialog()}>Add Event</MaterialButton>} />
+        <PanelHeader {...Drawer.items.events} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.setState({editingtEvent: undefined, isAddOrEditDialogOpen: true})}>Add Event</MaterialButton>} />
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.events.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
               {Array.from(this.state.events).map(([_, event]) => 
-                <EventCard 
-                  key={event.id} 
-                  onEdit={this.openEditDialog} 
-                  onDelete={this.openDeleteDialog} 
+                <this.EventCard 
+                  key={event.id}
                   {...event} 
                 />)
               }
@@ -239,686 +530,9 @@ export default class EventsPanel extends React.Component<{}, EventsPanelState> {
             <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
           </Box>
         </Box>
-        <AddEditDialog
-          event={this.state.currentEvent}
-          opened={this.state.isAddEditDialogOpen}
-          onClose={() => this.toggleAddEditDialog(false)}
-          onUpdate={this.saveEvent} />
-        <DeleteDialog
-          event={this.state.currentEvent}
-          opened={this.state.isDeleteDialogOpen}
-          onClose={() => this.toggleDeleteDialog(false)}
-          onUpdate={this.deleteEvent} />
+        <this.AddOrEditDialog />
+        <this.DeleteDialog />
       </Box>
     );
-  }
-
-  openAddDialog = () => {
-    this.setState({currentEvent: undefined});
-    this.toggleAddEditDialog(true);
-  }
-
-  openEditDialog = (event: Event) => {
-    this.setState({currentEvent: event});
-    this.toggleAddEditDialog(true);
-  }
-
-  openDeleteDialog = (event: Event) => {
-    this.setState({currentEvent: event});
-    this.toggleDeleteDialog(true);
-  }
-
-  toggleAddEditDialog(isOpen: boolean) {
-    this.setState({isAddEditDialogOpen: isOpen});
-  }
-
-  toggleDeleteDialog(isOpen: boolean) {
-    this.setState({isDeleteDialogOpen: isOpen});
-  }
-
-  getEvents = async (onError: AppContextInterface['displayError']) => {
-    try {
-      const response = await new Network(this.apiKey).doGet(this.apiBaseUrl, { query: { page: this.page } });
-      const events = response.events;
-
-      for (var i = 0; i < events.length; ++i) {
-        if (i === 0) {
-          this.page = response.next_page;
-        }
-
-        const event: Event = {
-          id: events[i].id,
-          dayId: events[i].day_id,
-          categoryId: events[i].category_id,
-          venueId: events[i].venue_id,
-          roomId: events[i].room_id,
-          title: validator.unescape(events[i].title),
-          description: validator.unescape(events[i].description ?? ''),
-          image: events[i].image,
-          day: validator.unescape(events[i].day),
-          category: validator.unescape(events[i].category),
-          venue: validator.unescape(events[i].venue),
-          room: events[i].room !== null ? validator.unescape(events[i].room) : null,
-          teamSizeMin: events[i].team_size_min,
-          teamSizeMax: events[i].team_size_max,
-          startTime: new Date('2020-01-01 ' + events[i].start_time),
-          endTime: new Date('2020-01-01 ' + events[i].end_time),
-          cost: events[i].cost,
-          facultyCoordinatorName: events[i].faculty_coordinator_name,
-          facultyCoordinatorMobile: events[i].faculty_coordinator_mobile,
-          studentCoordinatorName: events[i].student_coordinator_name,
-          studentCoordinatorMobile: events[i].student_coordinator_mobile,
-          eventId: events[i].event_id
-        };
-
-        this.state.events.set(event.id, event);
-      }
-
-      this.setState({ 
-        events: this.state.events,
-        isLoading: false
-      });
-    } catch (err: any) {
-      onError(err, { name: 'Retry', onClick: () => this.getEvents(onError) });
-    }
-  }
-
-  saveEvent = (event: Event) => {
-    this.state.events.set(event.id, event);
-    this.setState({ events: this.state.events });
-  }
-
-  deleteEvent = (event: Event) => {
-    this.state.events.delete(event.id);
-    this.setState({ events: this.state.events });
-  }
-}
-
-interface EventCardProps extends Event {
-  onEdit: (props: Event) => void;
-  onDelete: (props: Event) => void;
-}
-
-interface EventCardState {
-  orientation: 'row'|'column';
-  isLoaded: boolean;
-}
-
-class EventCard extends React.Component<EventCardProps, EventCardState> {
-
-  constructor(props: EventCardProps) {
-    super(props);
-
-    this.state = {
-      orientation: 'column',
-      isLoaded: false
-    }
-  }
-
-  render() {
-    return (
-      <Card sx={{ display: 'flex', flexDirection: this.state.orientation }}>
-        {this.props.image && <img 
-          src={this.props.image} 
-          style={{ position: 'absolute', visibility: 'hidden', width: '10px' }} 
-          onLoad={this.onImageLoad} 
-        />}
-        {this.props.image && this.state.isLoaded && <CardMedia 
-          sx={{ 
-            minWidth: '40%',
-            maxWidth: this.state.orientation == 'row' ? '40%' : '100%',
-            height: this.state.orientation == 'row' ? '100%' : '150px'
-          }} 
-          component="img" 
-          image={this.props.image} 
-        />}
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <CardContent>
-            <Typography variant="h5">{this.props.title}</Typography>
-            <Typography variant="body1">{this.props.description}</Typography>
-            <Stack direction="row" sx={{ pt: 1, flexWrap: 'wrap', gap: 1, '& svg': {width: '18px'} }}>
-              <Chip 
-                label={this.props.category} 
-                icon={Drawer.items.categories.icon} 
-                sx={{ pl: 0.5 }}
-              />
-              <Chip 
-                label={this.props.day} 
-                icon={Drawer.items.days.icon} 
-                sx={{ pl: 0.5 }}
-              />
-              <Chip 
-                label={this.props.venue + (this.props.room ? ` - ${this.props.room}` : '')} 
-                icon={Drawer.items.venues.icon} 
-                sx={{ pl: 0.5 }}
-              />
-              <Chip 
-                label={format(this.props.startTime, 'h:mm a') + ' - ' + format(this.props.endTime, 'h:mm a')} 
-                icon={<Schedule />} 
-                sx={{ pl: 0.5 }}
-              />
-              <Chip 
-                label={this.props.teamSizeMin + (this.props.teamSizeMin !== this.props.teamSizeMax ? ` - ${this.props.teamSizeMax}` : '')} 
-                icon={<FontAwesomeIcon icon={["fas", "users"]} />} 
-                sx={{ pl: 0.5 }}
-              />
-              <Chip 
-                label={this.props.cost === 0 ? 'Free' : this.props.cost.toFixed(2)} 
-                icon={<CurrencyRupee />} 
-                sx={{ pl: 0.5 }}
-              />
-              {this.props.facultyCoordinatorName && <Chip 
-                label={this.props.facultyCoordinatorName + (this.props.facultyCoordinatorMobile ? ` - ${this.props.facultyCoordinatorMobile}` : '')} 
-                icon={<Face />} 
-                sx={{ pl: 0.5 }}
-              />}
-              {this.props.studentCoordinatorName && <Chip 
-                label={this.props.studentCoordinatorName + (this.props.studentCoordinatorMobile ? ` - ${this.props.studentCoordinatorMobile}` : '')} 
-                icon={<Face />} 
-                sx={{ pl: 0.5 }}
-              />}
-            </Stack>
-          </CardContent>
-          <CardActions disableSpacing>
-            <Tooltip title="Edit">
-              <IconButton onClick={() => this.props.onEdit(this.props)}>
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete">
-              <IconButton onClick={() => this.props.onDelete(this.props)}>
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </CardActions>
-        </Box>
-      </Card>
-    );
-  }
-
-  onImageLoad = (e: React.SyntheticEvent<HTMLImageElement, DomEvent>) => {
-    const width = e.currentTarget.naturalWidth;
-    const height = e.currentTarget.naturalHeight;
-
-    if (width > height) {
-      this.setState({ orientation: 'column', isLoaded: true });
-    } else {
-      this.setState({ orientation: 'row', isLoaded: true });
-    }
-  }
-}
-
-interface EventDialogProps {
-  /**
-   * The event being edited or deleted
-   * @default undefined
-   */
-  event?: Event;
-
-  /**
-   * `true` if the dialog is in it's opened state
-   * @default false
-   */
-  opened?: boolean;
-
-  /**
-   * On close callback function
-   */
-  onClose: () => void;
-
-  /**
-   * On update callback function
-   */
-  onUpdate: (event: Event) => void;
-}
-
-interface EventDialogState {
-  /**
-   * `true` if the dialog is in a loading state
-   * @default false
-   */
-  isLoading: boolean;
-
-  /**
-   * `true` if the days are being fetched
-   * @default false
-   */
-  isDaysLoading?: boolean;
-
-  /**
-   * `true` if the categories are being fetched
-   * @default false
-   */
-  isCategoriesLoading?: boolean;
-
-  /**
-   * `true` if the venues are being fetched
-   * @default false
-   */
-  isVenuesLoading?: boolean;
-
-  /**
-   * Autofill options for days
-   */
-  dayOptions?: { id: number, title: string, date: Date }[];
-
-  /**
-   * Autofill options for categories
-   */
-  categoryOptions?: { id: number, title: string }[];
-
-  /**
-   * Autofill options for venues
-   */
-  venueOptions?: { id: number, title: string }[];
-}
-
-class AddEditDialog extends React.Component<EventDialogProps, EventDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  formRef: React.RefObject<HTMLFormElement>;
-  
-  selectedDay?: number|null;
-  daySearchQuery: string;
-
-  selectedVenue?: number|null;
-  venueSearchQuery: string;
-
-  selectedCategory?: number|null;
-  categorySearchQuery: string;
-
-  constructor(props: EventDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false,
-      isDaysLoading: false,
-      isVenuesLoading: false,
-      dayOptions: [],
-      categoryOptions: [],
-      venueOptions: []
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/events';
-
-    this.formRef = React.createRef();
-
-    this.daySearchQuery = '';
-    this.selectedDay = null;
-
-    this.venueSearchQuery = '';
-    this.selectedVenue = null;
-
-    this.categorySearchQuery = '';
-    this.selectedCategory = null;
-  }
-  
-  render() {
-    const id = this.props.event?.id;
-    const dayId = this.props.event?.dayId ?? -1;
-    const categoryId = this.props.event?.categoryId ?? -1;
-    const roomId = this.props.event?.roomId ?? -1;
-    const title = this.props.event?.title ?? '';
-    const description = this.props.event?.description ?? '';
-    const image = this.props.event?.image ?? undefined;
-    const day = this.props.event?.day ?? '';
-    const category = this.props.event?.category ?? '';
-    const venue = (this.props.event?.venue ?? '') + (this.props.event?.room ? ` - ${this.props.event.room}` : '');
-    const teamSizeMin = this.props.event?.teamSizeMin ?? '';
-    const teamSizeMax = this.props.event?.teamSizeMax ?? '';
-    const startTime = this.props.event ? format(this.props.event.startTime, 'HH:mm') : '';
-    const endTime = this.props.event ? format(this.props.event.endTime, 'HH:mm') : '';
-    const cost = this.props.event?.cost ?? '';
-    const facultyCoordinatorName = this.props.event?.facultyCoordinatorName ?? '';
-    const facultyCoordinatorMobile = this.props.event?.facultyCoordinatorMobile ?? '';
-    const studentCoordinatorName = this.props.event?.studentCoordinatorName ?? '';
-    const studentCoordinatorMobile = this.props.event?.studentCoordinatorMobile ?? '';
-    const eventId = this.props.event?.eventId ?? '';
-
-    if (!this.props.opened) {
-      this.daySearchQuery = '';
-      this.selectedDay = null;
-
-      this.venueSearchQuery = '';
-      this.selectedVenue = null;
-
-      this.categorySearchQuery = '';
-      this.selectedCategory = null;
-    }
-    
-    return(
-      <Dialog onClose={this.props.onClose} open={this.props.opened || false} maxWidth="sm" fullWidth>
-        <DialogTitle onClose={this.props.onClose}>{this.props.event ? 'Edit' : 'Add'} Event</DialogTitle>
-        <DialogContent>
-          <form ref={this.formRef} onSubmit={(event) => event.preventDefault()}>
-            <input name="id" value={id} type="hidden" />
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'stretch' }}>
-              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '50%' }}>
-                <ImageInput name="image" style={{ height: 'unset', flexGrow: 1 }} defaultValue={image} />
-                <TextField name="title" placeholder="Title" defaultValue={title} />
-                <TextArea name="description" placeholder="Add a description..." style={{ minWidth: '100%' }} defaultValue={description} />
-              </Stack>
-              <Stack spacing={1} sx={{ flexGrow: 1, maxWidth: '50%' }}>
-                <Autocomplete
-                  options={this.state.dayOptions!}
-                  getOptionLabel={(day) => day.title}
-                  onChange={(_, v) => this.selectedDay = v?.id}
-                  onInputChange={(_, v) => (this.daySearchQuery = v, this.query('days'))}
-                  onOpen={() => this.query('days')}
-                  onClose={() => this.setState({dayOptions: []})}
-                  filterOptions={(x) => x}
-                  defaultValue={dayId !== -1 ? { id: dayId, title: day, date: new Date() } : undefined}
-                  loading={this.state.isDaysLoading}
-                  renderInput={(params) => 
-                    <TextField {...params} placeholder="Select a day" InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <React.Fragment>
-                          {this.state.isDaysLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </React.Fragment>
-                      ),
-                    }} />
-                  }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <span>{option.title}</span>
-                      <span style={{ color: 'grey', marginLeft: 'auto', textAlign: 'right' }}>{format(option.date, 'yyyy-MM-dd')}</span>
-                    </Box>
-                  )}
-                />
-                <Autocomplete
-                  options={this.state.categoryOptions!}
-                  getOptionLabel={(category) => category.title}
-                  onChange={(_, v) => this.selectedCategory = v?.id}
-                  onInputChange={(_, v) => (this.categorySearchQuery = v, this.query('categories'))}
-                  onOpen={() => this.query('categories')}
-                  onClose={() => this.setState({categoryOptions: []})}
-                  filterOptions={(x) => x}
-                  defaultValue={categoryId !== -1 ? { id: categoryId, title: category } : undefined}
-                  loading={this.state.isCategoriesLoading}
-                  renderInput={(params) => 
-                    <TextField {...params} placeholder="Select a category" InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <React.Fragment>
-                          {this.state.isCategoriesLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </React.Fragment>
-                      ),
-                    }} />
-                  }
-                />
-                <Autocomplete
-                  options={this.state.venueOptions!}
-                  getOptionLabel={(venue) => venue.title}
-                  onChange={(_, v) => this.selectedVenue = v?.id}
-                  onInputChange={(_, v) => (this.venueSearchQuery = v, this.query('venues'))}
-                  onOpen={() => this.query('venues')}
-                  onClose={() => this.setState({venueOptions: []})}
-                  filterOptions={(x) => x}
-                  defaultValue={roomId !== -1 ? { id: roomId, title: venue } : undefined}
-                  loading={this.state.isVenuesLoading}
-                  renderInput={(params) => 
-                    <TextField {...params} placeholder="Select a venue" InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <React.Fragment>
-                          {this.state.isVenuesLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </React.Fragment>
-                      ),
-                    }} />
-                  }
-                />
-                <Stack direction="row" spacing={1}>
-                  <TextField name="team_size_min" placeholder="Min team size" type="number" defaultValue={teamSizeMin} sx={{ flexGrow: 1 }} />
-                  <TextField name="team_size_max" placeholder="Max team size" type="number" defaultValue={teamSizeMax} sx={{ flexGrow: 1 }} />
-                </Stack>
-                <Stack direction="row" spacing={1}>
-                  <TextField name="start_time" placeholder="Start Time" type="time" defaultValue={startTime} sx={{ flexGrow: 1 }} />
-                  <TextField name="end_time" placeholder="End Time" type="time" defaultValue={endTime} sx={{ flexGrow: 1 }} />
-                </Stack>
-                <TextField 
-                  name="cost" 
-                  placeholder="Cost" 
-                  type="number" 
-                  defaultValue={cost} 
-                  InputProps={{ 
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <CurrencyRupee sx={{ fontSize: 20 }} />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-                <TextField name="faculty_coordinator_name" placeholder="Faculty Coordinator Name" defaultValue={facultyCoordinatorName} />
-                <TextField name="faculty_coordinator_mobile" type="number" placeholder="Faculty Coordinator Mobile" defaultValue={facultyCoordinatorMobile} />
-                <TextField name="student_coordinator_name" placeholder="Student Coordinator Name" defaultValue={studentCoordinatorName} />
-                <TextField name="student_coordinator_mobile" type="number" placeholder="Student Coordinator Mobile" defaultValue={studentCoordinatorMobile} />
-                <TextField name="event_id" type="number" placeholder="Event ID" defaultValue={eventId} />
-              </Stack>
-            </Stack>
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Stack spacing={1} mt={0.5}>
-                  <Button type="submit" isLoading={this.state.isLoading} variant="contained" sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })} onClick={() => this.addEdit(displayError)}>Save Event</Button>
-                </Stack>
-              )}
-            </AppContext.Consumer>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  query = async (base: 'days'|'categories'|'venues') => {
-    var query = '';
-
-    if (base === 'days') {
-      query = this.daySearchQuery;
-
-      if (!this.state.isDaysLoading) {
-        this.setState({ isDaysLoading: true });
-      }
-    } else if (base === 'categories') {
-      query = this.categorySearchQuery;
-
-      if (!this.state.isCategoriesLoading) {
-        this.setState({ isCategoriesLoading: true });
-      }
-    } else {
-      query = this.venueSearchQuery;
-
-      if (!this.state.isVenuesLoading) {
-        this.setState({ isVenuesLoading: true });
-      }
-    }
-
-    if (query !== '') {
-      await sleep(500);
-    }
-
-    if (base === 'days') {
-      if (query !== this.daySearchQuery) {
-        return;
-      }
-    } else if (base === 'categories') {
-      if (query !== this.categorySearchQuery) {
-        return;
-      }
-    } else {
-      if (query !== this.venueSearchQuery) {
-        return;
-      }
-    }
-
-    try {
-      const response = await new Network(this.apiKey).doGet(`/api/latest/${base}`, { query: { query: query } });
-
-      if (base === 'days' || base === 'categories') {
-        const options = [];
-
-        for (var i = 0; i < response[base].length; ++i) {
-          options.push({
-            id: response[base][i].id,
-            title: response[base][i].title,
-            date: new Date(response[base][i].date)
-          });
-        }
-
-        if (base === 'days') {
-          if (query !== this.daySearchQuery) {
-            return;
-          }
-
-          this.setState({dayOptions: options});
-        } else {
-          if (query !== this.categorySearchQuery) {
-            return;
-          }
-
-          this.setState({categoryOptions: options});
-        }
-      } else {
-        const venues = [];
-
-        for (var i = 0; i < response.venues.length; ++i) {
-          for (var j = 0; j < response.venues[i].rooms.length; ++j) {
-            const room = response.venues[i].rooms[j];
-            venues.push({
-              id: room.id,
-              title: response.venues[i].title + (room.title ? ` - ${room.title}` : ''),
-            });
-          }
-        }
-
-        if (query !== this.venueSearchQuery) {
-          return;
-        }
-
-        this.setState({venueOptions: venues});
-      }
-    } catch (_) {
-      // ignore errors
-    }
-
-    if (base === 'days') {
-      this.setState({ isDaysLoading: false });
-    } else if (base === 'categories') {
-      this.setState({ isCategoriesLoading: false });
-    } else {
-      this.setState({ isVenuesLoading: false });
-    }
-  }
-
-  addEdit = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData(this.formRef.current!);
-      const dayId = this.selectedDay === null ? this.props.event?.dayId : this.selectedDay;
-      const categoryId = this.selectedCategory === null ? this.props.event?.categoryId : this.selectedCategory;
-      const roomId = this.selectedVenue === null ? this.props.event?.roomId : this.selectedVenue;
-      var response;
-
-      formData.append('day_id', dayId?.toString() ?? '');
-      formData.append('category_id', categoryId?.toString() ?? '');
-      formData.append('room_id', roomId?.toString() ?? '');
-
-      if (formData.get('id')) {
-        response = await new Network(this.apiKey).doPatch(`${this.apiBaseUrl}/edit`, { body: formData }, true);
-      } else {
-        response = await new Network(this.apiKey).doPut(`${this.apiBaseUrl}/add`, { body: formData }, true);
-      }
-      
-      this.props.onUpdate({
-        id: response.event.id,
-        dayId: response.event.day_id,
-        categoryId: response.event.category_id,
-        venueId: response.event.venue_id,
-        roomId: response.event.room_id,
-        title: validator.unescape(response.event.title),
-        description: validator.unescape(response.event.description ?? ''),
-        image: response.event.image,
-        day: validator.unescape(response.event.day),
-        category: validator.unescape(response.event.category),
-        venue: validator.unescape(response.event.venue),
-        room: response.event.room ? validator.unescape(response.event.room) : null,
-        teamSizeMin: response.event.team_size_min,
-        teamSizeMax: response.event.team_size_max,
-        startTime: new Date('2020-01-01 ' + response.event.start_time),
-        endTime: new Date('2020-01-01 ' + response.event.end_time),
-        cost: response.event.cost,
-        facultyCoordinatorName: response.event.faculty_coordinator_name,
-        facultyCoordinatorMobile: response.event.faculty_coordinator_mobile,
-        studentCoordinatorName: response.event.student_coordinator_name,
-        studentCoordinatorMobile: response.event.student_coordinator_mobile,
-        eventId: response.event.event_id
-      });
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
-  }
-}
-
-class DeleteDialog extends React.Component<EventDialogProps, EventDialogState> {
-  apiKey: string;
-  apiBaseUrl: string;
-
-  constructor(props: EventDialogProps) {
-    super(props);
-
-    this.state = {
-      isLoading: false
-    };
-
-    this.apiKey = Cookies.get('apiKey')!;
-    this.apiBaseUrl = '/api/latest/events';
-  }
-  
-  render() {
-    const id = this.props.event?.id;
-    const title = this.props.event ? this.props.event.title : '';
-
-    return (
-      <Dialog onClose={this.props.onClose} open={this.props.opened || false}>
-        <DialogTitle onClose={this.props.onClose}>Delete Event</DialogTitle>
-        <DialogContent>
-          <input value={id} type="hidden" disabled />
-          <Stack spacing={2} mt={0.5}>
-            <Typography>Are you sure you want to delete <b>{title}</b>?</Typography>
-            <AppContext.Consumer>
-              {({ displayError }) => (
-                <Button isLoading={this.state.isLoading} variant="contained" onClick={() => this.delete(displayError)}>Delete Event</Button>
-              )}
-            </AppContext.Consumer>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  delete = async (onError: AppContextInterface['displayError']) => {
-    this.setState({ isLoading: true });
-
-    try {
-      const formData = new FormData();
-      formData.append("id", this.props.event!.id.toString());
-
-      await new Network(this.apiKey).doDelete(`${this.apiBaseUrl}/delete`, { body: formData });
-      
-      this.props.onUpdate(this.props.event!);
-      this.props.onClose();
-    } catch (err: any) {
-      onError(err);
-    }
-
-    this.setState({ isLoading: false });
   }
 }

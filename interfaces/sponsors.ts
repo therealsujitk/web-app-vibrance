@@ -71,8 +71,15 @@ export default class Sponsors {
     const old = await this.#get(id);
     sponsor.title = sponsor.title ?? old.title;
     sponsor.type = sponsor.type ?? old.type;
-    sponsor.description = sponsor.description ?? old.description;
-    sponsor.image = sponsor.image ?? old.image;
+
+    if (sponsor.description !== null) {
+      sponsor.description = sponsor.description ?? old.description;
+    }
+
+    if (sponsor.image !== null) {
+      sponsor.image = sponsor.image ?? old.image;
+    }
+
     const existing = await Images.get(sponsor.image);
 
     if (isEqual<Sponsor>(old, sponsor as Sponsor)) {

@@ -230,18 +230,37 @@ export default class Events {
     event.category_id = event.category_id ?? old.category_id;
     event.room_id = event.room_id ?? old.room_id;
     event.title = event.title ?? old.title;
-    event.description = event.description ?? old.description;
-    event.image = event.image ?? old.image;
     event.team_size_min = event.team_size_min ?? old.team_size_min;
     event.team_size_max = event.team_size_max ?? old.team_size_max;
     event.start_time = event.start_time ?? old.start_time;
     event.end_time = event.end_time ?? old.end_time;
     event.cost = event.cost ?? old.cost;
-    event.faculty_coordinator_name = event.faculty_coordinator_name ?? old.faculty_coordinator_name;
-    event.faculty_coordinator_mobile = event.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
-    event.student_coordinator_name = event.student_coordinator_name ?? old.student_coordinator_name;
-    event.student_coordinator_mobile = event.student_coordinator_mobile ?? old.student_coordinator_mobile;
     event.event_id = event.event_id ?? old.event_id;
+
+    if (event.description !== null) {
+      event.description = event.description ?? old.description;
+    }
+
+    if (event.image !== null) {
+      event.image = event.image ?? old.image;
+    }
+
+    if (event.faculty_coordinator_name !== null) {
+      event.faculty_coordinator_name = event.faculty_coordinator_name ?? old.faculty_coordinator_name;
+    }
+
+    if (event.faculty_coordinator_mobile !== null) {
+      event.faculty_coordinator_mobile = event.faculty_coordinator_mobile ?? old.faculty_coordinator_mobile;
+    }
+
+    if (event.student_coordinator_name !== null) {
+      event.student_coordinator_name = event.student_coordinator_name ?? old.student_coordinator_name;
+    }
+
+    if (event.student_coordinator_mobile !== null) {
+      event.student_coordinator_mobile = event.student_coordinator_mobile ?? old.student_coordinator_mobile;
+    }
+
     const existing = await Images.get(event.image);
 
     if (isEqual<Event>(oldReduced, event as Event)) {

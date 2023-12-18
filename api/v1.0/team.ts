@@ -6,9 +6,9 @@ import { Permission } from '../../models/user';
 import { ClientError } from '../../utils/errors';
 import { OrNull } from '../../utils/helpers';
 import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE } from '../utils/helpers';
-import { body, query } from 'express-validator';
-import { body_email, body_mobile_number, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
+import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
+import { query } from 'express-validator';
+import { body_email_or_null, body_mobile_number_or_null, body_non_empty_string, body_positive_integer, query_positive_integer } from '../utils/validators';
 
 const teamRouter = express.Router();
 const uploadMiddleware = getUploadMiddleware();
@@ -40,7 +40,7 @@ teamRouter.get(
   query('page').default(1),
   handleValidationErrors,
   async (req, res) => {
-    const page = Number(req.query.page);
+    const page = toNumber(req.query.page)!;
 
     try {
       // TODO: Fix cache
@@ -92,8 +92,8 @@ teamRouter.put(
   body_non_empty_string('name'),
   body_non_empty_string('team_name'),
   body_non_empty_string('role'),
-  body_mobile_number('phone').optional(),
-  body_email('email').optional(),
+  body_mobile_number_or_null('phone').optional(),
+  body_email_or_null('email').optional(),
   handleValidationErrors,
   async (req, res) => {
     // Incase the file upload was aborted
@@ -166,8 +166,8 @@ teamRouter.patch(
   body_non_empty_string('name').optional(),
   body_non_empty_string('team_name').optional(),
   body_non_empty_string('role').optional(),
-  body_mobile_number('phone').optional(),
-  body_email('email').optional(),
+  body_mobile_number_or_null('phone').optional(),
+  body_email_or_null('email').optional(),
   handleValidationErrors,
   async (req, res) => {
     // Incase the file upload was aborted
@@ -176,7 +176,7 @@ teamRouter.patch(
     }
     
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
     const team: OrNull<TeamModel> = {
       name: req.body.name,
       team_name: req.body.team_name,
@@ -229,7 +229,7 @@ teamRouter.delete(
   handleValidationErrors,
   async (req, res) => {
     const user = req.user!;
-    const id = Number(req.body.id);
+    const id = toNumber(req.body.id)!;
 
     try {
       await new Team(user.id).delete(id);

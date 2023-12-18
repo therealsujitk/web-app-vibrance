@@ -1,10 +1,13 @@
-import { Users } from '../../interfaces';
+import { Analytics, Users } from '../../interfaces';
 import express from 'express';
 import os from 'node-os-utils';
 import { query } from '../../config/db';
 import { version } from '../../package.json';
 import { internalServerError } from '../utils/errors';
-import { checkPermissions } from '../utils/helpers';
+import { checkPermissions, handleValidationErrors } from '../utils/helpers';
+import { body } from 'express-validator';
+import { body_email, body_non_empty_string } from '../utils/validators';
+import { AnalyticsConfig } from '../../models/analytics';
 
 const dashboardRouter = express.Router();
 
@@ -91,6 +94,108 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
     res.status(200).json(response);
   } catch (err) {
     internalServerError(res);
+  }
+});
+
+/**
+ * [GET] /api/v1.0/dashboard/analytics
+ * 
+ * @header X-Api-Key <API-KEY> (required)
+ * 
+ * @response JSON
+ *  {
+ *      "analytics": [
+ *          {
+ *              "name": "Total users",
+ *              "data": [
+ *                  {
+ *                      oldValue: 500,
+ *                      newValue: 10000
+ *                  },
+ *                  ...
+ *              ],
+ *              "weekData": {
+ *                  "oldValue": 500,
+ *                  "newValue": 10000,
+ *              }
+ *          },
+ *          ...
+ *      ]
+ *  }
+ */
+dashboardRouter.get('/analytics', Users.checkAuth, checkPermissions(), async (req, res) => {
+  const user = req.user!;
+
+  try {
+    res.status(200).json({
+      analytics: await new Analytics(user.id).get(),
+    });
+  } catch (err: any) {
+    if (err.details) {
+      internalServerError(res, err.details.split('.')[0]);
+    } else {
+      internalServerError(res);
+    }
+  }
+});
+
+/**
+ * [PUT] /api/v1.0/dashboard/analytics/delete
+ * 
+ * @header X-Api-Key <API-KEY> (required)
+ * 
+ * @response JSON
+ *  {}
+ */
+dashboardRouter.put(
+  '/analytics/configuration/set',
+  Users.checkAuth,
+  checkPermissions(),
+  body_non_empty_string('ga_property_id'),
+  body_email('ga_client_email'),
+  body('ga_private_key').isString().customSanitizer(s => s.replace(/\\n/g, '\n')).trim().matches(/^-----BEGIN PRIVATE KEY-----(.|\n)*-----END PRIVATE KEY-----$/).withMessage('\'ga_private_key\' must be a valid private key.'),
+  handleValidationErrors,
+  async (req, res) => {
+    const user = req.user!;
+    const config: AnalyticsConfig = {
+      ga_property_id: req.body.ga_property_id,
+      ga_client_email: req.body.ga_client_email,
+      ga_private_key: req.body.ga_private_key,
+    };
+
+    try {
+      await new Analytics(user.id).setConfig(config);
+      res.status(200).json({});
+    } catch (err: any) {
+      if (err.details) {
+        internalServerError(res, err.details.split('.')[0]);
+      } else {
+        internalServerError(res);
+      }
+    }
+  },
+);
+
+/**
+ * [DELETE] /api/v1.0/dashboard/analytics/delete
+ * 
+ * @header X-Api-Key <API-KEY> (required)
+ * 
+ * @response JSON
+ *  {}
+ */
+dashboardRouter.delete('/analytics/configuration/delete', Users.checkAuth, checkPermissions(), async (req, res) => {
+  const user = req.user!;
+
+  try {
+    await new Analytics(user.id).deleteConfig();
+    res.status(200).json({});
+  } catch (err: any) {
+    if (err.details) {
+      internalServerError(res, err.details.split('.')[0]);
+    } else {
+      internalServerError(res);
+    }
   }
 });
 

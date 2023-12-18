@@ -1,12 +1,13 @@
 import { North, South } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
 import { Box } from "@mui/system";
+import { formatDuration, formatNumber } from "../../../utils/helpers";
 
 interface StatsButtonProps {
   name: string;
   oldValue: number;
   newValue: number;
-  currentValue?: string;
+  formatValue: 'number'|'duration';
   selected: boolean;
   onClick: () => void;
 }
@@ -18,21 +19,7 @@ StatsButton.defaultProps = {
 export default function StatsButton(props: StatsButtonProps) {
   const hasIncreased = props.newValue >= props.oldValue;
   const increasePercent = (Math.abs(props.newValue - props.oldValue) * 100 / props.oldValue).toFixed(1);
-  var currentValue = props.currentValue;
-
-  if (!currentValue) {
-    var currenNumberValue = props.newValue;
-
-    if (currenNumberValue / 1000 >= 1) {
-      currenNumberValue /= 1000;
-      currentValue = Number(currenNumberValue.toFixed(1)) + 'K';
-    }
-
-    if (currenNumberValue / 1000 >= 1) {
-      currenNumberValue /= 1000;
-      currentValue = Number(currenNumberValue.toFixed(1)) + 'M';
-    }
-  }
+  const currentValue = props.formatValue === 'duration' ? formatDuration(props.newValue) : formatNumber(props.newValue);
 
   return (
     <Box sx={{

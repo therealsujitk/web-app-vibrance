@@ -17,11 +17,11 @@ export function badRequestError(err: Error, res: Response) {
   });
 }
 
-export function internalServerError(res: Response) {
+export function internalServerError(res: Response, message?: string) {
   res.status(500).json({
     errors: [
       {
-        message: 'An internal server error occurred.'
+        message: message ?? 'An internal server error occurred.'
       }
     ]
   });
