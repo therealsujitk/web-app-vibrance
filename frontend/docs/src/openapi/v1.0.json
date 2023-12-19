@@ -4,7 +4,7 @@
     "version": "v1.0",
     "title": "Vibrance - API Documentation",
     "x-logo": {
-      "url": "logo.png"
+      "url": "/docs/logo.png"
     },
     "contact": {
       "email": "social@therealsuji.tk"
@@ -5034,6 +5034,107 @@
         }
       }
     },
+    "/dashboard/analytics": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get data from Google Analytics",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "analytics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "example": "Total users"
+                          },
+                          "data": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "oldValue": {
+                                  "type": "integer",
+                                  "example": 500
+                                },
+                                "newValue": {
+                                  "type": "integer",
+                                  "example": 1000
+                                }
+                              }
+                            }
+                          },
+                          "weekData": {
+                            "type": "object",
+                            "properties": {
+                              "oldValue": {
+                                "type": "integer",
+                                "example": 500
+                              },
+                              "newValue": {
+                                "type": "integer",
+                                "example": 1000
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/audit-log": {
       "get": {
         "tags": [
@@ -5169,6 +5270,111 @@
                   "example": {
                     "SITE_TITLE": "Vibrance",
                     "SITE_DESCRIPTION": "A web application for VIT Chennai's Cultural Festival, Vibrance."
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/analytics/configuration/set": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Configure Google Analytics",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "ga_property_id": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "ga_client_email": {
+                    "type": "string",
+                    "example": "password"
+                  },
+                  "ga_private_key": {
+                    "type": "string",
+                    "example": "password"
+                  }
+                },
+                "required": [
+                  "ga_property_id",
+                  "ga_client_email",
+                  "ga_private_key"
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/paths/~1dashboard~1analytics~1configuration~1set/put/requestBody/content/application~1x-www-form-urlencoded/schema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
                   }
                 }
               }
@@ -5386,6 +5592,79 @@
               "application/json": {
                 "schema": {
                   "properties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorised access response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/unauthorised_access"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/internal_server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/analytics/configuration/delete": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete the Google Analytics configuration",
+        "parameters": [
+          {
+            "name": "X-Api-Key",
+            "in": "header",
+            "description": "The api key obtained from a session.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "client error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "errors": {
+                      "$ref": "#/components/schemas/errors/properties/client_error"
+                    }
+                  }
                 }
               }
             }

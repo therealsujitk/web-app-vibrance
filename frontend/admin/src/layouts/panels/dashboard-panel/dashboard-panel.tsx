@@ -92,7 +92,6 @@ export default class DashboardPanel extends BasePanel<{}, DashboardPanelState> {
 
   componentDidMount() {
     this.getDashboard();
-    super.componentDidMount();  // This refers to the analytics data
   }
 
   putEndpoint = () => this.apiEndpoint + '/configuration/set';
@@ -421,6 +420,8 @@ export default class DashboardPanel extends BasePanel<{}, DashboardPanelState> {
           },
         });
       }, 300);
+
+      this.getItems();  // After the dashboard is loaded, we get the analytics data
     } catch (err: any) {
       this.onError?.(err, { name: 'Retry', onClick: () => this.getDashboard() });
     }
