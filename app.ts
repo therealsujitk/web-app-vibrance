@@ -1,8 +1,6 @@
 import apiRouter from "./api";
 import express from "express";
-import adminRouter from "./frontend/admin";
-import docsRouter from "./frontend/docs";
-import homeRouter from "./frontend/home";
+import { adminRouter, docsRouter, homeRouter } from "./frontend";
 
 const app = express();
 

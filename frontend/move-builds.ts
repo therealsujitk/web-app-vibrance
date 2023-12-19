@@ -2,8 +2,8 @@ import fs from 'fs';
 
 // Moving admin build files
 fs.rmSync('../dist/frontend/admin/dist', { recursive: true, force: true });
-fs.renameSync('./admin/dist', '../dist/frontend/admin/dist');
+fs.cpSync('./admin/dist', '../dist/frontend/admin/dist', { recursive: true });
 
 // Moving docs build files
 fs.rmSync('../dist/frontend/docs/dist', { recursive: true, force: true });
-fs.renameSync('./docs/dist', '../dist/frontend/docs/dist');
+fs.cpSync('./docs/dist', '../dist/frontend/docs/dist', { recursive: true });

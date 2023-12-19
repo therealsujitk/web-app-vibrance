@@ -36,37 +36,38 @@ const dashboardRouter = express.Router();
  *  }
  */
 dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
+
+  const getCpuUsage = async () => {
+    return new Promise((resolve) => {
+      os.cpu.usage().then(result => resolve(result)).catch(_ => resolve(null));
+    })
+  }
+
+  const getTotalMemory = async () => {
+    return new Promise((resolve) => {
+      os.mem.info().then(result => resolve(result.totalMemMb)).catch(_ => resolve(null));
+    })
+  }
+  
+  const getFreeMemory = async () => {
+    return new Promise((resolve) => {
+      os.mem.info().then(result => resolve(result.freeMemMb)).catch(_ => resolve(null));
+    })
+  }
+
+  const getTotalDisk = async () => {
+    return new Promise((resolve) => {
+      os.drive.info('/').then(result => resolve(result.totalGb * 1024)).catch(_ => resolve(null));
+    })
+  }
+  
+  const getFreeDisk = async () => {
+    return new Promise((resolve) => {
+      os.drive.info('/').then(result => resolve(result.freeGb * 1024)).catch(_ => resolve(null));
+    })
+  }
+
   try {
-    const getCpuUsage = async () => {
-      return new Promise((resolve) => {
-        os.cpu.usage().then((result) => resolve(result));
-      })
-    }
-
-    const getTotalMemory = async () => {
-      return new Promise((resolve) => {
-        os.mem.info().then((result) => resolve(result.totalMemMb));
-      })
-    }
-    
-    const getFreeMemory = async () => {
-      return new Promise((resolve) => {
-        os.mem.info().then((result) => resolve(result.freeMemMb));
-      })
-    }
-
-    const getTotalDisk = async () => {
-      return new Promise((resolve) => {
-        os.drive.info('/').then((result) => resolve(result.totalGb * 1024));
-      })
-    }
-    
-    const getFreeDisk = async () => {
-      return new Promise((resolve) => {
-        os.drive.info('/').then((result) => resolve(result.freeGb * 1024));
-      })
-    }
-
     const response = {
       software_info: [
         {

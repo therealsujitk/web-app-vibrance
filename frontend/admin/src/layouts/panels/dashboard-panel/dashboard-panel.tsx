@@ -401,10 +401,10 @@ export default class DashboardPanel extends BasePanel<{}, DashboardPanelState> {
       this.setState({
         softwareInfo: response.software_info,
         serverStats: {
-          totalMemory: response.server_stats.total_memory,
-          freeMemory: response.server_stats.total_memory,
-          totalDisk: response.server_stats.total_disk,
-          freeDisk: response.server_stats.total_disk,
+          totalMemory: Number(response.server_stats.total_memory),
+          freeMemory: Number(response.server_stats.total_memory),
+          totalDisk: Number(response.server_stats.total_disk),
+          freeDisk: Number(response.server_stats.total_disk),
           cpuUsage: 0,
         },
         isDashboardLoading: false,
@@ -413,16 +413,16 @@ export default class DashboardPanel extends BasePanel<{}, DashboardPanelState> {
       setTimeout(() => {
         this.setState({
           serverStats: {
-            totalMemory: response.server_stats.total_memory,
-            freeMemory: response.server_stats.free_memory,
-            totalDisk: response.server_stats.total_disk,
-            freeDisk: response.server_stats.free_disk,
-            cpuUsage: response.server_stats.cpu_usage,
+            totalMemory: Number(response.server_stats.total_memory),
+            freeMemory: Number(response.server_stats.free_memory),
+            totalDisk: Number(response.server_stats.total_disk),
+            freeDisk: Number(response.server_stats.free_disk),
+            cpuUsage: Number(response.server_stats.cpu_usage),
           },
         });
       }, 300);
     } catch (err: any) {
-      this.onError?.(err);
+      this.onError?.(err, { name: 'Retry', onClick: () => this.getDashboard() });
     }
   }
 

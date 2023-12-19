@@ -1,7 +1,15 @@
 import { Box, CircularProgress, circularProgressClasses, Typography } from "@mui/material";
 
 export default function MetricItem(props: {name: string, value: number, total: number, unit?: string}) {
-  const normalise = (value: number, total: number) => (value * 75) / (total);
+  const normalise = (value: number, total: number) => {
+    const result = (value * 75) / (total);
+    return isNaN(result) ? 0 : result;
+  }
+
+  const percentage = (value: number, total: number) => {
+    const result = value * 100 / total;
+    return isNaN(result) ? result : result.toFixed(0) + '%';
+  }
 
   return (
     <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -39,7 +47,7 @@ export default function MetricItem(props: {name: string, value: number, total: n
             position: 'absolute'
           }}
         >
-          {(props.value * 100 / props.total).toFixed(0)}%
+          {percentage(props.value, props.total)}
         </Typography>
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{textAlign: 'center'}}>
