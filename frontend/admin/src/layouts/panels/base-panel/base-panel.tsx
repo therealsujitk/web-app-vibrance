@@ -82,6 +82,10 @@ export abstract class BasePanel<P = {}, S extends BasePanelState = BasePanelStat
   }
 
   loadMore = async (event: Event) => {
+    if (this.state.isLoading) {
+      return;
+    }
+    
     const document = event.target as Document;
     const scrollingElement = document.scrollingElement || document.body;
 
