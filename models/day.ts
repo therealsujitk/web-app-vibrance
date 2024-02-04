@@ -1,4 +1,4 @@
 export interface Day {
-  title: string,
+  title: string
   date: Date
 }

@@ -1,21 +1,21 @@
-import { Analytics, Users } from '../../interfaces';
-import express from 'express';
-import os from 'node-os-utils';
-import { query } from '../../config/db';
-import { version } from '../../package.json';
-import { internalServerError } from '../utils/errors';
-import { checkPermissions, handleValidationErrors } from '../utils/helpers';
-import { body } from 'express-validator';
-import { body_email, body_non_empty_string } from '../utils/validators';
-import { AnalyticsConfig } from '../../models/analytics';
+import { Analytics, Users } from '../../interfaces'
+import express from 'express'
+import os from 'node-os-utils'
+import { query } from '../../config/db'
+import { version } from '../../package.json'
+import { internalServerError } from '../utils/errors'
+import { checkPermissions, handleValidationErrors } from '../utils/helpers'
+import { body } from 'express-validator'
+import { body_email, body_non_empty_string } from '../utils/validators'
+import { AnalyticsConfig } from '../../models/analytics'
 
-const dashboardRouter = express.Router();
+const dashboardRouter = express.Router()
 
 /**
  * [GET] /api/v1.0/dashboard
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {
  *      "software_info": [
@@ -36,34 +36,48 @@ const dashboardRouter = express.Router();
  *  }
  */
 dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) => {
-
   const getCpuUsage = async () => {
     return new Promise((resolve) => {
-      os.cpu.usage().then(result => resolve(result)).catch(_ => resolve(null));
+      os.cpu
+        .usage()
+        .then((result) => resolve(result))
+        .catch(() => resolve(null))
     })
   }
 
   const getTotalMemory = async () => {
     return new Promise((resolve) => {
-      os.mem.info().then(result => resolve(result.totalMemMb)).catch(_ => resolve(null));
+      os.mem
+        .info()
+        .then((result) => resolve(result.totalMemMb))
+        .catch(() => resolve(null))
     })
   }
-  
+
   const getFreeMemory = async () => {
     return new Promise((resolve) => {
-      os.mem.info().then(result => resolve(result.freeMemMb)).catch(_ => resolve(null));
+      os.mem
+        .info()
+        .then((result) => resolve(result.freeMemMb))
+        .catch(() => resolve(null))
     })
   }
 
   const getTotalDisk = async () => {
     return new Promise((resolve) => {
-      os.drive.info('/').then(result => resolve(result.totalGb * 1024)).catch(_ => resolve(null));
+      os.drive
+        .info('/')
+        .then((result) => resolve(result.totalGb * 1024))
+        .catch(() => resolve(null))
     })
   }
-  
+
   const getFreeDisk = async () => {
     return new Promise((resolve) => {
-      os.drive.info('/').then(result => resolve(result.freeGb * 1024)).catch(_ => resolve(null));
+      os.drive
+        .info('/')
+        .then((result) => resolve(result.freeGb * 1024))
+        .catch(() => resolve(null))
     })
   }
 
@@ -72,15 +86,15 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
       software_info: [
         {
           name: 'Release',
-          version: version
+          version: version,
         },
         {
           name: 'Node.js',
-          version: process.version
+          version: process.version,
         },
         {
           name: 'MySQL',
-          version: (await query('SELECT VERSION() AS `version`'))[0].version
+          version: (await query('SELECT VERSION() AS `version`'))[0].version,
         },
       ],
       server_stats: {
@@ -89,20 +103,20 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
         total_disk: await getTotalDisk(),
         free_disk: await getFreeDisk(),
         cpu_usage: await getCpuUsage(),
-      }
-    };
+      },
+    }
 
-    res.status(200).json(response);
+    res.status(200).json(response)
   } catch (err) {
-    internalServerError(res);
+    internalServerError(res)
   }
-});
+})
 
 /**
  * [GET] /api/v1.0/dashboard/analytics
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {
  *      "analytics": [
@@ -125,26 +139,26 @@ dashboardRouter.get('', Users.checkAuth, checkPermissions(), async (req, res) =>
  *  }
  */
 dashboardRouter.get('/analytics', Users.checkAuth, checkPermissions(), async (req, res) => {
-  const user = req.user!;
+  const user = req.user!
 
   try {
     res.status(200).json({
       analytics: await new Analytics(user.id).get(),
-    });
+    })
   } catch (err: any) {
     if (err.details) {
-      internalServerError(res, err.details.split('.')[0]);
+      internalServerError(res, err.details.split('.')[0])
     } else {
-      internalServerError(res);
+      internalServerError(res)
     }
   }
-});
+})
 
 /**
  * [PUT] /api/v1.0/dashboard/analytics/delete
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {}
  */
@@ -154,50 +168,55 @@ dashboardRouter.put(
   checkPermissions(),
   body_non_empty_string('ga_property_id'),
   body_email('ga_client_email'),
-  body('ga_private_key').isString().customSanitizer(s => s.replace(/\\n/g, '\n')).trim().matches(/^-----BEGIN PRIVATE KEY-----(.|\n)*-----END PRIVATE KEY-----$/).withMessage('\'ga_private_key\' must be a valid private key.'),
+  body('ga_private_key')
+    .isString()
+    .customSanitizer((s) => s.replace(/\\n/g, '\n'))
+    .trim()
+    .matches(/^-----BEGIN PRIVATE KEY-----(.|\n)*-----END PRIVATE KEY-----$/)
+    .withMessage("'ga_private_key' must be a valid private key."),
   handleValidationErrors,
   async (req, res) => {
-    const user = req.user!;
+    const user = req.user!
     const config: AnalyticsConfig = {
       ga_property_id: req.body.ga_property_id,
       ga_client_email: req.body.ga_client_email,
       ga_private_key: req.body.ga_private_key,
-    };
+    }
 
     try {
-      await new Analytics(user.id).setConfig(config);
-      res.status(200).json({});
+      await new Analytics(user.id).setConfig(config)
+      res.status(200).json({})
     } catch (err: any) {
       if (err.details) {
-        internalServerError(res, err.details.split('.')[0]);
+        internalServerError(res, err.details.split('.')[0])
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
 /**
  * [DELETE] /api/v1.0/dashboard/analytics/delete
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {}
  */
 dashboardRouter.delete('/analytics/configuration/delete', Users.checkAuth, checkPermissions(), async (req, res) => {
-  const user = req.user!;
+  const user = req.user!
 
   try {
-    await new Analytics(user.id).deleteConfig();
-    res.status(200).json({});
+    await new Analytics(user.id).deleteConfig()
+    res.status(200).json({})
   } catch (err: any) {
     if (err.details) {
-      internalServerError(res, err.details.split('.')[0]);
+      internalServerError(res, err.details.split('.')[0])
     } else {
-      internalServerError(res);
+      internalServerError(res)
     }
   }
-});
+})
 
-export default dashboardRouter;
+export default dashboardRouter

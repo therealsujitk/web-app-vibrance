@@ -61,9 +61,7 @@
   "paths": {
     "/session": {
       "get": {
-        "tags": [
-          "Session"
-        ],
+        "tags": ["Session"],
         "summary": "Get the user session",
         "parameters": [
           {
@@ -132,9 +130,7 @@
     },
     "/session/edit": {
       "patch": {
-        "tags": [
-          "Session"
-        ],
+        "tags": ["Session"],
         "summary": "Edit user details",
         "parameters": [
           {
@@ -236,9 +232,7 @@
     },
     "/session/login": {
       "post": {
-        "tags": [
-          "Session"
-        ],
+        "tags": ["Session"],
         "summary": "Create a new session (Login)",
         "requestBody": {
           "content": {
@@ -254,10 +248,7 @@
                     "example": "password"
                   }
                 },
-                "required": [
-                  "username",
-                  "password"
-                ]
+                "required": ["username", "password"]
               }
             },
             "application/json": {
@@ -334,9 +325,7 @@
     },
     "/session/logout": {
       "post": {
-        "tags": [
-          "Session"
-        ],
+        "tags": ["Session"],
         "summary": "Destroy an existing session (Logout)",
         "parameters": [
           {
@@ -379,9 +368,7 @@
     },
     "/session/logout-all": {
       "post": {
-        "tags": [
-          "Session"
-        ],
+        "tags": ["Session"],
         "summary": "Destroy all active sessions",
         "parameters": [
           {
@@ -424,9 +411,7 @@
     },
     "/users": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get a list of users",
         "parameters": [
           {
@@ -522,9 +507,7 @@
     },
     "/users/add": {
       "put": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Add a new user",
         "parameters": [
           {
@@ -551,20 +534,13 @@
                     "example": "password"
                   },
                   "permissions": {
-                    "type": [
-                      "string",
-                      "array"
-                    ],
+                    "type": ["string", "array"],
                     "items": {
                       "$ref": "#/components/schemas/user/properties/permissions"
                     }
                   }
                 },
-                "required": [
-                  "username",
-                  "password",
-                  "permissions"
-                ]
+                "required": ["username", "password", "permissions"]
               }
             },
             "application/json": {
@@ -636,9 +612,7 @@
     },
     "/users/edit": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Edit an existing user",
         "parameters": [
           {
@@ -669,18 +643,13 @@
                     "example": "password"
                   },
                   "permissions": {
-                    "type": [
-                      "string",
-                      "array"
-                    ],
+                    "type": ["string", "array"],
                     "items": {
                       "$ref": "#/components/schemas/user/properties/permissions"
                     }
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -752,9 +721,7 @@
     },
     "/users/delete": {
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete an existing user",
         "parameters": [
           {
@@ -777,9 +744,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -847,9 +812,7 @@
     },
     "/days": {
       "get": {
-        "tags": [
-          "Days"
-        ],
+        "tags": ["Days"],
         "summary": "Get a list of days",
         "parameters": [
           {
@@ -932,9 +895,7 @@
     },
     "/days/add": {
       "put": {
-        "tags": [
-          "Days"
-        ],
+        "tags": ["Days"],
         "summary": "Add a new day",
         "parameters": [
           {
@@ -963,10 +924,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "title",
-                  "date"
-                ]
+                "required": ["title", "date"]
               }
             },
             "application/json": {
@@ -1038,9 +996,7 @@
     },
     "/days/edit": {
       "patch": {
-        "tags": [
-          "Days"
-        ],
+        "tags": ["Days"],
         "summary": "Edit an existing day",
         "parameters": [
           {
@@ -1078,9 +1034,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -1152,9 +1106,7 @@
     },
     "/days/delete": {
       "delete": {
-        "tags": [
-          "Days"
-        ],
+        "tags": ["Days"],
         "summary": "Delete an existing day",
         "parameters": [
           {
@@ -1177,9 +1129,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -1247,9 +1197,7 @@
     },
     "/categories": {
       "get": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Get a list of categories",
         "parameters": [
           {
@@ -1272,10 +1220,7 @@
             "name": "type",
             "in": "query",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "$ref": "#/components/schemas/category/properties/type"
               }
@@ -1355,9 +1300,7 @@
     },
     "/categories/add": {
       "put": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Add a new category",
         "parameters": [
           {
@@ -1386,10 +1329,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "title",
-                  "type"
-                ]
+                "required": ["title", "type"]
               }
             }
           }
@@ -1456,9 +1396,7 @@
     },
     "/categories/edit": {
       "patch": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Edit an existing category",
         "parameters": [
           {
@@ -1496,9 +1434,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -1565,9 +1501,7 @@
     },
     "/categories/delete": {
       "delete": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Delete an existing category",
         "parameters": [
           {
@@ -1590,9 +1524,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -1660,9 +1592,7 @@
     },
     "/venues": {
       "get": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Get a list of venues",
         "parameters": [
           {
@@ -1745,9 +1675,7 @@
     },
     "/venues/add": {
       "put": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Add a new venue",
         "parameters": [
           {
@@ -1770,9 +1698,7 @@
                     "example": "Academic Block 1"
                   }
                 },
-                "required": [
-                  "title"
-                ]
+                "required": ["title"]
               }
             },
             "application/json": {
@@ -1844,9 +1770,7 @@
     },
     "/venues/edit": {
       "patch": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Edit an existing venue",
         "parameters": [
           {
@@ -1873,9 +1797,7 @@
                     "example": "Academic Block 1"
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -1947,9 +1869,7 @@
     },
     "/venues/delete": {
       "delete": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Delete an existing venue",
         "parameters": [
           {
@@ -1972,9 +1892,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -2042,9 +1960,7 @@
     },
     "/venues/rooms": {
       "get": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Get a list of rooms",
         "parameters": [
           {
@@ -2127,9 +2043,7 @@
     },
     "/venues/rooms/add": {
       "put": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Add a new room",
         "parameters": [
           {
@@ -2156,10 +2070,7 @@
                     "example": "101"
                   }
                 },
-                "required": [
-                  "venue_id",
-                  "title"
-                ]
+                "required": ["venue_id", "title"]
               }
             },
             "application/json": {
@@ -2231,9 +2142,7 @@
     },
     "/venues/rooms/edit": {
       "patch": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Edit an existing room",
         "parameters": [
           {
@@ -2260,9 +2169,7 @@
                     "example": "101"
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -2334,9 +2241,7 @@
     },
     "/venues/rooms/delete": {
       "delete": {
-        "tags": [
-          "Venues"
-        ],
+        "tags": ["Venues"],
         "summary": "Delete an existing room",
         "parameters": [
           {
@@ -2359,9 +2264,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -2429,9 +2332,7 @@
     },
     "/events": {
       "get": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Get a list of events",
         "parameters": [
           {
@@ -2463,10 +2364,7 @@
             "in": "query",
             "description": "Filter by one or more days.",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "type": "string"
               }
@@ -2477,10 +2375,7 @@
             "in": "query",
             "description": "Filter by one or more categories.",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "type": "string"
               }
@@ -2491,10 +2386,7 @@
             "in": "query",
             "description": "Filter by one or more venues.",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "type": "string"
               }
@@ -2574,9 +2466,7 @@
     },
     "/events/add": {
       "put": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Add a new event",
         "parameters": [
           {
@@ -2715,9 +2605,7 @@
     },
     "/events/edit": {
       "patch": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Edit an existing event",
         "parameters": [
           {
@@ -2789,9 +2677,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -2858,9 +2744,7 @@
     },
     "/events/delete": {
       "delete": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Delete an existing event",
         "parameters": [
           {
@@ -2883,9 +2767,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -2953,9 +2835,7 @@
     },
     "/pro-shows": {
       "get": {
-        "tags": [
-          "Pro Shows"
-        ],
+        "tags": ["Pro Shows"],
         "summary": "Get a list of pro shows",
         "parameters": [
           {
@@ -2987,10 +2867,7 @@
             "in": "query",
             "description": "Filter by one or more days.",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "type": "string"
               }
@@ -3001,10 +2878,7 @@
             "in": "query",
             "description": "Filter by one or more venues.",
             "schema": {
-              "type": [
-                "string",
-                "array"
-              ],
+              "type": ["string", "array"],
               "items": {
                 "type": "string"
               }
@@ -3066,9 +2940,7 @@
     },
     "/pro-shows/add": {
       "put": {
-        "tags": [
-          "Pro Shows"
-        ],
+        "tags": ["Pro Shows"],
         "summary": "Add a new pro show",
         "parameters": [
           {
@@ -3131,14 +3003,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "title",
-                  "day_id",
-                  "room_id",
-                  "start_time",
-                  "end_time",
-                  "cost"
-                ]
+                "required": ["title", "day_id", "room_id", "start_time", "end_time", "cost"]
               }
             }
           }
@@ -3205,9 +3070,7 @@
     },
     "/pro-shows/edit": {
       "patch": {
-        "tags": [
-          "Pro Shows"
-        ],
+        "tags": ["Pro Shows"],
         "summary": "Edit an existing pro show",
         "parameters": [
           {
@@ -3279,9 +3142,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -3348,9 +3209,7 @@
     },
     "/pro-shows/delete": {
       "delete": {
-        "tags": [
-          "Pro Shows"
-        ],
+        "tags": ["Pro Shows"],
         "summary": "Delete an existing pro show",
         "parameters": [
           {
@@ -3373,9 +3232,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -3443,9 +3300,7 @@
     },
     "/gallery": {
       "get": {
-        "tags": [
-          "Gallery"
-        ],
+        "tags": ["Gallery"],
         "summary": "Get a list of gallery images",
         "parameters": [
           {
@@ -3532,9 +3387,7 @@
     },
     "/gallery/upload": {
       "put": {
-        "tags": [
-          "Gallery"
-        ],
+        "tags": ["Gallery"],
         "summary": "Add one or more gallery images",
         "parameters": [
           {
@@ -3553,18 +3406,13 @@
               "schema": {
                 "properties": {
                   "image": {
-                    "type": [
-                      "file",
-                      "array"
-                    ],
+                    "type": ["file", "array"],
                     "items": {
                       "type": "files"
                     }
                   }
                 },
-                "required": [
-                  "image"
-                ]
+                "required": ["image"]
               }
             }
           }
@@ -3642,9 +3490,7 @@
     },
     "/gallery/delete": {
       "delete": {
-        "tags": [
-          "Gallery"
-        ],
+        "tags": ["Gallery"],
         "summary": "Delete an existing gallery image",
         "parameters": [
           {
@@ -3667,9 +3513,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -3737,9 +3581,7 @@
     },
     "/merchandise": {
       "get": {
-        "tags": [
-          "Merchandise"
-        ],
+        "tags": ["Merchandise"],
         "summary": "Get a list of merchandise",
         "parameters": [
           {
@@ -3822,9 +3664,7 @@
     },
     "/merchandise/add": {
       "put": {
-        "tags": [
-          "Merchandise"
-        ],
+        "tags": ["Merchandise"],
         "summary": "Add a new merchandise",
         "parameters": [
           {
@@ -3852,9 +3692,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "title"
-                ]
+                "required": ["title"]
               }
             }
           }
@@ -3921,9 +3759,7 @@
     },
     "/merchandise/edit": {
       "patch": {
-        "tags": [
-          "Merchandise"
-        ],
+        "tags": ["Merchandise"],
         "summary": "Edit an existing merchandise",
         "parameters": [
           {
@@ -3960,9 +3796,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -4029,9 +3863,7 @@
     },
     "/merchandise/delete": {
       "delete": {
-        "tags": [
-          "Merchandise"
-        ],
+        "tags": ["Merchandise"],
         "summary": "Delete an existing merchandise",
         "parameters": [
           {
@@ -4054,9 +3886,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -4124,9 +3954,7 @@
     },
     "/sponsors": {
       "get": {
-        "tags": [
-          "Sponsors"
-        ],
+        "tags": ["Sponsors"],
         "summary": "Get a list of sponsors",
         "parameters": [
           {
@@ -4211,9 +4039,7 @@
     },
     "/sponsors/add": {
       "put": {
-        "tags": [
-          "Sponsors"
-        ],
+        "tags": ["Sponsors"],
         "summary": "Add a new sponsor",
         "parameters": [
           {
@@ -4241,10 +4067,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "title",
-                  "type"
-                ]
+                "required": ["title", "type"]
               }
             }
           }
@@ -4311,9 +4134,7 @@
     },
     "/sponsors/edit": {
       "patch": {
-        "tags": [
-          "Sponsors"
-        ],
+        "tags": ["Sponsors"],
         "summary": "Edit an existing sponsor",
         "parameters": [
           {
@@ -4350,9 +4171,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -4419,9 +4238,7 @@
     },
     "/sponsors/delete": {
       "delete": {
-        "tags": [
-          "Sponsors"
-        ],
+        "tags": ["Sponsors"],
         "summary": "Delete an existing sponsor",
         "parameters": [
           {
@@ -4444,9 +4261,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -4514,9 +4329,7 @@
     },
     "/team": {
       "get": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Get a list of team members",
         "parameters": [
           {
@@ -4597,9 +4410,7 @@
     },
     "/team/add": {
       "put": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Add a new team member",
         "parameters": [
           {
@@ -4641,11 +4452,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "name",
-                  "team_name",
-                  "role"
-                ]
+                "required": ["name", "team_name", "role"]
               }
             }
           }
@@ -4712,9 +4519,7 @@
     },
     "/team/edit": {
       "patch": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Edit an existing team member",
         "parameters": [
           {
@@ -4765,9 +4570,7 @@
                     }
                   }
                 ],
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             }
           }
@@ -4834,9 +4637,7 @@
     },
     "/team/delete": {
       "delete": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Delete an existing team member",
         "parameters": [
           {
@@ -4859,9 +4660,7 @@
                     "example": 1
                   }
                 },
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "application/json": {
@@ -4929,9 +4728,7 @@
     },
     "/dashboard": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Get server info and other site statistics",
         "parameters": [
           {
@@ -5036,9 +4833,7 @@
     },
     "/dashboard/analytics": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Get data from Google Analytics",
         "parameters": [
           {
@@ -5137,9 +4932,7 @@
     },
     "/audit-log": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Get a list of user actions",
         "parameters": [
           {
@@ -5164,10 +4957,7 @@
             "in": "query",
             "description": "Filter by one or more actors.",
             "schema": {
-              "type": [
-                "integer",
-                "array"
-              ],
+              "type": ["integer", "array"],
               "items": {
                 "type": "integer"
               }
@@ -5243,9 +5033,7 @@
     },
     "/settings": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Get the site settings",
         "parameters": [
           {
@@ -5308,9 +5096,7 @@
     },
     "/dashboard/analytics/configuration/set": {
       "put": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Configure Google Analytics",
         "parameters": [
           {
@@ -5341,11 +5127,7 @@
                     "example": "password"
                   }
                 },
-                "required": [
-                  "ga_property_id",
-                  "ga_client_email",
-                  "ga_private_key"
-                ]
+                "required": ["ga_property_id", "ga_client_email", "ga_private_key"]
               }
             },
             "application/json": {
@@ -5413,9 +5195,7 @@
     },
     "/settings/edit": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Update the site settings",
         "parameters": [
           {
@@ -5511,9 +5291,7 @@
     },
     "/settings/clear-cache": {
       "post": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Flush cached data for api responses",
         "parameters": [
           {
@@ -5570,9 +5348,7 @@
     },
     "/settings/backup": {
       "post": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Download a backup of the database",
         "parameters": [
           {
@@ -5629,9 +5405,7 @@
     },
     "/dashboard/analytics/configuration/delete": {
       "delete": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Delete the Google Analytics configuration",
         "parameters": [
           {
@@ -5716,26 +5490,15 @@
           },
           "password": {
             "type": "string",
-            "enum": [
-              "***"
-            ]
+            "enum": ["***"]
           },
           "permissions": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "ADMIN",
-                "EVENTS",
-                "GALLERY",
-                "MERCHANDISE",
-                "SPONSORS",
-                "TEAM"
-              ]
+              "enum": ["ADMIN", "EVENTS", "GALLERY", "MERCHANDISE", "SPONSORS", "TEAM"]
             },
-            "example": [
-              "ADMIN"
-            ]
+            "example": ["ADMIN"]
           }
         }
       },
@@ -5747,10 +5510,7 @@
             "example": 1
           },
           "image": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": "https://vitvibrance.com/public/uploads/images/a8f2291dc5e5d67d9947707235b099b2.jpg"
           }
         }
@@ -5787,10 +5547,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "CENTRAL",
-              "CLUB"
-            ]
+            "enum": ["CENTRAL", "CLUB"]
           },
           "image": {
             "$ref": "#/components/schemas/image/properties/image"
@@ -5826,10 +5583,7 @@
             "example": 1
           },
           "title": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": "101"
           }
         }
@@ -5890,10 +5644,7 @@
                 }
               },
               "room": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "readOnly": true,
                 "example": {
                   "$ref": "#/components/schemas/room/properties/title/example"
@@ -5904,20 +5655,14 @@
                 "example": "House of Developers"
               },
               "description": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "example": null
               },
               "image": {
                 "$ref": "#/components/schemas/image/properties/image"
               },
               "category_image": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "readOnly": true,
                 "example": {
                   "$ref": "#/components/schemas/image/properties/image/example"
@@ -5941,34 +5686,22 @@
               },
               "cost": {
                 "type": "double",
-                "example": 50.00
+                "example": 50.0
               },
               "faculty_coordinator_name": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "example": null
               },
               "faculty_coordinator_mobile": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "example": null
               },
               "student_coordinator_name": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "example": null
               },
               "student_coordinator_mobile": {
-                "type": [
-                  "string",
-                  null
-                ],
+                "type": ["string", null],
                 "example": null
               },
               "event_id": {
@@ -6015,10 +5748,7 @@
             }
           },
           "room": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "readOnly": true,
             "example": {
               "$ref": "#/components/schemas/room/properties/title/example"
@@ -6029,10 +5759,7 @@
             "example": "Day 1 Pro Show"
           },
           "description": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "image": {
@@ -6048,34 +5775,22 @@
           },
           "cost": {
             "type": "double",
-            "example": 5000.00
+            "example": 5000.0
           },
           "faculty_coordinator_name": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "faculty_coordinator_mobile": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "student_coordinator_name": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "student_coordinator_mobile": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "event_id": {
@@ -6101,7 +5816,7 @@
           },
           "cost": {
             "type": "double",
-            "example": 100.00
+            "example": 100.0
           }
         }
       },
@@ -6165,17 +5880,11 @@
             "example": "Technical Lead"
           },
           "phone": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": "9999999999"
           },
           "email": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": "social@therealsuji.tk"
           }
         }
@@ -6230,17 +5939,11 @@
             "example": "DAY_ADD"
           },
           "old": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": null
           },
           "new": {
-            "type": [
-              "string",
-              null
-            ],
+            "type": ["string", null],
             "example": "{\"title\":\"Day 1\",\"date\":\"2020-02-06T05:30:00.000Z\"}"
           },
           "timestamp": {
@@ -6259,9 +5962,7 @@
               "properties": {
                 "message": {
                   "type": "string",
-                  "enum": [
-                    "An internal server error occurred."
-                  ]
+                  "enum": ["An internal server error occurred."]
                 }
               }
             }
@@ -6284,10 +5985,7 @@
               "properties": {
                 "message": {
                   "type": "string",
-                  "enum": [
-                    "You are not authorised to access this resource.",
-                    "API Key has expired, sign in again."
-                  ]
+                  "enum": ["You are not authorised to access this resource.", "API Key has expired, sign in again."]
                 }
               }
             }

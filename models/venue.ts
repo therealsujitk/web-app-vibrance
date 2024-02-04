@@ -1,3 +1,3 @@
 export interface Venue {
-  title: string;
+  title: string
 }

@@ -31,12 +31,12 @@ export enum LogAction {
   SPONSOR_DELETE = 'sponsor_delete',
   TEAM_ADD = 'team_add',
   TEAM_EDIT = 'team_edit',
-  TEAM_DELETE = 'team_delete'
+  TEAM_DELETE = 'team_delete',
 }
 
 export interface LogEntry {
-  actor: number,
-  action: LogAction,
-  oldValue?: Object,
-  newValue?: Object,
+  actor: number
+  action: LogAction
+  oldValue?: Object
+  newValue?: Object
 }

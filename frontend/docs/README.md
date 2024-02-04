@@ -12,11 +12,11 @@ Incase an incorrect version is used you'll get an `application/json` response th
 
 ```json
 {
-    "errors": [
-        {
-            "message": "Invalid API version in URI."
-        }
-    ]
+  "errors": [
+    {
+      "message": "Invalid API version in URI."
+    }
+  ]
 }
 ```
 
@@ -24,11 +24,11 @@ Incase the endpoint or request method used is invalid, you'll get an `applicatio
 
 ```json
 {
-    "errors": [
-        {
-            "message": "Invalid API endpoint or request method used."
-        }
-    ]
+  "errors": [
+    {
+      "message": "Invalid API endpoint or request method used."
+    }
+  ]
 }
 ```
 

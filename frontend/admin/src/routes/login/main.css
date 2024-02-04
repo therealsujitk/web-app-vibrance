@@ -1,8 +1,8 @@
 body.login {
-    background-color: #1A1A1A;
-    background-image: url('./background.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-attachment: fixed;
+  background-color: #1a1a1a;
+  background-image: url('./background.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
 }

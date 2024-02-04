@@ -1,18 +1,18 @@
-import { TextField as MaterialTextField, TextFieldProps as MaterialTextFieldProps } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import React from 'react';
+import { TextField as MaterialTextField, TextFieldProps as MaterialTextFieldProps } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import React from 'react'
 
 type TextFieldProps = {
   /**
    * If `true`, text will be center aligned
    * @default false
    */
-  centerAlign : boolean;
-} & MaterialTextFieldProps;
+  centerAlign: boolean
+} & MaterialTextFieldProps
 
 const StyledTextField = styled(MaterialTextField, {
   shouldForwardProp: (propName) => {
-    const propertyKeys = new Set(['centerAlign']);
+    const propertyKeys = new Set(['centerAlign'])
     return !propertyKeys.has(propName.toString())
   },
 })<TextFieldProps>(({ theme, centerAlign }) => ({
@@ -35,18 +35,16 @@ const StyledTextField = styled(MaterialTextField, {
     },
     '&.Mui-focused fieldset': {
       borderColor: theme.palette.primary.main,
-    }
+    },
   },
-}));
+}))
 
 export default class TextField extends React.Component<TextFieldProps> {
-  static defaultProps : TextFieldProps = {
+  static defaultProps: TextFieldProps = {
     centerAlign: false,
-  };
-  
+  }
+
   render() {
-    return (
-      <StyledTextField {...this.props}/>
-    );
+    return <StyledTextField {...this.props} />
   }
 }

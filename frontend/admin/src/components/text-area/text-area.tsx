@@ -1,4 +1,4 @@
-import { styled } from '@mui/material';
+import { styled } from '@mui/material'
 
 const TextArea = styled('textarea')(({ theme }) => ({
   minWidth: '100%',
@@ -17,8 +17,8 @@ const TextArea = styled('textarea')(({ theme }) => ({
   transition: 'border-color 0.3s',
   '&:focus': {
     outline: 'none',
-    borderColor: theme.palette.primary.main
-  }
-}));
+    borderColor: theme.palette.primary.main,
+  },
+}))
 
-export default TextArea;
+export default TextArea

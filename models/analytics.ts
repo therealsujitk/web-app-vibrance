@@ -5,7 +5,7 @@ export enum AnalyticsConfigKey {
 }
 
 export interface AnalyticsConfig {
-  ga_property_id: string|null;
-  ga_client_email: string|null;
-  ga_private_key: string|null;
-};
+  ga_property_id: string | null
+  ga_client_email: string | null
+  ga_private_key: string | null
+}

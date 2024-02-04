@@ -1,18 +1,22 @@
-import CloseIcon from '@mui/icons-material/Close';
-import { DialogTitle as MaterialDialogTitle, DialogTitleProps as MaterialDialogTitleProps, IconButton } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import React from 'react';
+import CloseIcon from '@mui/icons-material/Close'
+import {
+  DialogTitle as MaterialDialogTitle,
+  DialogTitleProps as MaterialDialogTitleProps,
+  IconButton,
+} from '@mui/material'
+import { styled } from '@mui/material/styles'
+import React from 'react'
 
 interface DialogTitleProps extends MaterialDialogTitleProps {
   /**
    * If defined, a close button will be displayed
    */
-  onClose? : () => void;
+  onClose?: () => void
 }
 
 const StyledDialogTitle = styled(MaterialDialogTitle, {
   shouldForwardProp: (propName) => {
-    const propertyKeys = new Set(['onClose']);
+    const propertyKeys = new Set(['onClose'])
     return !propertyKeys.has(propName.toString())
   },
 })<DialogTitleProps>(({ theme, onClose }) => ({
@@ -21,22 +25,21 @@ const StyledDialogTitle = styled(MaterialDialogTitle, {
   display: 'flex',
   fontWeight: 'bold',
   justifyContent: onClose ? 'space-between' : 'center',
-}));
+}))
 
 export default class DialogTitle extends React.Component<DialogTitleProps> {
-
   render() {
-    const { children, ...others } = this.props;
+    const { children, ...others } = this.props
 
     return (
       <StyledDialogTitle {...others}>
         {children}
-        { others.onClose && 
+        {others.onClose && (
           <IconButton color="primary" onClick={others.onClose}>
             <CloseIcon />
           </IconButton>
-        }
+        )}
       </StyledDialogTitle>
-    );
+    )
   }
 }

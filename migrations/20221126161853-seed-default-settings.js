@@ -1,44 +1,44 @@
-'use strict';
+'use strict'
 
-const { SettingKey } = require('../models/setting');
+const { SettingKey } = require('../models/setting')
 
-var dbm;
-var type;
-var seed;
+var dbm
+var type
+var seed
 
 const settings = [
   {
     key: SettingKey.SITE_TITLE,
-    value: 'Vibrance'
+    value: 'Vibrance',
   },
   {
     key: SettingKey.SITE_DESCRIPTION,
-    value: 'A web application for VIT Chennai\'s Cultural Festival, Vibrance.'
+    value: "A web application for VIT Chennai's Cultural Festival, Vibrance.",
   },
   {
     key: SettingKey.READ_ONLY,
-    value: false
-  }
-];
+    value: false,
+  },
+]
 
 /**
-  * We receive the dbmigrate dependency from dbmigrate initially.
-  * This enables us to not have to rely on NODE_PATH.
-  */
-exports.setup = function(options, seedLink) {
-  dbm = options.dbmigrate;
-  type = dbm.dataType;
-  seed = seedLink;
-};
+ * We receive the dbmigrate dependency from dbmigrate initially.
+ * This enables us to not have to rely on NODE_PATH.
+ */
+exports.setup = function (options, seedLink) {
+  dbm = options.dbmigrate
+  type = dbm.dataType
+  seed = seedLink
+}
 
-exports.up = function(db) {
-  return db.runSql('INSERT INTO `settings` VALUES ?', [settings.map(e => [e.key, e.value])]);
-};
+exports.up = function (db) {
+  return db.runSql('INSERT INTO `settings` VALUES ?', [settings.map((e) => [e.key, e.value])])
+}
 
-exports.down = function(db) {
-  return db.runSql("DELETE FROM `settings` WHERE `key` IN (?)", [settings.map(e => e.key)]);
-};
+exports.down = function (db) {
+  return db.runSql('DELETE FROM `settings` WHERE `key` IN (?)', [settings.map((e) => e.key)])
+}
 
 exports._meta = {
-  "version": 1
-};
+  version: 1,
+}

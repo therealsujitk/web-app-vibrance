@@ -1,21 +1,40 @@
-import express from 'express';
-import { UploadedFile } from 'express-fileupload';
-import { Events, Users } from '../../interfaces';
-import { Event } from '../../models/event';
-import { Permission } from '../../models/user';
-import { ClientError } from '../../utils/errors';
-import { getUTCFromString, OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError } from '../utils/errors';
-import { checkPermissions, checkReadOnly, getCacheOrFetch, getUploadMiddleware, handleFileUpload, handleValidationErrors, MIME_TYPE, toNumber } from '../utils/helpers';
-import { body, query } from 'express-validator';
-import { body_amount, body_mobile_number_or_null, body_non_empty_string, body_positive_integer, body_string_or_null, body_time, query_date_time, query_positive_integer, query_positive_integer_array } from '../utils/validators';
+import express from 'express'
+import { UploadedFile } from 'express-fileupload'
+import { Events, Users } from '../../interfaces'
+import { Event } from '../../models/event'
+import { Permission } from '../../models/user'
+import { ClientError } from '../../utils/errors'
+import { getUTCFromString, OrNull } from '../../utils/helpers'
+import { badRequestError, internalServerError } from '../utils/errors'
+import {
+  checkPermissions,
+  checkReadOnly,
+  getCacheOrFetch,
+  getUploadMiddleware,
+  handleFileUpload,
+  handleValidationErrors,
+  MIME_TYPE,
+  toNumber,
+} from '../utils/helpers'
+import { body, query } from 'express-validator'
+import {
+  body_amount,
+  body_mobile_number_or_null,
+  body_non_empty_string,
+  body_positive_integer,
+  body_string_or_null,
+  body_time,
+  query_date_time,
+  query_positive_integer,
+  query_positive_integer_array,
+} from '../utils/validators'
 
-const eventsRouter = express.Router();
-const uploadMiddleware = getUploadMiddleware();
+const eventsRouter = express.Router()
+const uploadMiddleware = getUploadMiddleware()
 
 /**
  * [GET] /api/v1.0/events
- * 
+ *
  * @param page number
  * @param day_id number|number[]
  * @param category_id number|number[]
@@ -23,7 +42,7 @@ const uploadMiddleware = getUploadMiddleware();
  * @param query string
  * @param before
  * @param after
- * 
+ *
  * @response JSON
  *  {
  *      "events": [
@@ -59,32 +78,40 @@ eventsRouter.get(
   query_date_time('after').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = toNumber(req.query.page)!;
-    const query = req.query.query as string|undefined;
-    const dayIds = req.query.day_id as unknown as number[];
-    const categoryIds = req.query.category_id as unknown as number[];
-    const venueIds = req.query.venue_id as unknown as number[];
-    const before = req.query.before as string;
-    const after = req.query.after as string;
+    const page = toNumber(req.query.page)!
+    const query = req.query.query as string | undefined
+    const dayIds = req.query.day_id as unknown as number[]
+    const categoryIds = req.query.category_id as unknown as number[]
+    const venueIds = req.query.venue_id as unknown as number[]
+    const before = req.query.before as string
+    const after = req.query.after as string
 
     try {
-      const events = await getCacheOrFetch(req, Events.getAll, [page, query, dayIds, categoryIds, venueIds, before, after]);
+      const events = await getCacheOrFetch(req, Events.getAll, [
+        page,
+        query,
+        dayIds,
+        categoryIds,
+        venueIds,
+        before,
+        after,
+      ])
 
       res.status(200).json({
         events: events,
-        next_page: page + 1
-      });
+        next_page: page + 1,
+      })
     } catch (_) {
       if (!res.headersSent) {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
 /**
  * [POST] /api/v1.0/events/add
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
  * @param day_id number (required)
  * @param category_id number (required)
@@ -97,7 +124,7 @@ eventsRouter.get(
  * @param end_datetime YYYY-MM-DD HH:MM (required)
  * @param cost number
  * @param registration number
- * 
+ *
  * @response JSON
  *  {
  *      "event": {
@@ -135,7 +162,7 @@ eventsRouter.put(
   body_time('start_time'),
   body_time('end_time'),
   body_amount('cost'),
-  body('event_id').isInt().optional().withMessage('\'event_id\' must be a valid integer'),
+  body('event_id').isInt().optional().withMessage("'event_id' must be a valid integer"),
   body_string_or_null('faculty_coordinator_name').optional(),
   body_mobile_number_or_null('faculty_coordinator_mobile').optional(),
   body_string_or_null('student_coordinator_name').optional(),
@@ -144,10 +171,10 @@ eventsRouter.put(
   async (req, res) => {
     // Incase the file upload was aborted
     if (res.headersSent) {
-      return;
+      return
     }
 
-    const user = req.user!;
+    const user = req.user!
     const event: Event = {
       title: req.body.title,
       description: req.body.description,
@@ -164,37 +191,37 @@ eventsRouter.put(
       faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
       student_coordinator_name: req.body.student_coordinator_name,
       student_coordinator_mobile: req.body.student_coordinator_mobile,
-    };
+    }
 
     if (req.files && 'image' in req.files) {
       try {
-        event.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+        event.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE)
       } catch (err) {
         if (err instanceof ClientError) {
-          return badRequestError(err, res);
+          return badRequestError(err, res)
         } else {
-          return internalServerError(res);
+          return internalServerError(res)
         }
       }
     }
 
     try {
       res.status(200).json({
-        event: await new Events(user.id).add(event)
-      });
+        event: await new Events(user.id).add(event),
+      })
     } catch (err) {
       if (err instanceof ClientError) {
-        badRequestError(err, res);
+        badRequestError(err, res)
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
 /**
  * [POST] /api/v1.0/events/edit
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
  * @param id number (required)
  * @param day_id number
@@ -208,7 +235,7 @@ eventsRouter.put(
  * @param end_datetime YYYY-MM-DD HH:MM
  * @param cost number
  * @param registration number
- * 
+ *
  * @response JSON
  *  {
  *      "event": {
@@ -247,7 +274,7 @@ eventsRouter.patch(
   body_time('start_time').optional(),
   body_time('end_time').optional(),
   body_amount('cost').optional(),
-  body('event_id').isInt().optional().withMessage('\'event_id\' must be a valid integer'),
+  body('event_id').isInt().optional().withMessage("'event_id' must be a valid integer"),
   body_string_or_null('faculty_coordinator_name').optional(),
   body_mobile_number_or_null('faculty_coordinator_mobile').optional(),
   body_string_or_null('student_coordinator_name').optional(),
@@ -256,11 +283,11 @@ eventsRouter.patch(
   async (req, res) => {
     // Incase the file upload was aborted
     if (res.headersSent) {
-      return;
+      return
     }
 
-    const user = req.user!;
-    const id = toNumber(req.body.id)!;
+    const user = req.user!
+    const id = toNumber(req.body.id)!
     const event: OrNull<Event> = {
       title: req.body.title,
       description: req.body.description,
@@ -277,40 +304,40 @@ eventsRouter.patch(
       faculty_coordinator_mobile: req.body.faculty_coordinator_mobile,
       student_coordinator_name: req.body.student_coordinator_name,
       student_coordinator_mobile: req.body.student_coordinator_mobile,
-    };
+    }
 
     if (req.files && 'image' in req.files) {
       try {
-        event.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE);
+        event.image = handleFileUpload(req.files.image as UploadedFile, MIME_TYPE.IMAGE)
       } catch (err) {
         if (err instanceof ClientError) {
-          return badRequestError(err, res);
+          return badRequestError(err, res)
         } else {
-          return internalServerError(res);
+          return internalServerError(res)
         }
       }
     }
 
     try {
       res.status(200).json({
-        event: await new Events(user.id).edit(id, event)
-      });
+        event: await new Events(user.id).edit(id, event),
+      })
     } catch (err) {
       if (err instanceof ClientError) {
-        badRequestError(err, res);
+        badRequestError(err, res)
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
 /**
  * [POST] /api/v1.0/events/delete
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
  * @param id number (required)
- * 
+ *
  * @response JSON
  *  {}
  */
@@ -322,20 +349,20 @@ eventsRouter.delete(
   body_positive_integer('id'),
   handleValidationErrors,
   async (req, res) => {
-    const user = req.user!;
-    const id = toNumber(req.body.id)!;
+    const user = req.user!
+    const id = toNumber(req.body.id)!
 
     try {
-      await new Events(user.id).delete(id);
-      res.status(200).json({});
+      await new Events(user.id).delete(id)
+      res.status(200).json({})
     } catch (err) {
       if (err instanceof ClientError) {
-        badRequestError(err, res);
+        badRequestError(err, res)
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
-export default eventsRouter;
+export default eventsRouter

@@ -1,6 +1,6 @@
-import { Select as MaterialSelect, SelectProps } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import React from 'react';
+import { Select as MaterialSelect, SelectProps } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import React from 'react'
 
 const StyledSelect = styled(MaterialSelect)<SelectProps>(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -17,14 +17,11 @@ const StyledSelect = styled(MaterialSelect)<SelectProps>(({ theme }) => ({
   },
   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
     borderColor: theme.palette.primary.main,
-  }
-}));
+  },
+}))
 
 export default class Select extends React.Component<SelectProps> {
-  
   render() {
-    return (
-      <StyledSelect {...this.props}/>
-    );
+    return <StyledSelect {...this.props} />
   }
 }

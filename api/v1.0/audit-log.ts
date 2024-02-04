@@ -1,19 +1,19 @@
-import express from 'express';
-import { AuditLog, Users } from '../../interfaces';
-import { internalServerError } from '../utils/errors';
-import { checkPermissions, handleValidationErrors, toNumber } from '../utils/helpers';
-import { query } from 'express-validator';
-import { query_positive_integer, query_positive_integer_array } from '../utils/validators';
+import express from 'express'
+import { AuditLog, Users } from '../../interfaces'
+import { internalServerError } from '../utils/errors'
+import { checkPermissions, handleValidationErrors, toNumber } from '../utils/helpers'
+import { query } from 'express-validator'
+import { query_positive_integer, query_positive_integer_array } from '../utils/validators'
 
-const auditLogRouter = express.Router();
+const auditLogRouter = express.Router()
 
 /**
  * [GET] /api/v1.0/audit-log
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
  * @param page number
  * @param actor_id number[]
- * 
+ *
  * @response JSON
  *  {
  *      "audit_log": [
@@ -38,18 +38,18 @@ auditLogRouter.get(
   query_positive_integer_array('actor_id').optional(),
   handleValidationErrors,
   async (req, res) => {
-    const page = toNumber(req.query.page)!;
-    const actorIds = req.query.actor_id as unknown as number[];
+    const page = toNumber(req.query.page)!
+    const actorIds = req.query.actor_id as unknown as number[]
 
     try {
       res.status(200).json({
         audit_log: await AuditLog.getAll(page, actorIds),
-        next_page: page + 1
-      });
+        next_page: page + 1,
+      })
     } catch (_) {
-      internalServerError(res);
+      internalServerError(res)
     }
   },
-);
+)
 
-export default auditLogRouter;
+export default auditLogRouter

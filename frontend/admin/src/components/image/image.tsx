@@ -1,5 +1,5 @@
-import { styled } from '@mui/material';
-import React from 'react';
+import { styled } from '@mui/material'
+import React from 'react'
 
 const Container = styled('div')(({ theme }) => ({
   width: '100%',
@@ -10,18 +10,20 @@ const Container = styled('div')(({ theme }) => ({
   backgroundRepeat: 'no-repeat',
   borderRadius: theme.shape.borderRadius,
   textAlign: 'center',
-  overflow: 'hidden'
-}));
+  overflow: 'hidden',
+}))
 
 export default class Image extends React.Component<{ src?: string }> {
   render() {
     const imageStyle = {
       maxWidth: '100%',
       height: '100%',
-    };
+    }
 
-    return <Container>
-      <img style={imageStyle} src={this.props.src ?? ''}></img>
-    </Container>;
+    return (
+      <Container>
+        <img style={imageStyle} src={this.props.src ?? ''}></img>
+      </Container>
+    )
   }
 }

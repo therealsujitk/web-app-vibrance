@@ -1,10 +1,10 @@
 export enum CategoryType {
   CENTRAL = 'central',
-  CLUB = 'club'
+  CLUB = 'club',
 }
 
 export interface Category {
-  title: string,
-  type: CategoryType,
+  title: string
+  type: CategoryType
   image?: string
 }

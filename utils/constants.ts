@@ -1,17 +1,17 @@
-import { BASE_URL as CONFIG_BASE_URL } from "../config";
+import { BASE_URL as CONFIG_BASE_URL } from '../config'
 
 function getBaseUrl() {
   try {
-    const url = new URL(CONFIG_BASE_URL ?? '');
-    return `${url.protocol}//${url.hostname}`;
+    const url = new URL(CONFIG_BASE_URL ?? '')
+    return `${url.protocol}//${url.hostname}`
   } catch (_) {
-    return '';
+    return ''
   }
 }
 
-const BASE_URL = getBaseUrl();
-const IMAGE_PATH = '/uploads/images/';
-const IMAGE_URL = BASE_URL + IMAGE_PATH;
-const LIMIT = 10;
+const BASE_URL = getBaseUrl()
+const IMAGE_PATH = '/uploads/images/'
+const IMAGE_URL = BASE_URL + IMAGE_PATH
+const LIMIT = 10
 
-export { BASE_URL, IMAGE_PATH, IMAGE_URL, LIMIT };
+export { BASE_URL, IMAGE_PATH, IMAGE_URL, LIMIT }

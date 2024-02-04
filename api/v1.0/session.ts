@@ -1,19 +1,19 @@
-import express from 'express';
-import { Users } from '../../interfaces';
-import { getPermissionsFromCode, User } from '../../models/user';
-import { ClientError, InvalidCredentials } from '../../utils/errors';
-import { OrNull } from '../../utils/helpers';
-import { badRequestError, internalServerError } from '../utils/errors';
-import { body } from 'express-validator';
-import { handleValidationErrors } from '../utils/helpers';
+import express from 'express'
+import { Users } from '../../interfaces'
+import { getPermissionsFromCode, User } from '../../models/user'
+import { ClientError, InvalidCredentials } from '../../utils/errors'
+import { OrNull } from '../../utils/helpers'
+import { badRequestError, internalServerError } from '../utils/errors'
+import { body } from 'express-validator'
+import { handleValidationErrors } from '../utils/helpers'
 
-const sessionRouter = express.Router();
+const sessionRouter = express.Router()
 
 /**
  * [GET] /api/v1.0/session
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {
  *      "session": {
@@ -25,24 +25,24 @@ const sessionRouter = express.Router();
  *  }
  */
 sessionRouter.get('', Users.checkAuth, async (req, res) => {
-  const { id, permissions, ...session } = req.user!;
-  
+  const { id, permissions, ...session } = req.user!
+
   res.status(200).json({
     session: {
       ...session,
-      permissions: getPermissionsFromCode(permissions)
-    }
-  });
-});
+      permissions: getPermissionsFromCode(permissions),
+    },
+  })
+})
 
 /**
  * [POST] /api/v1.0/session/edit
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
  * @param username string
  * @param old_password string (required to update password)
  * @param password string
- * 
+ *
  * @response JSON
  *  {
  *      user: {
@@ -58,60 +58,65 @@ sessionRouter.get('', Users.checkAuth, async (req, res) => {
 sessionRouter.patch(
   '/edit',
   Users.checkAuth,
-  body('username').isString().trim().isAlphanumeric().notEmpty().optional().withMessage('\'username\' must be a valid alphanumeric string'),
+  body('username')
+    .isString()
+    .trim()
+    .isAlphanumeric()
+    .notEmpty()
+    .optional()
+    .withMessage("'username' must be a valid alphanumeric string"),
   body('old_password').isString().notEmpty().optional(),
-  body('password').isString().isStrongPassword().optional().withMessage('\'password\' is not strong enough'),
+  body('password').isString().isStrongPassword().optional().withMessage("'password' is not strong enough"),
   handleValidationErrors,
   async (req, res) => {
-    const user = req.user!;
+    const user = req.user!
     const editedUser: OrNull<User> = {
       username: req.body.username,
       password: req.body.password,
-    };
+    }
 
     if (editedUser.password) {
-      const old_password = req.body.old_password ?? '';
+      const old_password = req.body.old_password ?? ''
 
       try {
-        await Users.login(user.username, old_password, false);
+        await Users.login(user.username, old_password, false)
       } catch (err) {
         if (err instanceof ClientError) {
           return res.status(400).json({
             errors: [
               {
-                message: "Incorrect old password.",
-              }
-            ]
-          });
+                message: 'Incorrect old password.',
+              },
+            ],
+          })
         } else {
-          return internalServerError(res);
+          return internalServerError(res)
         }
       }
     }
 
     try {
-      const { id, ...updatedUser } = await new Users(user.id).edit(user.id, editedUser);
-      
+      const { id, ...updatedUser } = await new Users(user.id).edit(user.id, editedUser)
+
       res.status(200).json({
-        user: updatedUser
-      });
+        user: updatedUser,
+      })
     } catch (err) {
       if (err instanceof ClientError) {
-        badRequestError(err, res);
+        badRequestError(err, res)
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
-
+)
 
 /**
  * [POST] /api/v1.0/session/login
- * 
+ *
  * @param username string (required)
  * @param password string (required)
- * 
+ *
  * @response JSON
  *  {
  *      "apiKey": "h3RWfOQJvEAam4TWL61i_jgZ0hU"
@@ -123,38 +128,38 @@ sessionRouter.post(
   body('password').isString(),
   handleValidationErrors,
   async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    const username = req.body.username
+    const password = req.body.password
 
     try {
       res.status(200).json({
-        session: await Users.login(username, password)
-      });
+        session: await Users.login(username, password),
+      })
     } catch (err) {
       if (err instanceof InvalidCredentials) {
         res.status(400).json({
           errors: [
             {
-              message: "Invalid username / password"
-            }
-          ]
-        });
+              message: 'Invalid username / password',
+            },
+          ],
+        })
       } else {
-        internalServerError(res);
+        internalServerError(res)
       }
     }
   },
-);
+)
 
 /**
  * POST requests to logout of a session or all sessions
- * 
+ *
  * @header X-Api-Key <API-KEY> (required)
- * 
+ *
  * @response JSON
  *  {}
  */
-sessionRouter.post('/logout', Users.logout);
-sessionRouter.post('/logout-all', Users.logoutAll);
+sessionRouter.post('/logout', Users.logout)
+sessionRouter.post('/logout-all', Users.logoutAll)
 
-export default sessionRouter;
+export default sessionRouter

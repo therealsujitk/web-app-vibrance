@@ -1,62 +1,77 @@
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import { Masonry } from '@mui/lab';
-import { Box, Button as MaterialButton, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, DialogContent, IconButton, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
-import Cookies from 'js-cookie';
-import { useState } from "react";
-import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components';
-import { AppContext } from '../../../contexts/app';
-import Drawer from "../../drawer/drawer";
-import PanelHeader from "../../panel-header/panel-header";
-import { BasePanel, BasePanelState } from '../base-panel/base-panel';
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
+import { Masonry } from '@mui/lab'
+import {
+  Box,
+  Button as MaterialButton,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+  Chip,
+  CircularProgress,
+  DialogContent,
+  IconButton,
+  MenuItem,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import Cookies from 'js-cookie'
+import { useState } from 'react'
+import { Button, Dialog, DialogTitle, EmptyState, ImageInput, Select, TextField } from '../../../components'
+import { AppContext } from '../../../contexts/app'
+import Drawer from '../../drawer/drawer'
+import PanelHeader from '../../panel-header/panel-header'
+import { BasePanel, BasePanelState } from '../base-panel/base-panel'
 
 interface CategoriesPanelState extends BasePanelState {
   /**
    * The list of categories
    * @default []
    */
-  categories: Map<number, Category>;
+  categories: Map<number, Category>
 
   /**
    * The types of categories
    * @default []
    */
-  categoryTypes: string[];
+  categoryTypes: string[]
 
   /**
    * The category currently being edited
    * @default undefined
    */
-  editingCategory?: Category;
+  editingCategory?: Category
 
   /**
    * If `true`, the AddOrEditDialog is open
    * @default false
    */
-  isAddOrEditDialogOpen: boolean;
+  isAddOrEditDialogOpen: boolean
 
   /**
    * If `true`, the DeleteDialog is open
    * @default false
    */
-  isDeleteDialogOpen: boolean;
+  isDeleteDialogOpen: boolean
 }
 
 interface Category {
-  id: number;
-  title: string;
-  type: string;
-  image: string|null;
+  id: number
+  title: string
+  type: string
+  image: string | null
 }
 
 export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
-  apiEndpoint = '/api/latest/categories';
-  apiKey = Cookies.get('apiKey');
-  requireMultipart = true;
+  apiEndpoint = '/api/latest/categories'
+  apiKey = Cookies.get('apiKey')
+  requireMultipart = true
 
   constructor(props: {}) {
-    super(props);
+    super(props)
 
     this.state = {
       categories: new Map(),
@@ -64,8 +79,8 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
       editingCategory: undefined,
       isAddOrEditDialogOpen: false,
       isDeleteDialogOpen: false,
-      isLoading: true
-    };
+      isLoading: true,
+    }
   }
 
   categoryFromResponse = (category: any): Category => {
@@ -78,78 +93,78 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
   }
 
   handleGetResponse(response: any): void {
-    const categories = this.state.categories;
+    const categories = this.state.categories
 
     for (let i = 0; i < response.categories.length; ++i) {
-      const category = response.categories[i];
-      categories.set(category.id, this.categoryFromResponse(category));
+      const category = response.categories[i]
+      categories.set(category.id, this.categoryFromResponse(category))
     }
 
     this.setState({
       categories: categories,
       categoryTypes: response.types,
-    });
+    })
   }
 
   handlePutResponse(response: any): void {
-    const categories = this.state.categories;
-    const category = response.category;
-    categories.set(category.id, this.categoryFromResponse(category));
-    this.setState({categories: categories});
+    const categories = this.state.categories
+    const category = response.category
+    categories.set(category.id, this.categoryFromResponse(category))
+    this.setState({ categories: categories })
   }
 
   handlePatchResponse(response: any): void {
-    this.handlePutResponse(response);
+    this.handlePutResponse(response)
   }
 
   handleDeleteResponse(id: number): void {
-    const categories  = this.state.categories;
-    categories.delete(id);
-    this.setState({categories: categories});
+    const categories = this.state.categories
+    categories.delete(id)
+    this.setState({ categories: categories })
   }
 
   CategoryCard = (category: Category) => {
     return (
       <Card>
-        {category.image && <CardMedia
-          component="img"
-          height="120"
-          image={category.image}
-        />}
+        {category.image && <CardMedia component="img" height="120" image={category.image} />}
         <CardContent>
           <Typography variant="h5">{category.title}</Typography>
           <Chip size="small" sx={{ mt: 1, textTransform: 'capitalize' }} label={category.type.toLowerCase()} />
         </CardContent>
         <CardActions disableSpacing>
           <Tooltip title="Edit">
-            <IconButton onClick={() => {
-              this.setState({
-                editingCategory: category,
-                isAddOrEditDialogOpen: true,
-              });
-            }}>
+            <IconButton
+              onClick={() => {
+                this.setState({
+                  editingCategory: category,
+                  isAddOrEditDialogOpen: true,
+                })
+              }}
+            >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton onClick={() => {
-              this.setState({
-                editingCategory: category,
-                isDeleteDialogOpen: true,
-              })
-            }}>
+            <IconButton
+              onClick={() => {
+                this.setState({
+                  editingCategory: category,
+                  isDeleteDialogOpen: true,
+                })
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
         </CardActions>
       </Card>
-    );
+    )
   }
 
   AddOrEditDialog = () => {
-    const [isLoading, setLoading] = useState(false);
-    const onClose = () => this.setState({isAddOrEditDialogOpen: false});
-    const category = this.state.editingCategory;
+    const [isLoading, setLoading] = useState(false)
+    const onClose = () => this.setState({ isAddOrEditDialogOpen: false })
+    const category = this.state.editingCategory
 
     return (
       <Dialog onClose={onClose} open={this.state.isAddOrEditDialogOpen}>
@@ -160,38 +175,53 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
             <AppContext.Consumer>
               {({ displayError }) => (
                 <Stack spacing={1} mt={0.5}>
-                  <ImageInput name="image" defaultValue={category?.image ?? undefined} onError={displayError} disabled={isLoading} />
-                  <TextField name="title" placeholder="Title" defaultValue={category?.title || ''} disabled={isLoading} />
-                  <Select
-                    name="type"
-                    defaultValue={category?.type.toLowerCase() ?? '0'}
-                    disabled={isLoading}>
-                    <MenuItem value="0" disabled>Select Type</MenuItem>
-                    {this.state.categoryTypes!.map((type) => <MenuItem value={type.toLowerCase()}>{type}</MenuItem>)}
+                  <ImageInput
+                    name="image"
+                    defaultValue={category?.image ?? undefined}
+                    onError={displayError}
+                    disabled={isLoading}
+                  />
+                  <TextField
+                    name="title"
+                    placeholder="Title"
+                    defaultValue={category?.title || ''}
+                    disabled={isLoading}
+                  />
+                  <Select name="type" defaultValue={category?.type.toLowerCase() ?? '0'} disabled={isLoading}>
+                    <MenuItem value="0" disabled>
+                      Select Type
+                    </MenuItem>
+                    {this.state.categoryTypes!.map((type) => (
+                      <MenuItem value={type.toLowerCase()}>{type}</MenuItem>
+                    ))}
                   </Select>
-                  <Button 
+                  <Button
                     type="submit"
                     isLoading={isLoading}
                     variant="contained"
                     sx={(theme) => ({ mt: `${theme.spacing(2)} !important` })}
                     onClick={() => {
-                      setLoading(true);
-                      this.addOrEditItem().then(_ => onClose()).finally(() => setLoading(false));
+                      setLoading(true)
+                      this.addOrEditItem()
+                        .then((_) => onClose())
+                        .finally(() => setLoading(false))
                     }}
-                  >Save Category</Button>
+                  >
+                    Save Category
+                  </Button>
                 </Stack>
-            )}
+              )}
             </AppContext.Consumer>
           </form>
         </DialogContent>
       </Dialog>
-    );
+    )
   }
 
   DeleteDialog = () => {
-    const [isLoading, setLoading] = useState(false);
-    const onClose = () => this.setState({isDeleteDialogOpen: false});
-    const category = this.state.editingCategory;
+    const [isLoading, setLoading] = useState(false)
+    const onClose = () => this.setState({ isDeleteDialogOpen: false })
+    const category = this.state.editingCategory
 
     return (
       <Dialog onClose={onClose} open={this.state.isDeleteDialogOpen}>
@@ -199,36 +229,55 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
         <DialogContent>
           <input value={category?.id} type="hidden" disabled />
           <Stack spacing={2} mt={0.5}>
-            <Typography>Are you sure you want to delete <b>{category?.title}</b>?</Typography>
-            <Button 
-              isLoading={isLoading} 
-              variant="contained" 
+            <Typography>
+              Are you sure you want to delete <b>{category?.title}</b>?
+            </Typography>
+            <Button
+              isLoading={isLoading}
+              variant="contained"
               onClick={() => {
-                setLoading(true);
-                this.deleteItem(category!.id).then(_ => onClose()).finally(() => setLoading(false));
+                setLoading(true)
+                this.deleteItem(category!.id)
+                  .then((_) => onClose())
+                  .finally(() => setLoading(false))
               }}
-            >Delete Category</Button>
+            >
+              Delete Category
+            </Button>
           </Stack>
         </DialogContent>
       </Dialog>
-    );
-  } 
+    )
+  }
 
   render() {
     return (
       <Box>
-        <AppContext.Consumer>
-          {({displayError}) => <>{this.onError = displayError}</>}
-        </AppContext.Consumer>
-        <PanelHeader {...Drawer.items.categories} action={<MaterialButton variant="outlined" startIcon={<AddIcon />} onClick={() => this.setState({editingCategory: undefined, isAddOrEditDialogOpen: true})}>Add Category</MaterialButton>} />
-        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
-          {this.state.isLoading || this.state.categories.size != 0
-            ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
-              {Array.from(this.state.categories).map(([_, category]) => 
-                <div><this.CategoryCard key={category.id} {...category} /></div>)}
-              </Masonry>)
-            : (<EmptyState>No categories have been added yet.</EmptyState>)
+        <AppContext.Consumer>{({ displayError }) => <>{(this.onError = displayError)}</>}</AppContext.Consumer>
+        <PanelHeader
+          {...Drawer.items.categories}
+          action={
+            <MaterialButton
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => this.setState({ editingCategory: undefined, isAddOrEditDialogOpen: true })}
+            >
+              Add Category
+            </MaterialButton>
           }
+        />
+        <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
+          {this.state.isLoading || this.state.categories.size != 0 ? (
+            <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
+              {Array.from(this.state.categories).map(([_, category]) => (
+                <div>
+                  <this.CategoryCard key={category.id} {...category} />
+                </div>
+              ))}
+            </Masonry>
+          ) : (
+            <EmptyState>No categories have been added yet.</EmptyState>
+          )}
           <Box textAlign="center">
             <CircularProgress sx={{ mt: 5, mb: 5, visibility: this.state.isLoading ? 'visible' : 'hidden' }} />
           </Box>
@@ -236,6 +285,6 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
         <this.AddOrEditDialog />
         <this.DeleteDialog />
       </Box>
-    );
+    )
   }
 }
