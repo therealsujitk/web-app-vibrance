@@ -448,10 +448,7 @@ export default class ProShowsPanel extends BasePanel<{}, ProShowsPanelState> {
           {this.state.isLoading || this.state.proShows.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
               {Array.from(this.state.proShows).map(([_, proShow]) => 
-                <this.ProShowCard 
-                  key={proShow.id}
-                  {...proShow} 
-                />)
+                <div><this.ProShowCard key={proShow.id} {...proShow} /></div>)
               }
               </Masonry>)
             : (<EmptyState>No pro shows have been added yet.</EmptyState>)

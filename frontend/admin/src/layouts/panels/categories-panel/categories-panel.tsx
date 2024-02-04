@@ -225,7 +225,7 @@ export default class CategoryPanel extends BasePanel<{}, CategoriesPanelState> {
           {this.state.isLoading || this.state.categories.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
               {Array.from(this.state.categories).map(([_, category]) => 
-                <this.CategoryCard key={category.id} {...category} />)}
+                <div><this.CategoryCard key={category.id} {...category} /></div>)}
               </Masonry>)
             : (<EmptyState>No categories have been added yet.</EmptyState>)
           }

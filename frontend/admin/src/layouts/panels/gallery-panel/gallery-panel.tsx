@@ -22,7 +22,7 @@ interface GalleryPanelState extends BasePanelState {
   deletingImage?: Image;
 
   /**
-   * If `true`, the AddEditDialog is open
+   * If `true`, the UploadDialog is open
    * @default false
    */
   isUploadDialogOpen: boolean;
@@ -190,7 +190,7 @@ export default class GalleryPanel extends BasePanel<{}, GalleryPanelState> {
           {this.state.isLoading || this.state.gallery.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
               {Array.from(this.state.gallery).map(([_, image]) => 
-                <this.ImageCard key={image.id} {...image} />)}
+                <div><this.ImageCard key={image.id} {...image} /></div>)}
               </Masonry>)
             : (<EmptyState>No gallery images have been added yet.</EmptyState>)
           }

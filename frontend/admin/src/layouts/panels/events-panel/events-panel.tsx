@@ -518,10 +518,7 @@ export default class EventsPanel extends BasePanel<{}, EventsPanelState> {
           {this.state.isLoading || this.state.events.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 4 }} spacing={2}>
               {Array.from(this.state.events).map(([_, event]) => 
-                <this.EventCard 
-                  key={event.id}
-                  {...event} 
-                />)
+                <div><this.EventCard key={event.id} {...event} /></div>)
               }
               </Masonry>)
             : (<EmptyState>No events have been added yet.</EmptyState>)

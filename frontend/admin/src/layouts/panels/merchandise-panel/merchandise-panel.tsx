@@ -223,7 +223,7 @@ export default class MerchandisePanel extends BasePanel<{}, MerchandisePanelStat
           {this.state.isLoading || this.state.merchandise.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
               {Array.from(this.state.merchandise).map(([_, merchandise]) => 
-                <this.MerchandiseCard key={merchandise.id} {...merchandise} />)}
+                <div><this.MerchandiseCard key={merchandise.id} {...merchandise} /></div>)}
               </Masonry>)
             : (<EmptyState>No merchandise have been added yet.</EmptyState>)
           }

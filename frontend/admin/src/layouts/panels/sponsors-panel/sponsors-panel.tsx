@@ -251,7 +251,7 @@ export default class SponsorPanel extends BasePanel<{}, SponsorsPanelState> {
           {this.state.isLoading || this.state.sponsors.size != 0
             ? (<Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 8 }} spacing={2}>
               {Array.from(this.state.sponsors).map(([_, sponsor]) => 
-                <this.SponsorCard key={sponsor.id} {...sponsor} />)}
+                <div><this.SponsorCard key={sponsor.id} {...sponsor} /></div>)}
               </Masonry>)
             : (<EmptyState>No sponsors have been added yet.</EmptyState>)
           }
