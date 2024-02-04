@@ -10,6 +10,7 @@ const TextArea = styled('textarea')(({ theme }) => ({
   paddingBottom: theme.spacing(2),
   border: '2px solid transparent',
   backgroundColor: theme.palette.background.paper,
+  backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
   color: theme.palette.text.primary,
   fontFamily: theme.typography.fontFamily,
   borderRadius: theme.shape.borderRadius,

@@ -97,6 +97,7 @@ export default class MultiImageInput extends React.Component<MultiImageInputProp
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: theme.palette.background.paper,
+              backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
               color: theme.palette.text.secondary,
               borderRadius: `${theme.shape.borderRadius}px`,
               border: '2px solid transparent',
@@ -154,34 +155,41 @@ export default class MultiImageInput extends React.Component<MultiImageInputProp
           </Box>)}
         </Box>}
         <Box sx={(theme) => ({
-          height: '100%',
-          flexGrow: 1,
-          backgroundColor: theme.palette.background.paper,
-          backgroundImage: `url(${selectedIndex === -1
-                            ? ''
-                            : imageData[selectedIndex]})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center center',
-          backgroundRepeat: 'no-repeat',
-          borderRadius: `${theme.shape.borderRadius}px`,
-          color: theme.palette.text.secondary,
-        })}>
-          {this.state.selectedIndex === -1 && <Box sx={(theme) => ({
-            display: 'flex',
             height: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
+            flexGrow: 1,
+            backgroundColor: theme.palette.background.paper,
+            backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
             borderRadius: `${theme.shape.borderRadius}px`,
-            border: '2px solid transparent',
-            transition: 'border-color 0.3s',
-            '&:hover': {
-              cursor: 'pointer',
-              borderColor: theme.palette.primary.main,
-            }
-          })} onClick={this.handleOnAdd} >
-            <Add sx={{ fontSize: 40 }} />
-            <Typography variant="h6">Add images</Typography>
-          </Box>}
+          })}>
+          <Box sx={(theme) => ({
+            height: '100%',
+            flexGrow: 1,
+            backgroundImage: `url(${selectedIndex === -1
+                              ? ''
+                              : imageData[selectedIndex]})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
+            borderRadius: `${theme.shape.borderRadius}px`,
+            color: theme.palette.text.secondary,
+          })}>
+            {this.state.selectedIndex === -1 && <Box sx={(theme) => ({
+              display: 'flex',
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: `${theme.shape.borderRadius}px`,
+              border: '2px solid transparent',
+              transition: 'border-color 0.3s',
+              '&:hover': {
+                cursor: 'pointer',
+                borderColor: theme.palette.primary.main,
+              }
+            })} onClick={this.handleOnAdd} >
+              <Add sx={{ fontSize: 40 }} />
+              <Typography variant="h6">Add images</Typography>
+            </Box>}
+          </Box>
         </Box>
       </Box>
     );

@@ -97,7 +97,16 @@ export default class AppBar extends React.Component<AppBarProps, AppBarState> {
 
     return (
       <>
-        <MaterialAppBar position="fixed" sx={{zIndex: 1300}} enableColorOnDark>
+        <MaterialAppBar
+          position="fixed"
+          sx={{
+            zIndex: 1300,
+            borderBottom: 1,
+            borderColor: 'grey.900',
+            background: 'palette.background.default',
+          }}
+          elevation={0}
+        >
           <Toolbar>
             {this.props.showMenuIcon && <IconButton
               size="large"
@@ -170,7 +179,6 @@ class ProfileButton extends React.Component<ProfileButtonProps, ProfileButtonSta
   render() {
     const isOpen = Boolean(this.state.profileMenuAnchor);
     const buttonStyle = {
-      color: 'black',
       textTransform: 'none',
       borderRadius: 28,
       paddingLeft: 2,
@@ -180,7 +188,7 @@ class ProfileButton extends React.Component<ProfileButtonProps, ProfileButtonSta
     return (
       <>
         <MaterialButton
-          startIcon={<AccountCircleOutlined sx={{ color: 'black' }} />}
+          startIcon={<AccountCircleOutlined />}
           variant="text"
           sx={buttonStyle}
           onClick={this.openProfileMenu}

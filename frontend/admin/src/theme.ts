@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material';
-import { amber } from '@mui/material/colors';
+import { blue } from '@mui/material/colors';
 
 const DarkTheme = createTheme({
   typography: {
@@ -7,10 +7,10 @@ const DarkTheme = createTheme({
   },
   palette: {
     mode: 'dark',
-    primary: amber,
+    primary: blue,
     background: {
-      default: '#212121',
-      paper: '#1a1a1a',
+      default: '#020817',
+      paper: '#020817',
     }
   },
   shape: {

@@ -248,7 +248,7 @@ export default class DashboardPanel extends BasePanel<{}, DashboardPanelState> {
         </Grid>
         <Grid item xs={12} sm sx={{ textAlign: 'right' }}>
           <MaterialButton
-            startIcon={<SettingsOutlined sx={{ color: 'black' }} />}
+            startIcon={<SettingsOutlined />}
             variant="contained"
             onClick={(event) => this.openSettingsMenu(event)}
           >

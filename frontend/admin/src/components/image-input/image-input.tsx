@@ -59,7 +59,7 @@ export default class ImageInput extends React.Component<ImageInputProps, { image
       <Box sx={(theme) => ({
         height: '120px',
         backgroundColor: theme.palette.background.paper,
-        backgroundImage: `url(${this.state.image})`,
+        backgroundImage: this.state.image ? `url(${this.state.image})` : 'linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         borderRadius: `${theme.shape.borderRadius}px`,
