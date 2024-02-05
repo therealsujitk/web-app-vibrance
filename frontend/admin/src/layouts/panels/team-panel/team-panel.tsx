@@ -10,7 +10,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  Chip,
   CircularProgress,
   DialogContent,
   IconButton,
@@ -18,6 +17,7 @@ import {
   Tooltip,
   Typography,
   Autocomplete,
+  Link,
 } from '@mui/material'
 import Cookies from 'js-cookie'
 import { useEffect, useState } from 'react'
@@ -138,48 +138,32 @@ export default class TeamPanel extends BasePanel<{}, TeamPanelState> {
   MemberCard = (member: TeamMember) => {
     return (
       <Card>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Avatar
-            sx={{ width: 120, height: 120, fontSize: 70, mb: 2 }}
-            src={member.image ?? undefined}
-            alt={member.name}
-          />
-          <Typography variant="h5" textAlign="center">
-            {member.name}
-          </Typography>
-          <Typography variant="body1" textAlign="center">
-            {member.role}
-          </Typography>
-          <Chip label={member.teamName} sx={{ mt: 1 }} />
-          <Box
-            sx={{
-              marginHorizontal: 2,
-              width: '100%',
-              textAlign: 'center',
-              '& a': {
-                textTransform: 'none',
-                width: '100%',
-                whiteSpace: 'normal',
-                wordBreak: 'break-all',
-              },
-              '& a:first-of-type': {
-                marginTop: 1,
-              },
-            }}
-          >
+        <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
+          <Avatar sx={{ width: 120, height: 120, fontSize: 70 }} src={member.image ?? undefined} alt={member.name} />
+          <Stack sx={{ ml: 2, minWidth: 0, wordBreak: 'break-word' }}>
+            <Typography variant="h5">{member.name}</Typography>
+            <Typography variant="body2" sx={{ pb: 1 }}>
+              {member.teamName} • {member.role}
+            </Typography>
             {member.phone && (
-              <MaterialButton startIcon={<CallOutlined />} href={'tel:' + member.phone}>
-                {member.phone}
-              </MaterialButton>
+              <span style={{ display: 'flex', alignItems: 'center', marginBottom: member.email ? 5 : 0 }}>
+                <CallOutlined sx={{ fontSize: '15px', mr: 0.5 }} />
+                <Link href={'tel:' + member.phone} variant="body2" underline="none" lineHeight={1}>
+                  {member.phone}
+                </Link>
+              </span>
             )}
             {member.email && (
-              <MaterialButton startIcon={<EmailOutlined />} href={'mailto:' + member.email}>
-                {member.email}
-              </MaterialButton>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                <EmailOutlined sx={{ fontSize: '15px', mr: 0.5 }} />
+                <Link href={'mailto:' + member.email} variant="body2" underline="none" lineHeight={1}>
+                  {member.email}
+                </Link>
+              </span>
             )}
-          </Box>
+          </Stack>
         </CardContent>
-        <CardActions disableSpacing>
+        <CardActions disableSpacing sx={{ justifyContent: 'right', pt: 0 }}>
           <Tooltip title="Edit">
             <IconButton
               onClick={() => {
@@ -243,6 +227,7 @@ export default class TeamPanel extends BasePanel<{}, TeamPanelState> {
                     options={teamNames.filter((v) => v !== null)}
                     noOptionsText="Type to create"
                     value={selectedTeamName}
+                    onChange={(_, v) => setTeamName(v)}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -340,7 +325,7 @@ export default class TeamPanel extends BasePanel<{}, TeamPanelState> {
         />
         <Box sx={{ pl: 2, pt: 2, overflowAnchor: 'none' }}>
           {this.state.isLoading || this.state.team.size != 0 ? (
-            <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={2}>
+            <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 4 }} spacing={2}>
               {Array.from(this.state.team).map(([_, member]) => (
                 <this.MemberCard key={member.id} {...member} />
               ))}
