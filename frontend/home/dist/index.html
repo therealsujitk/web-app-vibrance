@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Placholder home page for the Vibrance Dashboard application."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          fontFamily: {
+            sans: ['"Rubik"', "sans-serif"],
+          },
+        },
+      };
+    </script>
+    <title>VIT Vibrance</title>
+  </head>
+  <body
+    class="bg-slate-900 text-slate-200 place-content-center max-w-[650px] m-auto px-[20px] py-[50px]"
+  >
+    <style>
+      code {
+        background-color: white;
+        color: rgb(251, 85, 85);
+        padding: 3px 5px;
+        border-radius: 7px;
+      }
+
+      .btn-link {
+        padding: 20px;
+        border: 1px solid #4e4e4e;
+        border-radius: 15px;
+        transition: 300ms;
+      }
+
+      .btn-link:hover {
+        border: 1px solid #707070;
+        background-color: rgba(255, 255, 255, 0.07);
+      }
+
+      @keyframes heartbeat {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(0.95);
+        }
+      }
+    </style>
+
+    <img
+      src="/assets/logo.png"
+      class="max-h-[275px] m-auto animate-[heartbeat_800ms_ease-in-out_infinite]"
+    />
+    <h2 class="text-3xl font-bold mt-5 text-center">Welcome to Vibrance!</h2>
+    <p class="text-md text-center mt-3">
+      This is a placeholder page, to change this visit
+      <code class="text-sm">/frontend/home/dist</code>.
+    </p>
+
+    <div class="grid sm:grid-cols-2 gap-4 mt-14">
+      <a href="https://github.com/therealsujitk/web-app-vibrance">
+        <div class="btn-link">
+          <h3 class="text-xl">Source Code</h3>
+          <p class="text-sm">View the project at GitHub.</p>
+        </div>
+      </a>
+
+      <a href="/admin">
+        <div class="btn-link">
+          <h3 class="text-xl">Admin Panel</h3>
+          <p class="text-sm">Access the Vibrance database.</p>
+        </div>
+      </a>
+
+      <a href="/docs">
+        <div class="btn-link">
+          <h3 class="text-xl">API Documentation</h3>
+          <p class="text-sm">Guide to use the API.</p>
+        </div>
+      </a>
+
+      <a href="https://therealsuji.tk">
+        <div class="btn-link">
+          <h3 class="text-xl">About Me</h3>
+          <p class="text-sm">About the project owner.</p>
+        </div>
+      </a>
+    </div>
+  </body>
+</html>

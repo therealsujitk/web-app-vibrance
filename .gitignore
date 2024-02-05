@@ -3,6 +3,7 @@
 
 # production
 **/dist
+!frontend/home/dist
 
 # misc
 /.env
